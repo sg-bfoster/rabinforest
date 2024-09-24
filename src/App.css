@@ -44,3 +44,6 @@ button {
   height: 40px;
   font-weight: bold;
 }
+textarea {
+  font-size: 18px;
+}
