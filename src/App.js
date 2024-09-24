@@ -26,7 +26,7 @@ function App() {
     <div className="App">
       <br />
       <textarea
-        style={{ width: '400px', margin: 'auto', textAlign: 'left' }}
+        style={{ width: '300px', margin: 'auto', textAlign: 'left' }}
         value={inputText}
         onChange={(e) => setInputText(e.target.value)}
         rows="5"
@@ -35,7 +35,7 @@ function App() {
       />
       <br />
       <button onClick={handleSubmit}>Submit</button>
-      <div style={{ maxWidth: '400px', margin: 'auto', textAlign: 'left' }}>
+      <div style={{ maxWidth: '300px', margin: 'auto', textAlign: 'left' }}>
         <h3>Response:</h3>
         <p>{response.answer}</p>
         <h3>Links:</h3>
