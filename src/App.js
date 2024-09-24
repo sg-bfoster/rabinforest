@@ -4,8 +4,10 @@ import React, { useState } from 'react';
 function App() {
   const [inputText, setInputText] = useState('');
   const [response, setResponse] = useState({ answer: '', links: [] });
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
+    setLoading(true);  // Show the spinner
     try {
       const res = await fetch('https://bfoster-services.herokuapp.com/ai/assistant', {
         method: 'POST',
@@ -19,6 +21,8 @@ function App() {
       setResponse(data);  // Assuming 'answer' is the key in the JSON response
     } catch (error) {
       console.error('Error:', error);
+    } finally {
+      setLoading(false);  // Hide the spinner
     }
   };
 
@@ -34,7 +38,11 @@ function App() {
         placeholder="Ask me anything..."
       />
       <br />
-      <button onClick={handleSubmit}>Submit</button>
+      <button onClick={handleSubmit}>
+        {!loading && <span>Submit</span>}
+        {loading && <span className="spinner">Loading...</span>}
+      </button>
+      
       <div style={{ maxWidth: '300px', margin: 'auto', textAlign: 'left' }}>
         <h3>Response:</h3>
         <p>{response.answer}</p>
