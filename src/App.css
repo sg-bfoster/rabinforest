@@ -84,3 +84,11 @@ textarea {
 .response.loading {
   opacity: 0.25; /* Lowered opacity */
 }
+
+.error {
+  width: 100%;
+  background-color: #ffaaaa;
+  height: 30px;
+  line-height: 30px;
+  margin-bottom: 10px;
+}
