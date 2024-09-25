@@ -66,7 +66,7 @@ function App() {
       <br />
       <button onClick={handleSubmit}>
         {!loading && <span>Submit</span>}
-        {loading && <span className="spinner">Loading...</span>}
+        {loading && <span className="spinner">Thinking...</span>}
       </button>
 
       <div className={`response ${loading ? 'loading' : ''}`}>
