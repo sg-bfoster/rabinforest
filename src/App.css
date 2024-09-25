@@ -72,3 +72,15 @@ textarea {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+.response {
+  max-width: 300px;
+  margin: auto;
+  text-align: left;
+  opacity: 1;
+  transition: opacity 0.3s ease; /* Add transition for a smooth effect */
+}
+
+.response.loading {
+  opacity: 0.25; /* Lowered opacity */
+}

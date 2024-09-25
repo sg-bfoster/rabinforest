@@ -48,7 +48,7 @@ function App() {
         {loading && <span className="spinner">Loading...</span>}
       </button>
       
-      <div style={{ maxWidth: '300px', margin: 'auto', textAlign: 'left' }}>
+      <div className={`response ${loading ? 'loading' : ''}`}>
         <h3>Response:</h3>
         <p dangerouslySetInnerHTML={{ __html: formatAnswer(response.answer) }}></p>
         <h3>Links:</h3>
