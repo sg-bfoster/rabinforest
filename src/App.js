@@ -7,22 +7,23 @@ function App() {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    setLoading(true);  // Show the spinner
-    try {
-      const res = await fetch('https://bfoster-services.herokuapp.com/ai/assistant', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prompt: inputText }),
-      });
-
-      const data = await res.json();
-      setResponse(data); // Update the response state
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setLoading(false);  // Hide the spinner
+    if (inputText !== '') {
+      setLoading(true);  // Show the spinner
+      try {
+        const res = await fetch('https://bfoster-services.herokuapp.com/ai/assistant', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ prompt: inputText }),
+        });
+        const data = await res.json();
+        setResponse(data); // Update the response state
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setLoading(false);  // Hide the spinner
+      }
     }
   };
 
@@ -47,7 +48,7 @@ function App() {
         {!loading && <span>Submit</span>}
         {loading && <span className="spinner">Loading...</span>}
       </button>
-      
+
       <div className={`response ${loading ? 'loading' : ''}`}>
         <h3>Response:</h3>
         <p dangerouslySetInnerHTML={{ __html: formatAnswer(response.answer) }}></p>
