@@ -18,12 +18,17 @@ function App() {
       });
 
       const data = await res.json();
-      setResponse(data);  // Assuming 'answer' is the key in the JSON response
+      setResponse(data); // Update the response state
     } catch (error) {
       console.error('Error:', error);
     } finally {
       setLoading(false);  // Hide the spinner
     }
+  };
+
+  // Function to format the answer by replacing newlines with <br/>
+  const formatAnswer = (text) => {
+    return text.split('\n').join('<br/>');
   };
 
   return (
@@ -45,7 +50,7 @@ function App() {
       
       <div style={{ maxWidth: '300px', margin: 'auto', textAlign: 'left' }}>
         <h3>Response:</h3>
-        <p>{response.answer}</p>
+        <p dangerouslySetInnerHTML={{ __html: formatAnswer(response.answer) }}></p>
         <h3>Links:</h3>
         {response.links.map((item, index) => (
           <p key={index}>
