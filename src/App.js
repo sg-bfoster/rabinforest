@@ -17,11 +17,13 @@ function App() {
 
   const handleSubmit = async () => {
     if (inputText !== '') {
+      let currentPrompt = inputText;
+      setInputText('');  // Clear the input field
       setLoading(true);  // Show the spinner
       setError(false);  // Reset the error state
 
       // Add user's input to the conversation (for display)
-      const updatedConversation = [...conversation, { role: 'user', content: inputText }];
+      const updatedConversation = [...conversation, { role: 'user', content: currentPrompt }];
       setConversation(updatedConversation);
 
       try {
@@ -31,7 +33,7 @@ function App() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            prompt: inputText, // Send only the new user prompt
+            prompt: currentPrompt, // Send only the new user prompt
             threadId: threadId // Send the existing threadId, if any
           }),
         });
@@ -59,10 +61,12 @@ function App() {
           // Add AI's response to the conversation (for display)
           setConversation(prev => [...prev, { role: 'assistant', content: convertNewlinesToBr(parsedAnswer) }]);
           setLinks(data.links || []); // Update links if present
+          setInputText('')
         } else {
           setError(true);
           setConversation(prev => [...prev, { role: 'assistant', content: "An unexpected error occurred." }]);
           setLinks([]); // Clear links on error
+          setInputText(currentPrompt)
         }
 
       } catch (error) {
@@ -70,9 +74,9 @@ function App() {
         setError(true);
         setConversation(prev => [...prev, { role: 'assistant', content: "An error occurred. Please try again." }]);
         setLinks([]); // Clear links on error
+        setInputText(currentPrompt)
       } finally {
         setLoading(false);  // Hide the spinner
-        setInputText('');  // Clear input field
       }
     }
   };
