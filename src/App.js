@@ -42,7 +42,7 @@ function App() {
         // Save the threadId if it's returned (for first request)
         if (data.threadId) {
           setThreadId(data.threadId);
-          localStorage.setItem('threadId', data.threadId); // Persist the threadId
+          sessionStorage.setItem('threadId', data.threadId); // Persist the threadId
         }
 
         if (data.answer) {
