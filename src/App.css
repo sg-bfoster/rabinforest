@@ -82,6 +82,10 @@ body {
 }
 
 /* Links container styling */
+.links-container {
+padding: 0 20px;
+}
+
 .links-container h3 {
   color: #e0e0e0; /* Light text color for headings */
 }
