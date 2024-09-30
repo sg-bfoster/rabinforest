@@ -85,17 +85,17 @@ function App() {
   useEffect(() => {
     conversationEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [conversation]);
-  
+
   useEffect(() => {
     const handleResize = () => {
       const appElement = document.querySelector('.App');
       const vh = window.innerHeight * 0.01;
       appElement.style.setProperty('--vh', `${vh}px`);
     };
-  
+
     handleResize(); // Set on initial load
     window.addEventListener('resize', handleResize);
-  
+
     return () => {
       window.removeEventListener('resize', handleResize);
     };
@@ -111,6 +111,12 @@ function App() {
 
   return (
     <div className="App">
+      {/* Fixed Navbar */}
+      <div className="navbar">
+        <h1>Rabin Forest</h1>
+      </div>
+
+      {/* Conversation */}
       <div className="conversation">
         {conversation.map((msg, index) => (
           <div key={index} className={msg.role === 'user' ? 'user-message' : 'assistant-message'}>
@@ -122,6 +128,7 @@ function App() {
         <div ref={conversationEndRef} />
       </div>
 
+      {/* Links Section */}
       <div className="links-container">
         {links.length > 0 && (
           <div>
@@ -135,6 +142,7 @@ function App() {
         )}
       </div>
 
+      {/* Input Area */}
       <div className="input-container">
         {error && <div className="error">There was an error. Try again.</div>}
         <textarea
@@ -147,6 +155,11 @@ function App() {
         <button onClick={handleSubmit} disabled={loading}>
           {loading ? <span>Thinking...</span> : <span>Send</span>}
         </button>
+      </div>
+
+      {/* Fixed Footer */}
+      <div className="footer">
+        <p>© 2024 www.rabinforest.com</p>
       </div>
     </div>
   );
