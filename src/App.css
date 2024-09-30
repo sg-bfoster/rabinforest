@@ -64,7 +64,7 @@ body {
   background-color: #1e1e1e; /* Darker background for conversation area */
   border-top: 1px solid #333; /* Subtle border */
   margin-top: 60px; /* Space for fixed navbar */
-  margin-bottom: 5px; /* Space for fixed footer */
+  margin-bottom: 60px; /* Space for fixed footer */
   max-height: calc(100vh - 235px); /* Prevents overflow into footer */
   box-sizing: border-box;
 }
