@@ -5,9 +5,9 @@ body {
 .App {
   display: flex;
   flex-direction: column;
-  height: 90vh;
-  background-color: #121212; /* Dark background */
-  color: #e0e0e0; /* Light text color */
+  height: calc(var(--vh, 1vh) * 100);
+  background-color: #121212;
+  color: #e0e0e0;
 }
 
 .conversation {

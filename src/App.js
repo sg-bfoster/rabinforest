@@ -61,12 +61,12 @@ function App() {
           // Add AI's response to the conversation (for display)
           setConversation(prev => [...prev, { role: 'assistant', content: convertNewlinesToBr(parsedAnswer) }]);
           setLinks(data.links || []); // Update links if present
-          setInputText('')
+          setInputText('');
         } else {
           setError(true);
           setConversation(prev => [...prev, { role: 'assistant', content: "An unexpected error occurred." }]);
           setLinks([]); // Clear links on error
-          setInputText(currentPrompt)
+          setInputText(currentPrompt);
         }
 
       } catch (error) {
@@ -74,7 +74,7 @@ function App() {
         setError(true);
         setConversation(prev => [...prev, { role: 'assistant', content: "An error occurred. Please try again." }]);
         setLinks([]); // Clear links on error
-        setInputText(currentPrompt)
+        setInputText(currentPrompt);
       } finally {
         setLoading(false);  // Hide the spinner
       }
@@ -85,6 +85,29 @@ function App() {
   useEffect(() => {
     conversationEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [conversation]);
+  
+  useEffect(() => {
+    const handleResize = () => {
+      const appElement = document.querySelector('.App');
+      const vh = window.innerHeight * 0.01;
+      appElement.style.setProperty('--vh', `${vh}px`);
+    };
+  
+    handleResize(); // Set on initial load
+    window.addEventListener('resize', handleResize);
+  
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  // Handle key presses in the textarea
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault(); // Prevents adding a new line
+      handleSubmit(); // Submit the form
+    }
+  };
 
   return (
     <div className="App">
@@ -117,9 +140,9 @@ function App() {
         <textarea
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
+          onKeyDown={handleKeyDown} // Use onKeyDown for detecting Enter and Shift+Enter
           rows="2"
           placeholder="Type your message..."
-          onKeyPress={(e) => e.key === 'Enter' ? handleSubmit() : null}
         />
         <button onClick={handleSubmit} disabled={loading}>
           {loading ? <span>Thinking...</span> : <span>Send</span>}
