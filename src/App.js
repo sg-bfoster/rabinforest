@@ -129,15 +129,15 @@ function App() {
       </div>
 
       {/* Links Section */}
-      <div className="links-container">
+      <div className={`links-container ${links.length > 0 ? 'show' : ''}`}>
         {links.length > 0 && (
           <div>
             <h3>Links:</h3>
-              {links.map((link, index) => (
-                <p key={index}>
-                  <a href={link} target="_blank" rel="noopener noreferrer">{link}</a>
-                </p>
-              ))}
+            {links.map((link, index) => (
+              <p key={index}>
+                <a href={link} target="_blank" rel="noopener noreferrer">{link}</a>
+              </p>
+            ))}
           </div>
         )}
       </div>

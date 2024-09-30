@@ -12,8 +12,6 @@ body {
   height: calc(var(--vh, 1vh) * 100);
   background-color: #121212;
   color: #e0e0e0;
-  padding-top: 40px; /* Adjusted padding for navbar */
-  padding-bottom: 40px; /* Adjusted padding for footer */
 }
 
 /* Navbar styling */
@@ -22,7 +20,7 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  height: 40px; /* Navbar height */
+  height: 60px;
   background-color: #000000;
   border-bottom: 1px solid #666; /* Subtle border */
   color: white;
@@ -34,7 +32,7 @@ body {
 
 .navbar h1 {
   margin: 0;
-  font-size: 18px;
+  font-size: 24px;
 }
 
 /* Footer styling */
@@ -43,7 +41,7 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 40px; /* Footer height */
+  height: 40px;
   background-color: #000000;
   border-top: 1px solid #666; /* Subtle border */
   color: #e0e0e0;
@@ -65,6 +63,10 @@ body {
   padding: 20px;
   background-color: #1e1e1e; /* Darker background for conversation area */
   border-top: 1px solid #333; /* Subtle border */
+  margin-top: 60px; /* Space for fixed navbar */
+  margin-bottom: 5px; /* Space for fixed footer */
+  max-height: calc(100vh - 235px); /* Prevents overflow into footer */
+  box-sizing: border-box;
 }
 
 .conversation div {
@@ -101,7 +103,7 @@ body {
   border-top: 1px solid #333;
   background-color: #1e1e1e; /* Darker background */
   position: fixed;
-  bottom: 40px; /* Adjusted to sit above the footer */
+  bottom: 40px; /* Make sure it's above the footer */
   left: 0;
   right: 0;
   z-index: 99;
@@ -141,10 +143,21 @@ body {
 /* Links container styling */
 .links-container {
   padding: 0 20px;
+  display: none; /* Hide the links container by default */
+}
+
+.links-container.show {
+  display: block; /* Show the links container when there are links */
+  margin-bottom: 200px; /* Space for the links above the input field */
 }
 
 .links-container h3 {
   color: #e0e0e0; /* Light text color for headings */
+}
+
+.links-container .links-content {
+  max-height: 120px; /* Set max height to limit the container size */
+  overflow-y: auto; /* Enable vertical scrolling */
 }
 
 .links-container p a {
