@@ -109,15 +109,16 @@ body {
 
 /* Conversation area styling */
 .conversation {
+  position: relative;
   flex-grow: 1;
   overflow-y: auto;
   padding: 20px;
   background-color: #1e1e1e;
   border-top: 1px solid #333;
-  margin-top: 60px;
-  margin-bottom: 180px;
+  top: 60px;
+  margin-bottom: 250px;
   box-sizing: border-box;
-  padding-bottom: 90px; /* Ensure space for input and footer */
+  bottom: 210px;
 }
 
 .conversation div {
