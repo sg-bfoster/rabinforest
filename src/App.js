@@ -9,8 +9,8 @@ function App() {
   const [error, setError] = useState(false);
   const [threadId, setThreadId] = useState(sessionStorage.getItem('threadId') || null); // Store the thread ID
   const [isPanelOpen, setIsPanelOpen] = useState(false); // State for slide-out panel
-  const [hasNewLinks, setHasNewLinks] = useState(false); // Track if there are new links
   const conversationEndRef = useRef(null); // Ref to scroll to the bottom of the conversation
+  const conversationRef = useRef(null); // Ref to the conversation div for resizing
 
   const convertNewlinesToBr = (text) => {
     return text.replace(/\n/g, '<br />');
@@ -59,7 +59,6 @@ function App() {
           setConversation(prev => [...prev, { role: 'assistant', content: convertNewlinesToBr(parsedAnswer) }]);
           if (data.links && data.links.length > 0) {
             setLinks(data.links);
-            setHasNewLinks(true); // Mark that there are new links
           } else {
             setLinks([]);
           }
@@ -87,18 +86,23 @@ function App() {
     conversationEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [conversation]);
 
-  useEffect(() => {
-    const handleResize = () => {
-      const appElement = document.querySelector('.App');
-      const vh = window.innerHeight * 0.01;
-      appElement.style.setProperty('--vh', `${vh}px`);
-    };
+  const adjustConversationHeight = () => {
+    const headerHeight = document.querySelector('.navbar').offsetHeight;
+    const footerHeight = document.querySelector('.footer').offsetHeight;
+    const inputHeight = document.querySelector('.input-container').offsetHeight;
 
-    handleResize(); // Set on initial load
-    window.addEventListener('resize', handleResize);
+    const availableHeight = window.innerHeight - headerHeight - inputHeight - footerHeight;
+    if (conversationRef.current) {
+      conversationRef.current.style.height = `${availableHeight}px`;
+    }
+  };
+
+  useEffect(() => {
+    adjustConversationHeight();
+    window.addEventListener('resize', adjustConversationHeight);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('resize', adjustConversationHeight);
     };
   }, []);
 
@@ -112,9 +116,6 @@ function App() {
   // Function to toggle the slide-out panel
   const togglePanel = () => {
     setIsPanelOpen(!isPanelOpen);
-    if (!isPanelOpen) {
-      setHasNewLinks(false); // Mark links as viewed when the panel is opened
-    }
   };
 
   return (
@@ -123,7 +124,7 @@ function App() {
       <div className="navbar">
         <h1>Rabin Forest</h1>
         <button className="toggle-panel-btn" onClick={togglePanel}>
-          Links {hasNewLinks && <span className="badge">New</span>}
+          Links {links.length > 0 && <span className="badge">{links.length}</span>}
         </button>
       </div>
 
@@ -149,7 +150,7 @@ function App() {
       </div>
 
       {/* Conversation */}
-      <div className="conversation">
+      <div className="conversation" ref={conversationRef}>
         {conversation.map((msg, index) => (
           <div key={index} className={msg.role === 'user' ? 'user-message' : 'assistant-message'}>
             <div className="message-bubble">
