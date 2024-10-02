@@ -95,7 +95,7 @@ function App() {
 
     const availableHeight = window.innerHeight - headerHeight - inputHeight - footerHeight;
     if (conversationRef.current) {
-      conversationRef.current.style.height = `${availableHeight}px`;
+      conversationRef.current.style.height = `${availableHeight + 5}px`;
     }
   };
 
