@@ -125,6 +125,7 @@ function App() {
       {/* Fixed Navbar */}
       <div className="navbar">
         <h1>Rabin Forest</h1>
+        <p>AI Assistant</p>
         <button className="toggle-panel-btn" onClick={togglePanel}>
           Links {newLinks.length > 0 && <span className="badge">{newLinks.length}</span>}
         </button>
@@ -180,7 +181,7 @@ function App() {
 
       {/* Fixed Footer */}
       <div className="footer">
-        <p>© 2024 www.rabinforest.com</p>
+        <p>© {new Date().getFullYear()} www.rabinforest.com</p>
       </div>
     </div>
   );
