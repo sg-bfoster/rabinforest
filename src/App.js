@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 function App() {
   const [inputText, setInputText] = useState('');
   const [conversation, setConversation] = useState([]); // Store the conversation history (for display only)
-  const [links, setLinks] = useState([]); // Store the links
+  const [newLinks, setNewLinks] = useState([]); // Store the new links from the current response
+  const [persistentLinks, setPersistentLinks] = useState([]); // Persistent array for the slide-out panel
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [threadId, setThreadId] = useState(sessionStorage.getItem('threadId') || null); // Store the thread ID
@@ -22,6 +23,7 @@ function App() {
       setInputText('');  // Clear the input field
       setLoading(true);  // Show the spinner
       setError(false);  // Reset the error state
+      setNewLinks([]); // Reset new links count for the badge
 
       const updatedConversation = [...conversation, { role: 'user', content: currentPrompt }];
       setConversation(updatedConversation);
@@ -57,16 +59,17 @@ function App() {
           }
 
           setConversation(prev => [...prev, { role: 'assistant', content: convertNewlinesToBr(parsedAnswer) }]);
+
           if (data.links && data.links.length > 0) {
-            setLinks(data.links);
-          } else {
-            setLinks([]);
+            // Add new links to persistent link storage
+            setPersistentLinks(prevLinks => [...data.links, ...prevLinks]);
+            setNewLinks(data.links); // Display new links for the badge
           }
+
           setInputText('');
         } else {
           setError(true);
           setConversation(prev => [...prev, { role: 'assistant', content: "An unexpected error occurred." }]);
-          setLinks([]);
           setInputText(currentPrompt);
         }
 
@@ -74,7 +77,6 @@ function App() {
         console.log('Error:', error);
         setError(true);
         setConversation(prev => [...prev, { role: 'assistant', content: "An error occurred. Please try again." }]);
-        setLinks([]);
         setInputText(currentPrompt);
       } finally {
         setLoading(false);  // Hide the spinner
@@ -124,7 +126,7 @@ function App() {
       <div className="navbar">
         <h1>Rabin Forest</h1>
         <button className="toggle-panel-btn" onClick={togglePanel}>
-          Links {links.length > 0 && <span className="badge">{links.length}</span>}
+          Links {newLinks.length > 0 && <span className="badge">{newLinks.length}</span>}
         </button>
       </div>
 
@@ -132,9 +134,9 @@ function App() {
       <div className={`slideout-panel ${isPanelOpen ? 'open' : ''}`}>
         <div>
           <h2>Links</h2>
-          {links.length > 0 ? (
+          {persistentLinks.length > 0 ? (
             <div>
-              {links.map((link, index) => (
+              {persistentLinks.map((link, index) => (
                 <p key={index}>
                   <a href={link} target="_blank" rel="noopener noreferrer">{link}</a>
                 </p>
