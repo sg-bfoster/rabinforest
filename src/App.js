@@ -126,7 +126,7 @@ function App() {
         {/* Fixed Navbar */}
         <div className="navbar">
           <h1>Rabin Forest</h1>
-          <p>AI Assistant</p>
+          <p className="subheader">AI Personal Assistant<br />for Brian Foster</p>
           <button className="toggle-panel-btn" onClick={togglePanel}>
             Links {newLinks.length > 0 && <span className="badge">{newLinks.length}</span>}
           </button>
@@ -136,6 +136,7 @@ function App() {
         <div className={`slideout-panel ${isPanelOpen ? 'open' : ''}`}>
           <div>
             <h2>Links</h2>
+            <hr />
             {persistentLinks.length > 0 ? (
               <div>
                 {persistentLinks.map((link, index) => (
@@ -147,6 +148,7 @@ function App() {
             ) : (
               <p>No links available</p>
             )}
+            <hr />
             <button className="toggle-panel-btn" onClick={togglePanel}>
               Close
             </button>

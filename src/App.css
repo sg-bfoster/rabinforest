@@ -12,17 +12,13 @@ html, body {
   height: 100%;
 }
 .background {
-  /* background-image: url('/public/forest-space-background.png');
-  background-size: cover; */
   height: 100%;
   width: 100%;
-  background-color: rgba(30, 30, 30, 0.8); /* Adjusted transparency for the conversation div */
-  pointer-events: none;
+  background-color: rgba(0, 0, 0, 0.7); /* Adjusted transparency for the conversation div */
 }
 #root {
   height: 100%;
 }
-
 .App {
   display: flex;
   flex-direction: column;
@@ -38,30 +34,34 @@ html, body {
   top: 0;
   left: 0;
   right: 0;
-  height: 60px;
-  background-color: rgba(18, 18, 18, 0.4); /* Slight transparency for the App background */
+  height: 50px;
+  background-color: rgba(0, 0, 0, 0.5); /* Slight transparency for the App background */
   border-bottom: 1px solid #666;
   color: white;
   display: flex;
   align-items: center;
   justify-content: space-between;
   z-index: 100;
-  padding: 0 20px;
+  padding: 0 15px;
 }
 
 .navbar h1 {
   margin: 0;
-  font-size: 22px;
+  font-size: 16px;
+}
+.subheader {
+  font-size: 12px;
+  margin: 0;
 }
 
 .toggle-panel-btn {
   background-color: #1e88e5;
   color: white;
   border: none;
-  padding: 10px;
+  padding: 7px;
   cursor: pointer;
   border-radius: 5px;
-  font-size: 16px;
+  font-size: 14px;
   position: relative;
 }
 
@@ -89,6 +89,16 @@ html, body {
   transition: right 0.3s ease;
   z-index: 200;
 }
+.slideout-panel h2 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.slideout-panel hr {
+  margin: 10px 0;
+  border: none;
+  border-top: 1px solid #666;
+}
 
 .slideout-panel > div {
   padding: 20px;
@@ -102,6 +112,7 @@ html, body {
 .slideout-panel a {
   color: #ffffff;
   text-decoration: none;
+  font-size: 13px;
 }
 
 .slideout-panel a:hover {
@@ -109,12 +120,12 @@ html, body {
 }
 
 .footer {
-  background-color: rgba(0, 0, 0, 0.4); /* Adjusted transparency for the footer */
+  background-color: rgba(0, 0, 0, 0.5); /* Adjusted transparency for the footer */
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 40px;
+  height: 30px;
   border-top: 1px solid #666;
   color: #e0e0e0;
   display: flex;
@@ -125,18 +136,16 @@ html, body {
 
 .footer p {
   margin: 0;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 /* Conversation area styling */
 .conversation {
-  pointer-events: none;
   position: fixed;
-  margin-top: 60px;
+  margin-top: 50px;
   width: 100%;
   overflow-y: auto;
   padding: 20px;
-  /*background-color: rgba(30, 30, 30, 0.8); /* Adjusted transparency for the conversation div */
   box-sizing: border-box;
 }
 
@@ -165,7 +174,7 @@ html, body {
 }
 
 .assistant-message .message-bubble {
-  background-color: #333;
+  background-color: #555;
 }
 
 .assistant-message .message-bubble a {
@@ -182,7 +191,7 @@ html, body {
   border-top: 1px solid #333;
   background-color: #1e1e1e !important;
   position: fixed;
-  bottom: 40px; /* Leaves space for the footer */
+  bottom: 30px; /* Leaves space for the footer */
   left: 0;
   right: 0;
   z-index: 99;
