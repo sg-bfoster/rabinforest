@@ -52,6 +52,7 @@ html, body {
 .subheader {
   font-size: 12px;
   margin: 0;
+  text-align: center;
 }
 
 .toggle-panel-btn {
