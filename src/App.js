@@ -3,15 +3,21 @@ import React, { useState, useEffect, useRef } from 'react';
 
 function App() {
   const [inputText, setInputText] = useState('');
-  const [conversation, setConversation] = useState([]); // Store the conversation history (for display only)
-  const [newLinks, setNewLinks] = useState([]); // Store the new links from the current response
-  const [persistentLinks, setPersistentLinks] = useState([]); // Persistent array for the slide-out panel
+  const [conversation, setConversation] = useState(() => {
+    const savedConversation = localStorage.getItem('conversation');
+    return savedConversation ? JSON.parse(savedConversation) : [];
+  });
+  const [newLinks, setNewLinks] = useState([]);
+  const [persistentLinks, setPersistentLinks] = useState(() => {
+    const savedLinks = localStorage.getItem('persistentLinks');
+    return savedLinks ? JSON.parse(savedLinks) : [];
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
-  const [threadId, setThreadId] = useState(sessionStorage.getItem('threadId') || null); // Store the thread ID
-  const [isPanelOpen, setIsPanelOpen] = useState(false); // State for slide-out panel
-  const conversationEndRef = useRef(null); // Ref to scroll to the bottom of the conversation
-  const conversationRef = useRef(null); // Ref to the conversation div for resizing
+  const [threadId, setThreadId] = useState(localStorage.getItem('threadId') || null);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const conversationEndRef = useRef(null);
+  const conversationRef = useRef(null);
 
   const convertNewlinesToBr = (text) => {
     return text.replace(/\n/g, '<br />');
@@ -20,13 +26,14 @@ function App() {
   const handleSubmit = async () => {
     if (inputText !== '') {
       let currentPrompt = inputText;
-      setInputText('');  // Clear the input field
-      setLoading(true);  // Show the spinner
-      setError(false);  // Reset the error state
-      setNewLinks([]); // Reset new links count for the badge
+      setInputText('');
+      setLoading(true);
+      setError(false);
+      setNewLinks([]);
 
       const updatedConversation = [...conversation, { role: 'user', content: currentPrompt }];
       setConversation(updatedConversation);
+      localStorage.setItem('conversation', JSON.stringify(updatedConversation));
 
       try {
         const res = await fetch('https://bfoster-services.herokuapp.com/ai/assistant', {
@@ -35,17 +42,16 @@ function App() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            prompt: currentPrompt, // Send only the new user prompt
-            threadId: threadId // Send the existing threadId, if any
+            prompt: currentPrompt,
+            threadId: threadId,
           }),
         });
 
         let data = await res.json();
-        console.log('data:', data);
 
         if (data.threadId) {
           setThreadId(data.threadId);
-          sessionStorage.setItem('threadId', data.threadId); // Persist the threadId
+          localStorage.setItem('threadId', data.threadId);
         }
 
         if (data.answer) {
@@ -58,28 +64,28 @@ function App() {
             console.log('Failed to parse JSON, treating as a regular string.');
           }
 
-          setConversation(prev => [...prev, { role: 'assistant', content: convertNewlinesToBr(parsedAnswer) }]);
+          const updatedAssistantConversation = [...updatedConversation, { role: 'assistant', content: convertNewlinesToBr(parsedAnswer) }];
+          setConversation(updatedAssistantConversation);
+          localStorage.setItem('conversation', JSON.stringify(updatedAssistantConversation));
 
           if (data.links && data.links.length > 0) {
-            // Add new links to persistent link storage
-            setPersistentLinks(prevLinks => [...data.links, ...prevLinks]);
-            setNewLinks(data.links); // Display new links for the badge
+            const updatedLinks = [...data.links, ...persistentLinks];
+            setPersistentLinks(updatedLinks);
+            setNewLinks(data.links);
+            localStorage.setItem('persistentLinks', JSON.stringify(updatedLinks));
           }
-
-          setInputText('');
         } else {
           setError(true);
           setConversation(prev => [...prev, { role: 'assistant', content: "An unexpected error occurred." }]);
           setInputText(currentPrompt);
         }
-
       } catch (error) {
         console.log('Error:', error);
         setError(true);
         setConversation(prev => [...prev, { role: 'assistant', content: "An error occurred. Please try again." }]);
         setInputText(currentPrompt);
       } finally {
-        setLoading(false);  // Hide the spinner
+        setLoading(false);
       }
     }
   };
@@ -115,9 +121,20 @@ function App() {
     }
   };
 
-  // Function to toggle the slide-out panel
   const togglePanel = () => {
     setIsPanelOpen(!isPanelOpen);
+  };
+
+  // Function to reset the conversation and links
+  const handleReset = () => {
+    setConversation([]);
+    setPersistentLinks([]);
+    setThreadId(null);
+    setNewLinks([]);
+
+    localStorage.removeItem('conversation');
+    localStorage.removeItem('persistentLinks');
+    localStorage.removeItem('threadId');
   };
 
   return (
@@ -180,6 +197,9 @@ function App() {
           <button onClick={handleSubmit} disabled={loading}>
             {loading ? <span>Thinking...</span> : <span>Send</span>}
           </button>
+          <button className='reset-button' onClick={handleReset} disabled={loading} >
+            Start Over
+          </button> {/* New reset button */}
         </div>
 
         {/* Fixed Footer */}
