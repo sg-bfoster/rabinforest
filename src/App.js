@@ -121,67 +121,69 @@ function App() {
   };
 
   return (
-    <div className="App">
-      {/* Fixed Navbar */}
-      <div className="navbar">
-        <h1>Rabin Forest</h1>
-        <p>AI Assistant</p>
-        <button className="toggle-panel-btn" onClick={togglePanel}>
-          Links {newLinks.length > 0 && <span className="badge">{newLinks.length}</span>}
-        </button>
-      </div>
-
-      {/* Slide-out Panel */}
-      <div className={`slideout-panel ${isPanelOpen ? 'open' : ''}`}>
-        <div>
-          <h2>Links</h2>
-          {persistentLinks.length > 0 ? (
-            <div>
-              {persistentLinks.map((link, index) => (
-                <p key={index}>
-                  <a href={link} target="_blank" rel="noopener noreferrer">{link}</a>
-                </p>
-              ))}
-            </div>
-          ) : (
-            <p>No links available</p>
-          )}
+    <div className="background">
+      <div className="App">
+        {/* Fixed Navbar */}
+        <div className="navbar">
+          <h1>Rabin Forest</h1>
+          <p>AI Assistant</p>
           <button className="toggle-panel-btn" onClick={togglePanel}>
-            Close
+            Links {newLinks.length > 0 && <span className="badge">{newLinks.length}</span>}
           </button>
         </div>
-      </div>
 
-      {/* Conversation */}
-      <div className="conversation" ref={conversationRef}>
-        {conversation.map((msg, index) => (
-          <div key={index} className={msg.role === 'user' ? 'user-message' : 'assistant-message'}>
-            <div className="message-bubble">
-              <p dangerouslySetInnerHTML={{ __html: msg.content }} style={{ margin: 0 }}></p>
-            </div>
+        {/* Slide-out Panel */}
+        <div className={`slideout-panel ${isPanelOpen ? 'open' : ''}`}>
+          <div>
+            <h2>Links</h2>
+            {persistentLinks.length > 0 ? (
+              <div>
+                {persistentLinks.map((link, index) => (
+                  <p key={index}>
+                    <a href={link} target="_blank" rel="noopener noreferrer">{link}</a>
+                  </p>
+                ))}
+              </div>
+            ) : (
+              <p>No links available</p>
+            )}
+            <button className="toggle-panel-btn" onClick={togglePanel}>
+              Close
+            </button>
           </div>
-        ))}
-        <div ref={conversationEndRef} />
-      </div>
+        </div>
 
-      {/* Input Area */}
-      <div className="input-container">
-        {error && <div className="error">There was an error. Try again.</div>}
-        <textarea
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          onKeyDown={handleKeyDown}
-          rows="2"
-          placeholder="Type your message..."
-        />
-        <button onClick={handleSubmit} disabled={loading}>
-          {loading ? <span>Thinking...</span> : <span>Send</span>}
-        </button>
-      </div>
+        {/* Conversation */}
+        <div className="conversation" ref={conversationRef}>
+          {conversation.map((msg, index) => (
+            <div key={index} className={msg.role === 'user' ? 'user-message' : 'assistant-message'}>
+              <div className="message-bubble">
+                <p dangerouslySetInnerHTML={{ __html: msg.content }} style={{ margin: 0 }}></p>
+              </div>
+            </div>
+          ))}
+          <div ref={conversationEndRef} />
+        </div>
 
-      {/* Fixed Footer */}
-      <div className="footer">
-        <p>© {new Date().getFullYear()} www.rabinforest.com</p>
+        {/* Input Area */}
+        <div className="input-container">
+          {error && <div className="error">There was an error. Try again.</div>}
+          <textarea
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            rows="2"
+            placeholder="Type your message..."
+          />
+          <button onClick={handleSubmit} disabled={loading}>
+            {loading ? <span>Thinking...</span> : <span>Send</span>}
+          </button>
+        </div>
+
+        {/* Fixed Footer */}
+        <div className="footer">
+          <p>© {new Date().getFullYear()} www.rabinforest.com</p>
+        </div>
       </div>
     </div>
   );
