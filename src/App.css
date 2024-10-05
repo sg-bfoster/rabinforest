@@ -220,8 +220,11 @@ html, body {
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 16px;
-  font-weight: bold;
+  font-size: 18px;
+}
+
+.submit{
+  font-weight: bolder;
 }
 
 .input-container button:disabled {

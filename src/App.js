@@ -194,7 +194,7 @@ function App() {
             rows="2"
             placeholder="Type your message..."
           />
-          <button onClick={handleSubmit} disabled={loading}>
+          <button onClick={handleSubmit} disabled={loading} className='submit'>
             {loading ? <span>Thinking...</span> : <span>Send</span>}
           </button>
           <button className='reset-button' onClick={handleReset} disabled={loading} >
