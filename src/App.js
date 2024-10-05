@@ -1,5 +1,8 @@
 import './App.css';
 import React, { useState, useEffect, useRef } from 'react';
+import Navbar from './Navbar';
+import InputArea from './InputAreaSection';
+import Footer from './Footer';
 
 function App() {
   const [inputText, setInputText] = useState('');
@@ -125,13 +128,11 @@ function App() {
     setIsPanelOpen(!isPanelOpen);
   };
 
-  // Function to reset the conversation and links
   const handleReset = () => {
     setConversation([]);
     setPersistentLinks([]);
     setThreadId(null);
     setNewLinks([]);
-
     localStorage.removeItem('conversation');
     localStorage.removeItem('persistentLinks');
     localStorage.removeItem('threadId');
@@ -139,16 +140,8 @@ function App() {
 
   return (
     <div className="background">
+      <Navbar togglePanel={togglePanel} newLinks={newLinks} />
       <div className="App">
-        {/* Fixed Navbar */}
-        <div className="navbar">
-          <h1>Rabin Forest</h1>
-          <p className="subheader">AI Personal Assistant<br />for Brian Foster</p>
-          <button className="toggle-panel-btn" onClick={togglePanel}>
-            Links {newLinks.length > 0 && <span className="badge">{newLinks.length}</span>}
-          </button>
-        </div>
-
         {/* Slide-out Panel */}
         <div className={`slideout-panel ${isPanelOpen ? 'open' : ''}`}>
           <div>
@@ -184,28 +177,17 @@ function App() {
           <div ref={conversationEndRef} />
         </div>
 
-        {/* Input Area */}
-        <div className="input-container">
-          {error && <div className="error">There was an error. Try again.</div>}
-          <textarea
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onKeyDown={handleKeyDown}
-            rows="2"
-            placeholder="Type your message..."
-          />
-          <button onClick={handleSubmit} disabled={loading} className='submit'>
-            {loading ? <span>Thinking...</span> : <span>Send</span>}
-          </button>
-          <button className='reset-button' onClick={handleReset} disabled={loading} >
-            Start Over
-          </button> {/* New reset button */}
-        </div>
+        <InputArea
+          inputText={inputText}
+          setInputText={setInputText}
+          handleSubmit={handleSubmit}
+          handleReset={handleReset}
+          handleKeyDown={handleKeyDown}
+          loading={loading}
+          error={error}
+        />
 
-        {/* Fixed Footer */}
-        <div className="footer">
-          <p>© {new Date().getFullYear()} www.rabinforest.com</p>
-        </div>
+        <Footer />
       </div>
     </div>
   );
