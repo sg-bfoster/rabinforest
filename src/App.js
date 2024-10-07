@@ -72,7 +72,8 @@ function App() {
           localStorage.setItem('conversation', JSON.stringify(updatedAssistantConversation));
 
           if (data.links && data.links.length > 0) {
-            const updatedLinks = [...data.links, ...persistentLinks];
+            // Merge the two arrays and deduplicate using a Set
+            const updatedLinks = Array.from(new Set([...persistentLinks, ...data.links]));
             setPersistentLinks(updatedLinks);
             setNewLinks(data.links);
             localStorage.setItem('persistentLinks', JSON.stringify(updatedLinks));
