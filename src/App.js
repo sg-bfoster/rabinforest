@@ -4,6 +4,7 @@ import Navbar from './Navbar';
 import InputArea from './InputAreaSection';
 import Footer from './Footer';
 import Conversation from './Conversation'; // Import the Conversation component
+import SlideOutPanel from './SlideOutPanel'; // Import the new SlideOutPanel component
 
 function App() {
   const [inputText, setInputText] = useState('');
@@ -73,7 +74,7 @@ function App() {
 
           if (data.links && data.links.length > 0) {
             // Merge the two arrays and deduplicate using a Set
-            const updatedLinks = Array.from(new Set([...persistentLinks, ...data.links]));
+            const updatedLinks = Array.from(new Set([...data.links, ...persistentLinks]));
             setPersistentLinks(updatedLinks);
             setNewLinks(data.links);
             localStorage.setItem('persistentLinks', JSON.stringify(updatedLinks));
@@ -120,27 +121,11 @@ function App() {
       <Navbar togglePanel={togglePanel} newLinks={newLinks} />
       <div className="App">
         {/* Slide-out Panel */}
-        <div className={`slideout-panel ${isPanelOpen ? 'open' : ''}`}>
-          <div>
-            <h2>Links</h2>
-            <hr />
-            {persistentLinks.length > 0 ? (
-              <div>
-                {persistentLinks.map((link, index) => (
-                  <p key={index}>
-                    <a href={link} target="_blank" rel="noopener noreferrer">{link}</a>
-                  </p>
-                ))}
-              </div>
-            ) : (
-              <p>No links available</p>
-            )}
-            <hr />
-            <button className="toggle-panel-btn" onClick={togglePanel}>
-              Close
-            </button>
-          </div>
-        </div>
+        <SlideOutPanel
+          isPanelOpen={isPanelOpen}
+          togglePanel={togglePanel}
+          persistentLinks={persistentLinks}
+        />
 
         <Conversation conversation={conversation} conversationEndRef={conversationEndRef} />
 
