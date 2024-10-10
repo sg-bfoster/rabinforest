@@ -1,10 +1,11 @@
 import './App.css';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Navbar from './Navbar';
 import InputArea from './InputAreaSection';
 import Footer from './Footer';
-import Conversation from './Conversation'; // Import the Conversation component
-import SlideOutPanel from './SlideOutPanel'; // Import the new SlideOutPanel component
+import Conversation from './Conversation';
+import SlideOutPanel from './SlideOutPanel';
+import SplashScreen from './SplashScreen'; // Import the splash screen
 
 function App() {
   const [inputText, setInputText] = useState('');
@@ -21,11 +22,18 @@ function App() {
   const [error, setError] = useState(false);
   const [threadId, setThreadId] = useState(localStorage.getItem('threadId') || null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const conversationEndRef = useRef(null); // Move ref for scrolling to App.js
+  const [showSplash, setShowSplash] = useState(true); // State for splash screen
+  const conversationEndRef = useRef(null);
 
   const convertNewlinesToBr = (text) => {
     return text.replace(/\n/g, '<br />');
   };
+
+  useEffect(() => {
+    // Hide splash screen after 3 seconds
+    const splashTimeout = setTimeout(() => setShowSplash(false), 4000);
+    return () => clearTimeout(splashTimeout);
+  }, []);
 
   const handleSubmit = async () => {
     if (inputText !== '') {
@@ -73,7 +81,6 @@ function App() {
           localStorage.setItem('conversation', JSON.stringify(updatedAssistantConversation));
 
           if (data.links && data.links.length > 0) {
-            // Merge the two arrays and deduplicate using a Set
             const updatedLinks = Array.from(new Set([...data.links, ...persistentLinks]));
             setPersistentLinks(updatedLinks);
             setNewLinks(data.links);
@@ -118,29 +125,30 @@ function App() {
 
   return (
     <div className="background">
-      <Navbar togglePanel={togglePanel} newLinks={newLinks} />
-      <div className="App">
-        {/* Slide-out Panel */}
-        <SlideOutPanel
-          isPanelOpen={isPanelOpen}
-          togglePanel={togglePanel}
-          persistentLinks={persistentLinks}
-        />
-
-        <Conversation conversation={conversation} conversationEndRef={conversationEndRef} />
-
-        <InputArea
-          inputText={inputText}
-          setInputText={setInputText}
-          handleSubmit={handleSubmit}
-          handleReset={handleReset}
-          handleKeyDown={handleKeyDown}
-          loading={loading}
-          error={error}
-        />
-
-        <Footer />
-      </div>
+      {showSplash ? <SplashScreen /> : null} {/* Render splash screen if showSplash is true */}
+      {(
+        <>
+          <Navbar togglePanel={togglePanel} newLinks={newLinks} />
+          <div className="App">
+            <SlideOutPanel
+              isPanelOpen={isPanelOpen}
+              togglePanel={togglePanel}
+              persistentLinks={persistentLinks}
+            />
+            <Conversation conversation={conversation} conversationEndRef={conversationEndRef} />
+            <InputArea
+              inputText={inputText}
+              setInputText={setInputText}
+              handleSubmit={handleSubmit}
+              handleReset={handleReset}
+              handleKeyDown={handleKeyDown}
+              loading={loading}
+              error={error}
+            />
+            <Footer />
+          </div>
+        </>
+      )}
     </div>
   );
 }
