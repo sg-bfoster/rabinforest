@@ -56,9 +56,10 @@ html, body {
 }
 
 .toggle-panel-btn {
-  background-color: #1e88e5;
+  /* background-color: #1e88e5; */
+  background-image: linear-gradient(to bottom, #1e88e5 0%, #1e88e5 95%, #064d8c 100%);
+  border: 1px solid #b7c9d8;
   color: white;
-  border: none;
   padding: 7px;
   cursor: pointer;
   border-radius: 5px;
@@ -215,12 +216,17 @@ html, body {
   width: 100%;
   margin-top: 10px;
   padding: 20px;
-  background-color: #1e88e5;
+  /* background-color: #1e88e5; */
+  background-image: linear-gradient(to bottom, #1e88e5 0%, #1e88e5 95%, #064d8c 100%);
+  border: 1px solid #b7c9d8;
   color: white;
-  border: none;
-  border-radius: 5px;
+
+  border-radius: 10px;
   cursor: pointer;
   font-size: 18px;
+}
+button:hover {
+  opacity: 0.8;
 }
 
 .submit{
@@ -246,6 +252,8 @@ html, body {
 .reset-button {
   margin-top: 10px;
   padding: 10px !important;
-  background-color: #439713 !important;
+  /* background-color: #439713 !important; */
+  background-image: linear-gradient(to bottom, #439713 0%, #439713 95%, #244212 100%) !important;
+  border: 1px solid #b0db96;
   font-weight: normal;
 }
