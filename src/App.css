@@ -157,10 +157,12 @@ html, body {
 
 .conversation .user-message {
   text-align: right;
+  overflow-wrap: break-word;
 }
 
 .conversation .assistant-message {
   text-align: left;
+  overflow-wrap: break-word;
 }
 
 .message-bubble {
