@@ -247,6 +247,7 @@ body {
   z-index: 99;
   padding-left: 15px;
   padding-right: 15px;
+  padding-bottom: 10px;
 }
 
 .input-container textarea {
