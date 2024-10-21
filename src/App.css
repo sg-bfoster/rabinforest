@@ -126,11 +126,11 @@ body {
   padding: 0;
   transition: right 0.3s ease;
   z-index: 200;
+  font-size: 18px;
 }
 
 .slideout-panel h2 {
   margin: 0;
-  font-size: 14px;
 }
 
 .slideout-panel hr {
@@ -151,7 +151,7 @@ body {
 .slideout-panel a {
   color: #ffffff;
   text-decoration: none;
-  font-size: 13px;
+  font-size: 18px;
 }
 
 .slideout-panel a:hover {
