@@ -4,7 +4,7 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
-if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
+if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost' && !window.location.hostname.includes('10.0.0')) {
   window.location.href = `https://${window.location.host}${window.location.pathname}${window.location.search}`;
 }
 

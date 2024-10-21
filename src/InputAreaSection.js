@@ -2,6 +2,7 @@
 import React from 'react';
 
 const InputArea = ({
+  isPanelOpen,
   inputText,
   setInputText,
   handleSubmit,
@@ -10,7 +11,7 @@ const InputArea = ({
   loading,
   error
 }) => (
-  <div className="input-container">
+  <div className={`input-container ${isPanelOpen ? 'open' : ''}`}>
     {error && <div className="error">There was an error. Try again.</div>}
     <textarea
       value={inputText}

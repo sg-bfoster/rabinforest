@@ -21,9 +21,10 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [threadId, setThreadId] = useState(localStorage.getItem('threadId') || null);
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [isPanelOpen, setIsPanelOpen] = useState(window.innerWidth >= 768); // Default to open on wider screens
   const [showSplash, setShowSplash] = useState(true); // State for splash screen
   const conversationEndRef = useRef(null);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
 
   const convertNewlinesToBr = (text) => {
     return text.replace(/\n/g, '<br />');
@@ -31,8 +32,29 @@ function App() {
 
   useEffect(() => {
     // Hide splash screen after 3 seconds
-    const splashTimeout = setTimeout(() => setShowSplash(false), 4000);
+    const splashTimeout = setTimeout(() => setShowSplash(false), 3000);
     return () => clearTimeout(splashTimeout);
+  }, []);
+
+  // Automatically toggle panel based on screen width
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsPanelOpen(true);  // Always open on desktop screens
+        setIsDesktop(true);
+      } else {
+        setIsPanelOpen(false); // Always closed on smaller screens
+        setIsDesktop(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Call once to set the initial state based on window width
+    handleResize();
+
+    // Clean up the event listener on unmount
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const handleSubmit = async () => {
@@ -128,15 +150,17 @@ function App() {
       {showSplash ? <SplashScreen /> : null} {/* Render splash screen if showSplash is true */}
       {(
         <>
-          <Navbar togglePanel={togglePanel} newLinks={newLinks} />
-          <div className="App">
-            <SlideOutPanel
+          <Navbar togglePanel={togglePanel} newLinks={newLinks} isDesktop={isDesktop} isPanelOpen={isPanelOpen} />
+          <SlideOutPanel
               isPanelOpen={isPanelOpen}
               togglePanel={togglePanel}
               persistentLinks={persistentLinks}
+              isDesktop={isDesktop} 
             />
+          <div className={`App ${isPanelOpen ? 'open' : ''}`}>
             <Conversation conversation={conversation} conversationEndRef={conversationEndRef} />
             <InputArea
+              isPanelOpen={isPanelOpen}
               inputText={inputText}
               setInputText={setInputText}
               handleSubmit={handleSubmit}
@@ -145,7 +169,7 @@ function App() {
               loading={loading}
               error={error}
             />
-            <Footer />
+            <Footer isPanelOpen={isPanelOpen}></Footer>
           </div>
         </>
       )}

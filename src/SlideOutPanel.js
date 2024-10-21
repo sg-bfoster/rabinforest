@@ -1,6 +1,6 @@
 import React from 'react';
 
-function SlideOutPanel({ isPanelOpen, togglePanel, persistentLinks }) {
+function SlideOutPanel({ isPanelOpen, togglePanel, persistentLinks, isDesktop }) {
   return (
     <div className={`slideout-panel ${isPanelOpen ? 'open' : ''}`}>
       <div>
@@ -18,9 +18,9 @@ function SlideOutPanel({ isPanelOpen, togglePanel, persistentLinks }) {
           <p>No links available</p>
         )}
         <hr />
-        <button className="toggle-panel-btn" onClick={togglePanel}>
+        {!isDesktop && <button className="toggle-panel-btn" onClick={togglePanel}>
           Close
-        </button>
+        </button> }
       </div>
     </div>
   );
