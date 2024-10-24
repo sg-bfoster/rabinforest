@@ -4,6 +4,9 @@ function SlideOutPanel({ isPanelOpen, togglePanel, persistentLinks, isDesktop })
   return (
     <div className={`slideout-panel ${isPanelOpen ? 'open' : ''}`}>
       <div>
+      {!isDesktop && <button className="toggle-panel-btn" onClick={togglePanel}>
+          Close
+        </button> }
         <h2>Links</h2>
         <hr />
         {persistentLinks.length > 0 ? (
@@ -18,9 +21,6 @@ function SlideOutPanel({ isPanelOpen, togglePanel, persistentLinks, isDesktop })
           <p>No links available</p>
         )}
         <hr />
-        {!isDesktop && <button className="toggle-panel-btn" onClick={togglePanel}>
-          Close
-        </button> }
       </div>
     </div>
   );
