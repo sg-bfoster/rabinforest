@@ -242,26 +242,26 @@ body {
 .user-message .message-bubble::after {
   content: "";
   position: absolute;
-  bottom: -10px;
+  bottom: -15px;
   right: 15px;
   width: 0;
   height: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-top: 10px solid #1e88e5; /* Same as the user bubble background */
+  border-left: 30px solid transparent;
+  border-right: 1px solid transparent;
+  border-top: 15px solid #1e88e5; /* Same as the user bubble background */
 }
 
 /* Triangle for the assistant message */
 .assistant-message .message-bubble::after {
   content: "";
   position: absolute;
-  bottom: -10px;
+  bottom: -15px;
   left: 15px;
   width: 0;
   height: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-top: 10px solid #555; /* Same as the assistant bubble background */
+  border-left: 1px solid transparent;
+  border-right: 30px solid transparent;
+  border-top: 15px solid #555; /* Same as the assistant bubble background */
 }
 
 /* Input container styling */
