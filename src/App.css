@@ -198,9 +198,7 @@ body {
   margin-bottom: 10px;
   font-size: clamp(1.15rem, 1.15vw + 1rem, 1.75rem);
   white-space: pre-wrap;
-  /* Preserve line breaks */
   overflow-wrap: break-word;
-  /* Prevent breaking the layout */
 }
 
 .conversation .user-message {
@@ -219,6 +217,7 @@ body {
   border-radius: 15px;
   max-width: 85%;
   color: #e0e0e0;
+  position: relative; /* Needed for the triangle */
 }
 
 .user-message .message-bubble {
@@ -235,6 +234,32 @@ body {
 
 .assistant-message .message-bubble a:hover {
   color: #dddddd;
+}
+
+/* Triangle for the user message */
+.user-message .message-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  right: 10px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid #1e88e5; /* Same as the user bubble background */
+}
+
+/* Triangle for the assistant message */
+.assistant-message .message-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 10px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid #555; /* Same as the assistant bubble background */
 }
 
 /* Input container styling */
