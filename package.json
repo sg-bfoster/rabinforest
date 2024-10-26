@@ -12,6 +12,9 @@
     "serve": "^14.2.3",
     "web-vitals": "^2.1.4"
   },
+  "devDependencies":{
+    "@babel/plugin-proposal-private-property-in-object": "^7.16.7"
+  },
   "scripts": {
     "start": "serve -s build",
     "start-dev": "react-scripts start",
