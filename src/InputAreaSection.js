@@ -18,12 +18,12 @@ const InputArea = ({
       onChange={(e) => setInputText(e.target.value)}
       onKeyDown={handleKeyDown}
       rows="2"
-      placeholder="Type your message..."
+      placeholder="Type your query..."
     />
     <button onClick={handleSubmit} disabled={loading} className='submit'>
       {loading ? <span>Thinking...</span> : <span>Send</span>}
     </button>
-    <button className='reset-button' onClick={handleReset} disabled={loading}>
+    <button className='reset-button' onClick={handleReset}>
       Start Over
     </button>
   </div>

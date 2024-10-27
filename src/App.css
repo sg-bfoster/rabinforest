@@ -69,7 +69,6 @@ body {
   right: 0;
   height: 75px;
   background-color: rgba(0, 0, 0, 0.5);
-  /* Slight transparency for the App background */
   border-bottom: 1px solid #666;
   color: white;
   display: flex;
@@ -81,21 +80,48 @@ body {
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.5);
 }
 
-.navbar h1 {
+/* Adjustments for the navbar content */
+.navbar-content {
+  display: flex;
+  align-items: center;
+}
+
+/* Styling for the logo */
+.navbar-logo {
+  width: 50px; /* Adjust the size of the logo as needed */
+  height: auto;
+  margin-right: 15px; /* Space between the logo and the text */
+  border-radius: 8px;
+  /* border: 1px solid #ffffff; */
+  box-shadow: 0 0 3px rgba(255, 255, 255, 0.75);
+}
+
+/* Make the title container flexible */
+.navbar-title {
+  display: flex;
+  flex-direction: column;
+  white-space: nowrap;
+}
+
+/* Allow "Rabin Forest" to break into two lines */
+.navbar-title h1 {
   margin: 0;
   font-size: 20px;
+  word-wrap: break-word;
+  white-space: normal;
 }
 
+/* Subheader styling */
 .subheader {
-  font-size: 12px;
+  font-size: 11px;
   margin: 0;
-  text-align: center;
+  text-align: left;
 }
-
 .toggle-panel-btn {
   /* background-color: #1e88e5; */
-  background-image: linear-gradient(to bottom, #1e88e5 0%, #1e88e5 88%, #064d8c 100%);
-  border: 1px solid #b7c9d8;
+  /* background-image: linear-gradient(to bottom, #1e88e5 0%, #1e88e5 88%, #064d8c 100%); */
+  border: none;
+  background-color: #5C3459;
   color: white;
   padding: 7px;
   cursor: pointer;
@@ -103,6 +129,7 @@ body {
   font-size: 14px;
   position: relative;
   float: right;
+  box-shadow: 2px 5px 10px rgba(0, 0, 0, 0.5);
 }
 
 .badge {
@@ -129,6 +156,8 @@ body {
   transition: right 0.3s ease;
   z-index: 200;
   font-size: 18px;
+  display: flex;
+  flex-direction: column; /* Ensures the header stays at the top */
 }
 
 .slideout-panel h2 {
@@ -141,8 +170,21 @@ body {
   border-top: 1px solid #666;
 }
 
-.slideout-panel>div {
-  padding: 20px;
+/* Fixed header section */
+.slideout-header {
+  padding: 20px 20px 10px 20px;
+  background-color: #333;
+  border-bottom: 1px solid #666;
+  z-index: 1;
+  flex-shrink: 0; /* Ensures the header doesn't shrink when the links overflow */
+}
+
+/* Scrollable links section */
+.slideout-links {
+  flex-grow: 1; /* Take up remaining space */
+  overflow-y: auto; /* Scrollable when content overflows */
+  padding: 10px 20px;
+  background-color: #333;
 }
 
 .slideout-panel.open {
@@ -219,15 +261,15 @@ body {
   max-width: 85%;
   color: #e0e0e0;
   position: relative; /* Needed for the triangle */
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.5);
+  box-shadow: 2px 5px 10px rgba(0, 0, 0, 0.5);
 }
 
 .user-message .message-bubble {
-  background-color: #1e88e5;
+  background-color: #3c587b;
 }
 
 .assistant-message .message-bubble {
-  background-color: #555;
+  background-color: #777;
 }
 
 .assistant-message .message-bubble a {
@@ -248,7 +290,7 @@ body {
   height: 0;
   border-left: 30px solid transparent;
   border-right: 1px solid transparent;
-  border-top: 15px solid #1e88e5; /* Same as the user bubble background */
+  border-top: 15px solid #3c587b; /* Same as the user bubble background */
 }
 
 /* Triangle for the assistant message */
@@ -261,7 +303,7 @@ body {
   height: 0;
   border-left: 1px solid transparent;
   border-right: 30px solid transparent;
-  border-top: 15px solid #555; /* Same as the assistant bubble background */
+  border-top: 15px solid #777; /* Same as the assistant bubble background */
 }
 
 /* Input container styling */
@@ -281,6 +323,7 @@ body {
 }
 
 .input-container textarea {
+  box-shadow: 2px 5px 10px rgba(0, 0, 0, 0.5);
   margin: 10px 0;
   width: 100%;
   padding: 15px;
@@ -295,12 +338,13 @@ body {
 }
 
 .input-container button {
-
+  box-shadow: 2px 5px 10px rgba(0, 0, 0, 0.5);
   display: block;
   width: 100%;
   padding: 15px;
-  background-image: linear-gradient(to bottom, #1e88e5 0%, #1e88e5 88%, #064d8c 100%);
-  border: 3px solid #b7c9d8;
+  /* background-image: linear-gradient(to bottom, #1e88e5 0%, #92c4ef 49%, #064d8c 50%, #1e88e5 100%); */
+  background-color: #5C3459;
+  border: none;
   color: white;
   border-radius: 15px;
   cursor: pointer;
@@ -316,7 +360,7 @@ button:hover {
 }
 
 .input-container button:disabled {
-  background-color: #555;
+opacity: 0.25;
 }
 
 /* Error message styling */
@@ -335,9 +379,8 @@ button:hover {
   margin-top: 15px;
   padding: 8px !important;
   /* background-color: #439713 !important; */
-  background-image: linear-gradient(to bottom, #439713 0%, #439713 88%, #244212 100%) !important;
-  border: 3px solid #b0db96;
+  /* background-image: linear-gradient(to bottom, #439713 0%, #439713 88%, #244212 100%) !important; */
+  background-color: #777 !important;
+  border: none;
   font-weight: normal;
-
-
 }
