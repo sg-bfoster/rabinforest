@@ -24,6 +24,7 @@ function App() {
   const [isPanelOpen, setIsPanelOpen] = useState(window.innerWidth >= 768); // Default to open on wider screens
   const [showSplash, setShowSplash] = useState(true); // State for splash screen
   const [fadeOutSplash, setFadeOutSplash] = useState(false); // State to trigger fade out
+  const [showApp, setShowApp] = useState(false); // State to show the app after splash screen
   const conversationEndRef = useRef(null);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
 
@@ -33,6 +34,7 @@ function App() {
 
   useEffect(() => {
     // Trigger fade-out effect after 3 seconds
+    setShowApp(true);
     const splashTimeout = setTimeout(() => {
       setFadeOutSplash(true);
       // Remove the splash screen from the DOM after the fade-out finishes
@@ -153,7 +155,7 @@ function App() {
   };
 
   return (
-    <div className="background">
+    <div className={`background ${showApp ? 'show' : ''}`}>
       {showSplash && (
         <div className={`splash-screen ${fadeOutSplash ? 'fade-out' : ''}`}>
           <SplashScreen />
