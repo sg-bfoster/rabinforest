@@ -149,6 +149,7 @@ function App() {
     localStorage.removeItem('conversation');
     localStorage.removeItem('persistentLinks');
     localStorage.removeItem('threadId');
+    window.location.reload();
   };
 
   return (
