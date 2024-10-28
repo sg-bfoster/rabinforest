@@ -5,13 +5,14 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: black; /* or any color */
+    background-image: url('/public/forest-space-background-fade.png');
+    background-size: cover;
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 9999;
     opacity: 1;
-    transition: opacity 1s ease-in-out;
+    transition: opacity 1s ease-out;
   }
   
   .splash-screen.fade-out {

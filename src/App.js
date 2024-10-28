@@ -23,6 +23,7 @@ function App() {
   const [threadId, setThreadId] = useState(localStorage.getItem('threadId') || null);
   const [isPanelOpen, setIsPanelOpen] = useState(window.innerWidth >= 768); // Default to open on wider screens
   const [showSplash, setShowSplash] = useState(true); // State for splash screen
+  const [fadeOutSplash, setFadeOutSplash] = useState(false); // State to trigger fade out
   const conversationEndRef = useRef(null);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
 
@@ -31,8 +32,13 @@ function App() {
   };
 
   useEffect(() => {
-    // Hide splash screen after 3 seconds
-    const splashTimeout = setTimeout(() => setShowSplash(false), 3000);
+    // Trigger fade-out effect after 3 seconds
+    const splashTimeout = setTimeout(() => {
+      setFadeOutSplash(true);
+      // Remove the splash screen from the DOM after the fade-out finishes
+      setTimeout(() => setShowSplash(false), 1000); // Match this to the CSS transition duration
+    }, 2000);
+
     return () => clearTimeout(splashTimeout);
   }, []);
 
@@ -147,7 +153,11 @@ function App() {
 
   return (
     <div className="background">
-      {showSplash ? <SplashScreen /> : null} {/* Render splash screen if showSplash is true */}
+      {showSplash && (
+        <div className={`splash-screen ${fadeOutSplash ? 'fade-out' : ''}`}>
+          <SplashScreen />
+        </div>
+      )}
       {(
         <>
           <Navbar togglePanel={togglePanel} newLinks={newLinks} isDesktop={isDesktop} isPanelOpen={isPanelOpen} />
