@@ -68,7 +68,7 @@ body {
   left: 0;
   right: 0;
   height: 75px;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(155, 155, 155, 0.25);
   border-bottom: 1px solid #666;
   color: white;
   display: flex;
@@ -121,8 +121,8 @@ body {
   /* background-color: #1e88e5; */
   /* background-image: linear-gradient(to bottom, #1e88e5 0%, #1e88e5 88%, #064d8c 100%); */
   border: none;
-  background-color: #5C3459;
-  color: white;
+  background-color: #D6B4E7;
+  color: black;
   padding: 7px;
   cursor: pointer;
   border-radius: 5px;
@@ -204,7 +204,7 @@ body {
 }
 
 .footer {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(155, 155, 155, 0.25);
   /* Adjusted transparency for the footer */
   position: fixed;
   bottom: 0;
@@ -259,17 +259,18 @@ body {
   padding: 15px;
   border-radius: 15px;
   max-width: 85%;
-  color: #e0e0e0;
   position: relative; /* Needed for the triangle */
   box-shadow: 2px 5px 10px rgba(0, 0, 0, 0.5);
 }
 
 .user-message .message-bubble {
-  background-color: #3c587b;
+  background-color: #A3C4F3;
+  color: black;
 }
 
 .assistant-message .message-bubble {
-  background-color: #777;
+  background-color: #797878;
+  color: white;
 }
 
 .assistant-message .message-bubble a {
@@ -290,7 +291,7 @@ body {
   height: 0;
   border-left: 30px solid transparent;
   border-right: 1px solid transparent;
-  border-top: 15px solid #3c587b; /* Same as the user bubble background */
+  border-top: 15px solid #A3C4F3; /* Same as the user bubble background */
 }
 
 /* Triangle for the assistant message */
@@ -303,7 +304,7 @@ body {
   height: 0;
   border-left: 1px solid transparent;
   border-right: 30px solid transparent;
-  border-top: 15px solid #777; /* Same as the assistant bubble background */
+  border-top: 15px solid #797878; /* Same as the assistant bubble background */
 }
 
 /* Input container styling */
@@ -343,9 +344,9 @@ body {
   width: 100%;
   padding: 15px;
   /* background-image: linear-gradient(to bottom, #1e88e5 0%, #92c4ef 49%, #064d8c 50%, #1e88e5 100%); */
-  background-color: #5C3459;
+  background-color: #D6B4E7;
   border: none;
-  color: white;
+  color: black;
   border-radius: 15px;
   cursor: pointer;
   font-size: 20px;
@@ -380,7 +381,8 @@ opacity: 0.25;
   padding: 8px !important;
   /* background-color: #439713 !important; */
   /* background-image: linear-gradient(to bottom, #439713 0%, #439713 88%, #244212 100%) !important; */
-  background-color: #777 !important;
+  background-color: #4B4B4B !important;
   border: none;
   font-weight: normal;
+  color: white !important
 }
