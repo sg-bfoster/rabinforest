@@ -170,6 +170,12 @@ function App() {
               persistentLinks={persistentLinks}
               isDesktop={isDesktop} 
             />
+          {/* Render the overlay only if the panel is open and it's not a desktop */}
+          {!isDesktop && isPanelOpen && (
+            <div className="overlay-mask show" onClick={togglePanel}>
+              <div className="overlay-content"></div>
+            </div>
+          )}
           <div className={`App ${isPanelOpen ? 'open' : ''}`}>
             <Conversation conversation={conversation} conversationEndRef={conversationEndRef} />
             <InputArea

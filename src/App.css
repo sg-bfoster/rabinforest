@@ -93,7 +93,7 @@ body {
 
 /* Styling for the hamburger icon */
 .navbar-hamburger {
-  width: 50px; /* Match size to the logo */
+  width: 35px; /* Match size to the logo */
   height: auto;
   margin-right: 15px; /* Space between the hamburger icon and the logo */
   cursor: pointer; /* Makes the hamburger icon clickable */
@@ -397,4 +397,50 @@ opacity: 0.25;
   border: none;
   font-weight: normal;
   color: white !important
+}
+
+/* Overlay mask with blur transition */
+.overlay-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0); /* Initially transparent */
+  z-index: 150;
+  pointer-events: none; /* Prevent interactions when hidden */
+  transition: opacity 0.5s ease;
+  opacity: 0;
+}
+
+.overlay-mask.show {
+  opacity: 1; /* Make the mask visible */
+  pointer-events: all; /* Allow interactions when shown */
+}
+
+.overlay-content {
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(0); /* Initially no blur */
+  -webkit-backdrop-filter: blur(0); /* Safari-specific blur */
+  transition: backdrop-filter 0.5s ease, -webkit-backdrop-filter 0.5s ease; /* Smooth blur transition */
+}
+
+.overlay-mask.show .overlay-content {
+  backdrop-filter: blur(1.15px); /* Apply blur */
+  -webkit-backdrop-filter: blur(1.15px); /* Safari-specific blur */
+  background-color: rgba(0, 0, 0, 0.2); /* Optional background tint */
+}
+
+/* Only show the overlay on mobile screens */
+@media (min-width: 768px) {
+  .overlay-mask {
+    display: none;
+  }
+}
+/* Only show the overlay on mobile screens */
+@media (min-width: 768px) {
+  .overlay-mask {
+    display: none;
+  }
 }

@@ -1,4 +1,6 @@
 import React from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBars } from '@fortawesome/free-solid-svg-icons';
 
 const Navbar = ({ togglePanel, newLinks, isPanelOpen, isDesktop }) => {
   // Dummy function for hamburger click
@@ -10,12 +12,7 @@ const Navbar = ({ togglePanel, newLinks, isPanelOpen, isDesktop }) => {
     <div className={`navbar ${isPanelOpen ? 'open' : ''}`}>
       <div className="navbar-content">
         {/* Hamburger icon */}
-        <img
-          src="/hamburger-icon.png" // Replace with the actual path to your hamburger icon
-          alt="Menu"
-          className="navbar-hamburger"
-          onClick={handleHamburgerClick}
-        />
+        <FontAwesomeIcon icon={faBars} className="navbar-hamburger" onClick={() => handleHamburgerClick()} />
         {/* Logo */}
         <img src="/favicon.png" alt="Logo" className="navbar-logo" />
         <div className="navbar-title">
