@@ -6,6 +6,7 @@ import Footer from './Footer';
 import Conversation from './Conversation';
 import SlideOutPanel from './SlideOutPanel';
 import SplashScreen from './SplashScreen'; // Import the splash screen
+import Menu from './Menu'; // Import the new Menu component
 
 function App() {
   const [inputText, setInputText] = useState('');
@@ -27,9 +28,14 @@ function App() {
   const [showApp, setShowApp] = useState(false); // State to show the app after splash screen
   const conversationEndRef = useRef(null);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
+  const [isMenuOpen, setIsMenuOpen] = useState(false); // New state for menu panel
 
   const convertNewlinesToBr = (text) => {
     return text.replace(/\n/g, '<br />');
+  };
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen); // Toggle the menu panel
   };
 
   useEffect(() => {
@@ -163,7 +169,8 @@ function App() {
       )}
       {(
         <>
-          <Navbar togglePanel={togglePanel} newLinks={newLinks} isDesktop={isDesktop} isPanelOpen={isPanelOpen} />
+          <Navbar togglePanel={togglePanel} toggleMenu={toggleMenu} newLinks={newLinks} isDesktop={isDesktop} isPanelOpen={isPanelOpen} />
+          <Menu isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
           <SlideOutPanel
               isPanelOpen={isPanelOpen}
               togglePanel={togglePanel}
@@ -171,8 +178,11 @@ function App() {
               isDesktop={isDesktop} 
             />
           {/* Render the overlay only if the panel is open and it's not a desktop */}
-          {!isDesktop && isPanelOpen && (
-            <div className="overlay-mask show" onClick={togglePanel}>
+          {!isDesktop && (isPanelOpen || isMenuOpen) && (
+            <div className="overlay-mask show" onClick={() => {
+              if (isPanelOpen) togglePanel();
+              if (isMenuOpen) toggleMenu();
+            }}>
               <div className="overlay-content"></div>
             </div>
           )}
