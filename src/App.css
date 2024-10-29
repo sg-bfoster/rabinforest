@@ -91,14 +91,21 @@ body {
   align-items: center;
 }
 
-/* Styling for the logo */
+/* Styling for the hamburger icon */
+.navbar-hamburger {
+  width: 50px; /* Match size to the logo */
+  height: auto;
+  margin-right: 15px; /* Space between the hamburger icon and the logo */
+  cursor: pointer; /* Makes the hamburger icon clickable */
+}
+
+/* Styling for the logo with the box-shadow retained */
 .navbar-logo {
-  width: 50px; /* Adjust the size of the logo as needed */
+  width: 50px; /* Ensure the size of the logo remains consistent */
   height: auto;
   margin-right: 15px; /* Space between the logo and the text */
   border-radius: 8px;
-  /* border: 1px solid #ffffff; */
-  box-shadow: 0 0 3px rgba(255, 255, 255, 0.75);
+  box-shadow: 0 0 3px rgba(255, 255, 255, 0.75); /* Retained box-shadow */
 }
 
 /* Make the title container flexible */
