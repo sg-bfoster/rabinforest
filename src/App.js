@@ -7,6 +7,9 @@ import Conversation from './Conversation';
 import SlideOutPanel from './SlideOutPanel';
 import SplashScreen from './SplashScreen'; // Import the splash screen
 import Menu from './Menu'; // Import the new Menu component
+import Playground from './Playground'; // Import the new Profile page component
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'; // Import React Router
+
 
 function App() {
   const [inputText, setInputText] = useState('');
@@ -161,13 +164,13 @@ function App() {
   };
 
   return (
-    <div className={`background ${showApp ? 'show' : ''}`}>
-      {showSplash && (
-        <div className={`splash-screen ${fadeOutSplash ? 'fade-out' : ''}`}>
-          <SplashScreen />
-        </div>
-      )}
-      {(
+    <Router>
+      <div className={`background ${showApp ? 'show' : ''}`}>
+        {showSplash && (
+          <div className={`splash-screen ${fadeOutSplash ? 'fade-out' : ''}`}>
+            <SplashScreen />
+          </div>
+        )}
         <>
           <Navbar togglePanel={togglePanel} toggleMenu={toggleMenu} newLinks={newLinks} isDesktop={isDesktop} isPanelOpen={isPanelOpen} />
           <Menu isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
@@ -186,23 +189,32 @@ function App() {
               <div className="overlay-content"></div>
             </div>
           )}
-          <div className={`App ${isPanelOpen ? 'open' : ''}`}>
-            <Conversation conversation={conversation} conversationEndRef={conversationEndRef} />
-            <InputArea
-              isPanelOpen={isPanelOpen}
-              inputText={inputText}
-              setInputText={setInputText}
-              handleSubmit={handleSubmit}
-              handleReset={handleReset}
-              handleKeyDown={handleKeyDown}
-              loading={loading}
-              error={error}
-            />
-            <Footer isPanelOpen={isPanelOpen}></Footer>
-          </div>
+
+          {/* Define Routes Here */}
+          <Routes>
+            <Route path="/" element={
+              <div className={`App ${isPanelOpen ? 'open' : ''}`}>
+                <Conversation conversation={conversation} conversationEndRef={conversationEndRef} />
+                <InputArea
+                  isPanelOpen={isPanelOpen}
+                  inputText={inputText}
+                  setInputText={setInputText}
+                  handleSubmit={handleSubmit}
+                  handleReset={handleReset}
+                  handleKeyDown={handleKeyDown}
+                  loading={loading}
+                  error={error}
+                />
+              </div>
+            } />
+            
+            {/* New Route for the Profile Page */}
+            <Route path="/playground" element={<Playground />} />
+          </Routes>
         </>
-      )}
-    </div>
+        <Footer isPanelOpen={isPanelOpen}></Footer>
+      </div>
+    </Router>
   );
 }
 

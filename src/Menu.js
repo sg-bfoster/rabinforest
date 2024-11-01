@@ -2,25 +2,27 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClose } from '@fortawesome/free-solid-svg-icons';
+import { Link } from 'react-router-dom';
 
 const Menu = ({ isMenuOpen, toggleMenu }) => {
-  return (
-    <div className={`menu-panel ${isMenuOpen ? 'open' : ''}`}>
-      <div className="menu-header">
-      <FontAwesomeIcon icon={faClose} className="navbar-hamburger" onClick={toggleMenu} />
-      <h2>Menu</h2>
+    const handleLinkClick = () => {
+        toggleMenu();
+    };
 
-      </div>
-      <div className="menu-content">
-        <ul>
-          <li><a href="#home">Home</a></li>
-          <li><a href="#about">About</a></li>
-          <li><a href="#services">Services</a></li>
-          <li><a href="#contact">Contact</a></li>
-        </ul>
-      </div>
-    </div>
-  );
+    return (
+        <div className={`menu-panel ${isMenuOpen ? 'open' : ''}`}>
+            <div className="menu-header">
+                <FontAwesomeIcon icon={faClose} className="navbar-hamburger" onClick={toggleMenu} />
+                <h2>Menu</h2>
+            </div>
+            <div className="menu-content">
+                <ul>
+                    <li><Link to="/" onClick={handleLinkClick}>Home</Link></li>
+                    <li><Link to="/playground" onClick={handleLinkClick}>Playground</Link></li>
+                </ul>
+            </div>
+        </div>
+    );
 };
 
 export default Menu;

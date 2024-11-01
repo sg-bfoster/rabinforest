@@ -16,26 +16,38 @@ body {
 .background {
   height: 100%;
   width: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.8);
   /* Adjusted transparency for the conversation div */
 }
 
 #root {
   height: 100%;
 }
+
 .background {
   opacity: 0;
 }
+
 .background.show {
   opacity: 1;
 }
+
 .App {
   display: flex;
   flex-direction: column;
-  height: 100%;
   color: #e0e0e0;
   width: 100%;
   height: 100%;
+}
+
+.Playground {
+  padding: 65px 15px 30px 15px;
+  display: flex;
+  flex-direction: column;
+  color: #e0e0e0;
+  width: 100%;
+  position: static;
+
 }
 
 @media (min-width: 768px) {
@@ -93,19 +105,25 @@ body {
 
 /* Styling for the hamburger icon */
 .navbar-hamburger {
-  width: 25px; /* Match size to the logo */
+  width: 25px;
+  /* Match size to the logo */
   height: auto;
-  margin-right: 18px; /* Space between the hamburger icon and the logo */
-  cursor: pointer; /* Makes the hamburger icon clickable */
+  margin-right: 18px;
+  /* Space between the hamburger icon and the logo */
+  cursor: pointer;
+  /* Makes the hamburger icon clickable */
 }
 
 /* Styling for the logo with the box-shadow retained */
 .navbar-logo {
-  width: 45px; /* Ensure the size of the logo remains consistent */
+  width: 45px;
+  /* Ensure the size of the logo remains consistent */
   height: auto;
-  margin-right: 18px; /* Space between the logo and the text */
+  margin-right: 18px;
+  /* Space between the logo and the text */
   border-radius: 8px;
-  box-shadow: 0 0 3px rgba(255, 255, 255, 0.75); /* Retained box-shadow */
+  box-shadow: 0 0 3px rgba(255, 255, 255, 0.75);
+  /* Retained box-shadow */
 }
 
 /* Make the title container flexible */
@@ -129,6 +147,7 @@ body {
   margin: 0;
   text-align: left;
 }
+
 .toggle-panel-btn {
   /* background-color: #1e88e5; */
   /* background-image: linear-gradient(to bottom, #1e88e5 0%, #1e88e5 88%, #064d8c 100%); */
@@ -169,7 +188,8 @@ body {
   z-index: 200;
   font-size: 18px;
   display: flex;
-  flex-direction: column; /* Ensures the header stays at the top */
+  flex-direction: column;
+  /* Ensures the header stays at the top */
 }
 
 .slideout-panel h2 {
@@ -188,13 +208,16 @@ body {
   background-color: #333;
   border-bottom: 1px solid #666;
   z-index: 1;
-  flex-shrink: 0; /* Ensures the header doesn't shrink when the links overflow */
+  flex-shrink: 0;
+  /* Ensures the header doesn't shrink when the links overflow */
 }
 
 /* Scrollable links section */
 .slideout-links {
-  flex-grow: 1; /* Take up remaining space */
-  overflow-y: auto; /* Scrollable when content overflows */
+  flex-grow: 1;
+  /* Take up remaining space */
+  overflow-y: auto;
+  /* Scrollable when content overflows */
   padding: 10px 20px;
   background-color: #333;
 }
@@ -202,13 +225,22 @@ body {
 .slideout-panel.open {
   right: 0;
   box-shadow: 0 0 7px rgba(0, 0, 0, 0.5);
+
+}
+
+@media (min-width: 768px) {
+  .slideout-panel.open {
+    right: 0;
+    box-sizing: none;
+    border-left: 1px solid #666
+  }
 }
 
 .slideout-panel a {
   color: #ffffff;
   text-decoration: none;
   font-size: 17px;
-  word-wrap: break-word;  
+  word-wrap: break-word;
 }
 
 .slideout-panel a:hover {
@@ -271,7 +303,8 @@ body {
   padding: 15px;
   border-radius: 15px;
   max-width: 85%;
-  position: relative; /* Needed for the triangle */
+  position: relative;
+  /* Needed for the triangle */
   box-shadow: 0 0 7px rgba(0, 0, 0, 0.5);
 }
 
@@ -303,7 +336,8 @@ body {
   height: 0;
   border-left: 30px solid transparent;
   border-right: 1px solid transparent;
-  border-top: 15px solid #A3C4F3; /* Same as the user bubble background */
+  border-top: 15px solid #A3C4F3;
+  /* Same as the user bubble background */
 }
 
 /* Triangle for the assistant message */
@@ -316,7 +350,8 @@ body {
   height: 0;
   border-left: 1px solid transparent;
   border-right: 30px solid transparent;
-  border-top: 15px solid #797878; /* Same as the assistant bubble background */
+  border-top: 15px solid #797878;
+  /* Same as the assistant bubble background */
 }
 
 /* Input container styling */
@@ -373,7 +408,7 @@ button:hover {
 }
 
 .input-container button:disabled {
-opacity: 0.25;
+  opacity: 0.25;
 }
 
 /* Error message styling */
@@ -406,30 +441,40 @@ opacity: 0.25;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0); /* Initially transparent */
+  background-color: rgba(0, 0, 0, 0);
+  /* Initially transparent */
   z-index: 150;
-  pointer-events: none; /* Prevent interactions when hidden */
+  pointer-events: none;
+  /* Prevent interactions when hidden */
   transition: opacity 0.5s ease;
   opacity: 0;
 }
 
 .overlay-mask.show {
-  opacity: 1; /* Make the mask visible */
-  pointer-events: all; /* Allow interactions when shown */
+  opacity: 1;
+  /* Make the mask visible */
+  pointer-events: all;
+  /* Allow interactions when shown */
 }
 
 .overlay-content {
   width: 100%;
   height: 100%;
-  backdrop-filter: blur(0); /* Initially no blur */
-  -webkit-backdrop-filter: blur(0); /* Safari-specific blur */
-  transition: backdrop-filter 0.5s ease, -webkit-backdrop-filter 0.5s ease; /* Smooth blur transition */
+  backdrop-filter: blur(0);
+  /* Initially no blur */
+  -webkit-backdrop-filter: blur(0);
+  /* Safari-specific blur */
+  transition: backdrop-filter 0.5s ease, -webkit-backdrop-filter 0.5s ease;
+  /* Smooth blur transition */
 }
 
 .overlay-mask.show .overlay-content {
-  backdrop-filter: blur(1.15px); /* Apply blur */
-  -webkit-backdrop-filter: blur(1.15px); /* Safari-specific blur */
-  background-color: rgba(0, 0, 0, 0.2); /* Optional background tint */
+  backdrop-filter: blur(0.75px);
+  /* Apply blur */
+  -webkit-backdrop-filter: blur(.075px);
+  /* Safari-specific blur */
+  background-color: rgba(0, 0, 0, 0.2);
+  /* Optional background tint */
 }
 
 /* Only show the overlay on mobile screens */
@@ -438,12 +483,14 @@ opacity: 0.25;
     display: none;
   }
 }
+
 /* Only show the overlay on mobile screens */
 @media (min-width: 768px) {
   .overlay-mask {
     display: none;
   }
 }
+
 /* Left Slide-out Menu */
 .menu-panel {
   position: fixed;
@@ -504,9 +551,6 @@ opacity: 0.25;
 
 /* Ensure both panels work properly */
 @media (min-width: 768px) {
-  .App.open {
-    width: calc(100% - 350px);
-  }
   .App.menu-open {
     width: calc(100% - 200px);
   }
