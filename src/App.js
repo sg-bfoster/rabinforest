@@ -38,8 +38,15 @@ function App() {
   };
 
   const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen); // Toggle the menu panel
+    setIsMenuOpen(!isMenuOpen); 
+    setIsPanelOpen(false);// Toggle the menu panel
   };
+
+  const togglePanel = () => {
+    setIsPanelOpen(!isPanelOpen);
+    setIsMenuOpen(false); 
+  };
+
 
   useEffect(() => {
     // Trigger fade-out effect after 3 seconds
@@ -148,10 +155,6 @@ function App() {
     }
   };
 
-  const togglePanel = () => {
-    setIsPanelOpen(!isPanelOpen);
-  };
-
   const handleReset = () => {
     setConversation([]);
     setPersistentLinks([]);
@@ -160,7 +163,7 @@ function App() {
     localStorage.removeItem('conversation');
     localStorage.removeItem('persistentLinks');
     localStorage.removeItem('threadId');
-    window.location.reload();
+    // window.location.reload();
   };
 
   return (

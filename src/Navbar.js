@@ -8,7 +8,10 @@ const Navbar = ({ togglePanel, toggleMenu, newLinks, isDesktop, isPanelOpen }) =
     <div className={`navbar ${isPanelOpen ? 'open' : ''}`}>
       <div className="navbar-content">
         {/* Hamburger icon triggers the left panel */}
-        {!isDesktop && (<FontAwesomeIcon icon={faBars} className="navbar-hamburger" onClick={toggleMenu} />)}
+        {!isDesktop && (<FontAwesomeIcon icon={faBars} className="navbar-hamburger" onClick={(e) => {
+          toggleMenu();
+          console.log("Panel and menu toggled!");
+        }} />)}
         {/* Logo */}
         <Link to="/"><img src="/favicon.png" alt="Logo" className="navbar-logo" /></Link>
         <div className="navbar-title">
@@ -18,7 +21,10 @@ const Navbar = ({ togglePanel, toggleMenu, newLinks, isDesktop, isPanelOpen }) =
       </div>
       <div>
         {!isDesktop && (
-          <button className="toggle-panel-btn" onClick={togglePanel}>
+          <button className="toggle-panel-btn" onClick={(e) => {
+            togglePanel();
+            console.log("Panel and menu toggled!");
+          }} >
             Links {newLinks.length > 0 && <span className="badge">{newLinks.length}</span>}
           </button>
         )}
