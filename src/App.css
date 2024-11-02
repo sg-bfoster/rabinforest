@@ -46,26 +46,26 @@ body {
   flex-direction: column;
   color: #e0e0e0;
   width: 100%;
-  position: static;
-
 }
 
 @media (min-width: 768px) {
-  .App.open {
-    width: calc(100% - 350px);
+  .App.open, .Playground.open {
+    width: calc(100% - 505px);
+    margin-left: 175px;
   }
 
   .navbar.open {
-    width: calc(100% - 380px);
+    width: calc(100% - 330px);
     /* Adjusted width to account for the slide-out panel padding */
   }
 
   .footer.open {
-    width: calc(100% - 350px);
+    width: calc(100% - 300px);
   }
 
   .input-container.open {
-    width: calc(100% - 380px);
+    width: calc(100% - 505px);
+    margin-left: 175px;
   }
 }
 
@@ -91,7 +91,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  z-index: 100;
+  z-index: 201;
   transition: all 0.3s ease;
   padding: 0 15px;
   box-shadow: 0 0 7px rgba(0, 0, 0, 0.5);
@@ -178,14 +178,14 @@ body {
 .slideout-panel {
   position: fixed;
   top: 0;
-  right: -350px;
-  width: 350px;
+  right: -300px;
+  width: 300px;
   height: 100%;
   background-color: #333;
   color: white;
   padding: 0;
   transition: right 0.3s ease;
-  z-index: 200;
+  z-index: 400;
   font-size: 18px;
   display: flex;
   flex-direction: column;
@@ -495,14 +495,15 @@ button:hover {
 .menu-panel {
   position: fixed;
   top: 0;
-  left: -200px;
-  width: 200px;
+  left: -175px;
+  width: 175px;
   height: 100%;
   background-color: #333;
   color: white;
   transition: left 0.3s ease;
   z-index: 200;
   font-size: 18px;
+  margin-top: 64px;
 }
 
 .menu-panel.open {
@@ -523,7 +524,7 @@ button:hover {
 }
 
 .menu-content {
-  padding: 20px;
+  padding: 5px 20px;
 }
 
 .menu-content ul {
@@ -532,7 +533,7 @@ button:hover {
 }
 
 .menu-content li {
-  margin: 10px 0;
+  margin: 15px 0;
 }
 
 .menu-content a {
@@ -546,12 +547,12 @@ button:hover {
 
 /* Adjust the App content when menu is open */
 .App.menu-open {
-  margin-left: 200px;
+  margin-left: 175px;
 }
 
 /* Ensure both panels work properly */
 @media (min-width: 768px) {
   .App.menu-open {
-    width: calc(100% - 200px);
+    width: calc(100% - 175px);
   }
 }

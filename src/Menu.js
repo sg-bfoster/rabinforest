@@ -4,17 +4,17 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClose } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 
-const Menu = ({ isMenuOpen, toggleMenu }) => {
+const Menu = ({ isMenuOpen, toggleMenu, isDesktop }) => {
     const handleLinkClick = () => {
         toggleMenu();
     };
 
     return (
-        <div className={`menu-panel ${isMenuOpen ? 'open' : ''}`}>
-            <div className="menu-header">
+        <div className={`menu-panel ${isMenuOpen || isDesktop ? 'open' : ''}`}>
+            {/* <div className="menu-header">
                 <FontAwesomeIcon icon={faClose} className="navbar-hamburger" onClick={toggleMenu} />
                 <h2>Menu</h2>
-            </div>
+            </div> */}
             <div className="menu-content">
                 <ul>
                     <li><Link to="/" onClick={handleLinkClick}>Home</Link></li>

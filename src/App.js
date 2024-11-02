@@ -173,7 +173,7 @@ function App() {
         )}
         <>
           <Navbar togglePanel={togglePanel} toggleMenu={toggleMenu} newLinks={newLinks} isDesktop={isDesktop} isPanelOpen={isPanelOpen} />
-          <Menu isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
+          <Menu isMenuOpen={isMenuOpen} isDesktop={isDesktop}  toggleMenu={toggleMenu} />
           <SlideOutPanel
               isPanelOpen={isPanelOpen}
               togglePanel={togglePanel}
