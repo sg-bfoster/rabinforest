@@ -19,7 +19,7 @@ const Navbar = ({ togglePanel, toggleMenu, newLinks, isDesktop, isPanelOpen }) =
           <p className="subheader">AI Personal Assistant<br />for Brian Foster</p>
         </div>
       </div>
-      <div>
+      <div className='navbar-links'>
         {!isDesktop && (
           <button className="toggle-panel-btn" onClick={(e) => {
             togglePanel();

@@ -55,7 +55,7 @@ body {
   }
 
   .navbar.open {
-    width: calc(100% - 330px);
+    width: calc(100% - 300px);
     /* Adjusted width to account for the slide-out panel padding */
   }
 
@@ -92,15 +92,19 @@ body {
   align-items: center;
   justify-content: space-between;
   z-index: 201;
-  transition: all 0.3s ease;
-  padding: 0 15px;
+  transition: width 0.3s ease;
   box-shadow: 0 0 7px rgba(0, 0, 0, 0.5);
+  width: 100%;
 }
 
 /* Adjustments for the navbar content */
 .navbar-content {
   display: flex;
   align-items: center;
+  padding-left: 20px;
+}
+.navbar-links {
+  padding-right: 15px;
 }
 
 /* Styling for the hamburger icon */
@@ -260,7 +264,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  z-index: 150;
+  transition: width 0.3s ease;
+  width: 100%;
 }
 
 .footer p {
@@ -283,7 +289,7 @@ body {
 
 .conversation div {
   margin-bottom: 10px;
-  font-size: clamp(1.15rem, 1.15vw + 1rem, 1.75rem);
+  font-size: clamp(1.10rem, 1.10vw + 1rem, 1.70rem);
   white-space: pre-wrap;
   overflow-wrap: break-word;
 }
@@ -441,7 +447,7 @@ button:hover {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0);
+  background-color: rgba(0, 0, 0, 0.25);
   /* Initially transparent */
   z-index: 150;
   pointer-events: none;
