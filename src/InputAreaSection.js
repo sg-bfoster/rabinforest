@@ -18,13 +18,13 @@ const InputArea = ({
       onChange={(e) => setInputText(e.target.value)}
       onKeyDown={handleKeyDown}
       rows="2"
-      placeholder="Ask your question..."
+      placeholder="Ex: What does Brian do?"
     />
     <button onClick={handleSubmit} disabled={loading} className='submit'>
       {loading ? <span>Thinking...</span> : <span>Ask</span>}
     </button>
     <button className='reset-button' onClick={handleReset}>
-      Clear Session
+      New Conversation
     </button>
   </div>
 );
