@@ -45,7 +45,8 @@ body {
   display: flex;
   flex-direction: column;
   color: #e0e0e0;
-  width: 100%;
+  position: fixed;
+  top: 0;
 }
 
 @media (min-width: 768px) {
@@ -391,7 +392,7 @@ body {
   height: 65px;
 }
 
-.input-container button {
+.input-container button, .form-button-container button {
   box-shadow: 0 0 7px rgba(0, 0, 0, 0.5);
   display: block;
   width: 100%;
@@ -530,25 +531,32 @@ button:hover {
 }
 
 .menu-content {
-  padding: 5px 20px;
+  padding: 0
 }
 
 .menu-content ul {
   list-style-type: none;
   padding: 0;
+  margin: 0;
 }
 
 .menu-content li {
-  margin: 15px 0;
+  padding: 0;
+  border-bottom: 1px solid #000;
+}
+
+.menu-content li.active {
+  background-color: #222;
 }
 
 .menu-content a {
+  display: block;
+  padding: 10px;
   color: white;
   text-decoration: none;
 }
-
 .menu-content a:hover {
-  text-decoration: underline;
+  background-color: #555;
 }
 
 /* Adjust the App content when menu is open */
@@ -561,4 +569,97 @@ button:hover {
   .App.menu-open {
     width: calc(100% - 175px);
   }
+}
+
+/* Container Styling */
+.form-container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+/* Form Styling */
+.dalle-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.dalle {
+  margin-bottom: 20px;
+}
+
+.dalle-3-image {
+  margin-top: 15px;
+  width: 100%;
+}
+
+.form-left {
+  flex: 1 1 48%; /* Take up half the space in desktop view */
+  display: flex;
+  flex-direction: column;
+}
+
+.form-right {
+  flex: 1 1 48%; /* Take up half the space in desktop view */
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+.form-textarea {
+  width: calc(100% - 16px);
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  resize: vertical;
+  height: 100%;
+}
+
+.form-select {
+  width: 100%;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+/* Submit Button */
+.form-button-container {
+  width: 100%;
+  text-align: center;
+}
+
+/* Responsive Styling */
+@media (max-width: 767px) {
+  .dalle-form {
+    flex-direction: column; /* Stack elements vertically */
+  }
+
+  .form-left, .form-right {
+    flex: 1 1 100%; /* Take full width on mobile */
+  }
+}
+
+.response-image {
+  width: 100%;
+  height: auto;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #fff;
+}
+
+.playground-content {
+  overflow-y: auto;
 }

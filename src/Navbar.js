@@ -23,7 +23,6 @@ const Navbar = ({ togglePanel, toggleMenu, newLinks, isDesktop, isPanelOpen }) =
         {!isDesktop && (
           <button className="toggle-panel-btn" onClick={(e) => {
             togglePanel();
-            console.log("Panel and menu toggled!");
           }} >
             Links {newLinks.length > 0 && <span className="badge">{newLinks.length}</span>}
           </button>
