@@ -21,7 +21,7 @@ const DalleForm = ({ onSubmit, image, isGenerating }) => {
 
   return (
     <div className="dalle">
-      <div className="form-container">
+      <div className={`form-container ${isGenerating ? 'generating' : ''}`}>
         <h2>DALL-E 3 Image Generator</h2>
         <form onSubmit={handleSubmit} className="dalle-form">
           {/* Text Area */}
@@ -34,7 +34,7 @@ const DalleForm = ({ onSubmit, image, isGenerating }) => {
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               rows="6"
-              placeholder="Describe the image you want to generate"
+              placeholder="Describe an image to generate. Ex: A red apple floating in space."
               required
               className="form-textarea"
             />
