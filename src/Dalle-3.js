@@ -33,7 +33,7 @@ const DalleForm = ({ onSubmit, image, isGenerating }) => {
               id="prompt"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              rows="6"
+              rows="4"
               placeholder="Describe an image to generate. Ex: A red apple floating in space."
               required
               className="form-textarea"

@@ -46,7 +46,7 @@ body {
   flex-direction: column;
   color: #e0e0e0;
   position: fixed;
-  top: 0;
+  width: calc(100% - 30px);
 }
 
 @media (min-width: 768px) {
@@ -680,4 +680,8 @@ select {
 
 .playground-content {
   overflow-y: auto;
+}
+
+.playground-content h2 {
+  margin-top: 0;
 }
