@@ -575,12 +575,13 @@ button:hover {
 .form-container {
   max-width: 500px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 0 20px;
   border: 1px solid #ccc;
   border-radius: 8px;
 }
 .form-container.generating {
-  opacity: 0.75;
+  opacity: 0.50;
+  pointer-events: none;
 }
 
 /* Form Styling */
@@ -597,6 +598,7 @@ button:hover {
 .dalle-3-image {
   margin-top: 15px;
   width: 100%;
+  border: 1px solid #fff;
 }
 
 .form-left {
@@ -683,5 +685,11 @@ select {
 }
 
 .playground-content h2 {
-  margin-top: 0;
+  /* margin-top: 0; */
+}
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-top: 10px;
+  text-align: center;
 }

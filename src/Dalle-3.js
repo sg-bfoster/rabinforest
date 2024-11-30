@@ -1,23 +1,63 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
-const DalleForm = ({ onSubmit, image, isGenerating }) => {
+const DalleForm = () => {
   const [prompt, setPrompt] = useState('');
   const [size, setSize] = useState('1024x1024'); // Default size
   const [quality, setQuality] = useState('standard'); // Default quality
   const [style, setStyle] = useState('natural'); // Default style
+  const [isGenerating, setIsGenerating] = useState(false); // State for button
+  const [image, setImage] = useState(null);
+  const [error, setError] = useState(null);
 
-  const handleSubmit = (e) => {
+  const imageRef = useRef(null);
+  const errorRef = useRef(null);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsGenerating(true); // Disable button and update text
+    setError(null); // Reset error message
+    setImage(null); // Reset image
 
-    // Call the onSubmit handler with form data
-    onSubmit({
-      prompt,
-      size,
-      quality,
-      style,
-      numImages: 1, // Fixed number of images as per the previous implementation
-    });
+    try {
+      const res = await fetch('https://bfoster-services.herokuapp.com/ai/generate-image-rf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt,
+          size,
+          quality,
+          style,
+          numImages: 1, // Fixed number of images as per the previous implementation
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const data = await res.json();
+      console.log('DALL-E Response:', data.response);
+      setImage(data.response); // Update image state
+    } catch (error) {
+      console.error('Error generating image:', error); // Log error
+      setError('Error generating image. Please try again.');
+    } finally {
+      setIsGenerating(false); // Re-enable button and reset text
+    }
   };
+
+  useEffect(() => {
+    if (image && imageRef.current) {
+      // Scroll to the image when it is added
+      imageRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    if (error && errorRef.current) {
+      // Scroll to the error when it is added
+      errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [image, error]);
 
   return (
     <div className="dalle">
@@ -100,11 +140,17 @@ const DalleForm = ({ onSubmit, image, isGenerating }) => {
             </button>
           </div>
         </form>
-        <div className="response-image">
-          <label htmlFor="style" className="form-label">
-            Image:
-          </label>
-          {image && <img className='dalle-3-image' src={image} alt="Generated" />}
+        <div className="response">
+          <div className="response-image" ref={imageRef}>
+            <label htmlFor="style" className="form-label">
+              Image:
+            </label>
+            {image && <img className="dalle-3-image" src={image} alt="Generated" />}
+          </div>
+          {/* Error Message */}
+          <p ref={errorRef} className="error-message">
+            {error}
+          </p>
         </div>
       </div>
     </div>
