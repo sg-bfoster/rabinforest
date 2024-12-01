@@ -21,7 +21,7 @@ const InputArea = ({
       placeholder="Ex: What does Brian do?"
     />
     <button onClick={handleSubmit} disabled={loading} className='submit'>
-      {loading ? <span>Thinking...</span> : <span>Ask</span>}
+      {loading ? <span className="spinner"></span> : <span>Ask</span>}
     </button>
     <button className='reset-button' onClick={handleReset}>
       New Conversation

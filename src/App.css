@@ -414,7 +414,7 @@ button:hover {
   font-weight: bolder;
 }
 
-.input-container button:disabled {
+button:disabled {
   opacity: 0.25;
 }
 
@@ -580,7 +580,7 @@ button:hover {
   border-radius: 8px;
 }
 .form-container.generating {
-  opacity: 0.50;
+  /* opacity: 0.50; */
   pointer-events: none;
 }
 
@@ -749,7 +749,7 @@ select {
   width: 16px;
   height: 16px;
   border: 2px solid transparent;
-  border-top: 2px solid white; /* Spinner color */
+  border-top: 2px solid black; /* Spinner color */
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-right: 8px;

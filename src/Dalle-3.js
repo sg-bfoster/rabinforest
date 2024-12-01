@@ -53,7 +53,7 @@ const DalleForm = () => {
       // Scroll to the image when it is added
       setTimeout(() => {
       imageRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 500);
+      }, 1000);
     }
     if (error && errorRef.current) {
       // Scroll to the error when it is added
@@ -63,7 +63,7 @@ const DalleForm = () => {
   
   return (
     <div className="dalle">
-      <div className={`form-container ${isGenerating ? 'generating' : ''}`}>
+      <div className={`form-container ${isGenerating ? 'generating2' : ''}`}>
         <h2>DALL-E 3 Image Generator</h2>
         <form onSubmit={handleSubmit} className="dalle-form">
           {/* Text Area */}
@@ -74,6 +74,7 @@ const DalleForm = () => {
             <textarea
               id="prompt"
               value={prompt}
+              disabled={isGenerating} 
               onChange={(e) => setPrompt(e.target.value)}
               rows="4"
               placeholder="Describe an image to generate. Ex: A red apple floating in space."
@@ -91,6 +92,7 @@ const DalleForm = () => {
               <select
                 id="size"
                 value={size}
+                disabled={isGenerating} 
                 onChange={(e) => setSize(e.target.value)}
                 className="form-select"
               >
@@ -107,6 +109,7 @@ const DalleForm = () => {
               <select
                 id="quality"
                 value={quality}
+                disabled={isGenerating} 
                 onChange={(e) => setQuality(e.target.value)}
                 className="form-select"
               >
@@ -122,6 +125,7 @@ const DalleForm = () => {
               <select
                 id="style"
                 value={style}
+                disabled={isGenerating} 
                 onChange={(e) => setStyle(e.target.value)}
                 className="form-select"
               >
