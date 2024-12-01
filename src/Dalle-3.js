@@ -29,7 +29,7 @@ const DalleForm = () => {
           size,
           quality,
           style,
-          numImages: 1, // Fixed number of images as per the previous implementation
+          numImages: 1, // Fixed number of images
         }),
       });
 
@@ -51,14 +51,16 @@ const DalleForm = () => {
   useEffect(() => {
     if (image && imageRef.current) {
       // Scroll to the image when it is added
+      setTimeout(() => {
       imageRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 500);
     }
     if (error && errorRef.current) {
       // Scroll to the error when it is added
       errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, [image, error]);
-
+  
   return (
     <div className="dalle">
       <div className={`form-container ${isGenerating ? 'generating' : ''}`}>
@@ -136,7 +138,11 @@ const DalleForm = () => {
               className="form-button"
               disabled={isGenerating} // Disable button while generating
             >
-              {isGenerating ? 'Generating...' : 'Generate Image'}
+              {isGenerating ? (
+                <span className="spinner"></span> // Show spinner
+              ) : (
+                'Generate Image'
+              )}
             </button>
           </div>
         </form>
