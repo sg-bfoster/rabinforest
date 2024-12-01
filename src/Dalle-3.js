@@ -139,7 +139,7 @@ const DalleForm = () => {
           <div className="form-button-container">
             <button
               type="submit"
-              className="form-button"
+              className="form-button submit"
               disabled={isGenerating} // Disable button while generating
             >
               {isGenerating ? (

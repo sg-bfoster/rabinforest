@@ -415,7 +415,7 @@ button:hover {
 }
 
 button:disabled {
-  opacity: 0.25;
+  background-color: #555;
 }
 
 /* Error message styling */
