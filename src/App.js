@@ -87,8 +87,14 @@ function App() {
         )}
         <>
           <Navbar
-            togglePanel={() => setIsPanelOpen(!isPanelOpen)}
-            toggleMenu={() => setIsMenuOpen(!isMenuOpen)}
+            togglePanel={() => {
+              setIsPanelOpen(!isPanelOpen);
+              setIsMenuOpen(false);
+            }}
+            toggleMenu={() => {
+              setIsMenuOpen(!isMenuOpen);
+              setIsPanelOpen(false);
+            }}
             newLinks={newLinks}
             isDesktop={isDesktop}
             isPanelOpen={isPanelOpen}
