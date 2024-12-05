@@ -17,7 +17,6 @@ function SlideOutPanel({ isPanelOpen, togglePanel, persistentLinks, isDesktop })
     // Set up interval to check for changes in persistent links
     const intervalId = setInterval(() => {
       setLinks(loadPersistentLinks());
-      console.log('Checking for new links...', loadPersistentLinks());
     }, 4000); // Check every 4 seconds -- going to clean this up and use redux
   
     // Cleanup interval on component unmount
