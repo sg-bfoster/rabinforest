@@ -74,9 +74,22 @@ const assistantSlice = createSlice({
 
         // Update links
         if (links && links.length > 0) {
-          const updatedLinks = Array.from(new Set([...links, ...state.persistentLinks]));
+          // Map links into objects with { url, text } format
+          const formattedLinks = links.map((link) => ({
+            url: link,
+            text: link, // Use the URL as text for simplicity; modify if you have different text for each link
+          }));
+
+          // Merge with existing links and remove duplicates
+          const updatedLinks = Array.from(
+            new Set([
+              ...formattedLinks.map(JSON.stringify), // Convert to strings for deduplication
+              ...state.persistentLinks.map(JSON.stringify),
+            ])
+          ).map(JSON.parse); // Convert back to objects
+
           state.persistentLinks = updatedLinks;
-          state.newLinks = links;
+          state.newLinks = formattedLinks;
           localStorage.setItem('persistentLinks', JSON.stringify(updatedLinks));
         }
       })

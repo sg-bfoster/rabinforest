@@ -15,8 +15,8 @@ function SlideOutPanel({ isPanelOpen, togglePanel, persistentLinks, isDesktop })
         {persistentLinks.length > 0 ? (
           persistentLinks.map((link, index) => (
             <p key={index}>
-              <a href={link} target="_blank" rel="noopener noreferrer">
-                {link}
+              <a href={link.url} target="_blank" rel="noopener noreferrer">
+                {link.text}
               </a>
             </p>
           ))
