@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import DalleService from './services/dalleServiceProvider';
 
 const DalleForm = () => {
   const [prompt, setPrompt] = useState('');
@@ -14,56 +15,37 @@ const DalleForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsGenerating(true); // Disable button and update text
-    setError(null); // Reset error message
-    setImage(null); // Reset image
+    setIsGenerating(true);
+    setError(null);
+    setImage(null);
 
     try {
-      const res = await fetch('https://bfoster-services.herokuapp.com/ai/generate-image-rf', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt,
-          size,
-          quality,
-          style,
-          numImages: 1, // Fixed number of images
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-
-      const data = await res.json();
-      console.log('DALL-E Response:', data.response);
-      setImage(data.response); // Update image state
-    } catch (error) {
-      console.error('Error generating image:', error); // Log error
+      const generatedImage = await DalleService.generateImage({ prompt, size, quality, style });
+      console.log('DALL-E Response:', generatedImage);
+      setImage(generatedImage);
+    } catch (err) {
       setError('Error generating image. Please try again.');
     } finally {
-      setIsGenerating(false); // Re-enable button and reset text
+      setIsGenerating(false);
     }
   };
 
   useEffect(() => {
     if (image && imageRef.current) {
-      // Scroll to the image when it is added
       setTimeout(() => {
-      imageRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        imageRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 1000);
     }
     if (error && errorRef.current) {
-      // Scroll to the error when it is added
-      errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => {
+        errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 1000);
     }
   }, [image, error]);
-  
+
   return (
     <div className="dalle">
-      <div className={`form-container ${isGenerating ? 'generating2' : ''}`}>
+      <div className={`form-container ${isGenerating ? 'generating' : ''}`}>
         <h2>DALL-E 3 Image Generator</h2>
         <form onSubmit={handleSubmit} className="dalle-form">
           {/* Text Area */}
@@ -74,7 +56,7 @@ const DalleForm = () => {
             <textarea
               id="prompt"
               value={prompt}
-              disabled={isGenerating} 
+              disabled={isGenerating}
               onChange={(e) => setPrompt(e.target.value)}
               rows="4"
               placeholder="Describe an image to generate. Ex: A red apple floating in space."
@@ -92,7 +74,7 @@ const DalleForm = () => {
               <select
                 id="size"
                 value={size}
-                disabled={isGenerating} 
+                disabled={isGenerating}
                 onChange={(e) => setSize(e.target.value)}
                 className="form-select"
               >
@@ -109,7 +91,7 @@ const DalleForm = () => {
               <select
                 id="quality"
                 value={quality}
-                disabled={isGenerating} 
+                disabled={isGenerating}
                 onChange={(e) => setQuality(e.target.value)}
                 className="form-select"
               >
@@ -125,7 +107,7 @@ const DalleForm = () => {
               <select
                 id="style"
                 value={style}
-                disabled={isGenerating} 
+                disabled={isGenerating}
                 onChange={(e) => setStyle(e.target.value)}
                 className="form-select"
               >
@@ -140,13 +122,9 @@ const DalleForm = () => {
             <button
               type="submit"
               className="form-button submit"
-              disabled={isGenerating} // Disable button while generating
+              disabled={isGenerating}
             >
-              {isGenerating ? (
-                <span className="spinner"></span> // Show spinner
-              ) : (
-                'Generate Image'
-              )}
+              {isGenerating ? <span className="spinner"></span> : 'Generate Image'}
             </button>
           </div>
         </form>
