@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import DalleService from './services/dalleServiceProvider';
+import { useDispatch } from 'react-redux';
+import { addLink } from './features/assistantSlice';
 
 const DalleForm = () => {
+  const dispatch = useDispatch();
   const [prompt, setPrompt] = useState('');
   const [size, setSize] = useState('1024x1024'); // Default size
   const [quality, setQuality] = useState('standard'); // Default quality
@@ -19,24 +22,13 @@ const DalleForm = () => {
     setError(null);
     setImage(null);
 
-      // Load persistentLinks from localStorage
-  const getPersistentLinks = () => {
-    const links = localStorage.getItem('persistentLinks');
-    return links ? JSON.parse(links) : [];
-  };
-
-  // Update persistentLinks in localStorage
-  const savePersistentLinks = (newLink) => {
-    const links = getPersistentLinks();
-    const updatedLinks = [{ url: newLink, text: prompt }, ...links ];
-    localStorage.setItem('persistentLinks', JSON.stringify(updatedLinks));
-  };
 
   try {
       const generatedImage = await DalleService.generateImage({ prompt, size, quality, style });
       console.log('DALL-E Response:', generatedImage);
       setImage(generatedImage);
-      savePersistentLinks(generatedImage); 
+      dispatch(addLink({'url': generatedImage, 'text': prompt}));
+      //savePersistentLinks(generatedImage); 
     } catch (err) {
       setError('Error generating image. Please try again.');
     } finally {

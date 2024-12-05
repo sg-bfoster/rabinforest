@@ -46,6 +46,16 @@ const assistantSlice = createSlice({
       localStorage.removeItem('persistentLinks');
       localStorage.removeItem('threadId');
     },
+    addLink(state, action) {
+      const newLink = action.payload;
+      const updatedLinks = [...state.persistentLinks, newLink];
+
+      // Ensure no duplicates
+      const uniqueLinks = Array.from(new Set(updatedLinks.map(JSON.stringify))).map(JSON.parse);
+
+      state.persistentLinks = uniqueLinks;
+      localStorage.setItem('persistentLinks', JSON.stringify(uniqueLinks));
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -101,5 +111,5 @@ const assistantSlice = createSlice({
   },
 });
 
-export const { resetAssistantState } = assistantSlice.actions;
+export const { resetAssistantState, addLink } = assistantSlice.actions;
 export default assistantSlice.reducer;
