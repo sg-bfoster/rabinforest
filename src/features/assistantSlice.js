@@ -48,12 +48,13 @@ const assistantSlice = createSlice({
     },
     addLink(state, action) {
       const newLink = action.payload;
-      const updatedLinks = [...state.persistentLinks, newLink];
+      const updatedLinks = [newLink, ...state.persistentLinks];
 
       // Ensure no duplicates
       const uniqueLinks = Array.from(new Set(updatedLinks.map(JSON.stringify))).map(JSON.parse);
 
       state.persistentLinks = uniqueLinks;
+      state.newLinks = newLink;
       localStorage.setItem('persistentLinks', JSON.stringify(uniqueLinks));
     },
   },

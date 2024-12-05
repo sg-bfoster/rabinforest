@@ -36,6 +36,12 @@ const DalleForm = () => {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+    }
+  };
+
   useEffect(() => {
     if (image && imageRef.current) {
       setTimeout(() => {
@@ -63,6 +69,7 @@ const DalleForm = () => {
               id="prompt"
               value={prompt}
               disabled={isGenerating}
+              onKeyDown={handleKeyDown}
               onChange={(e) => setPrompt(e.target.value)}
               rows="4"
               placeholder="Describe an image to generate. Ex: A red apple floating in space."
