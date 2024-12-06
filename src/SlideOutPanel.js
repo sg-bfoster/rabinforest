@@ -1,9 +1,17 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { clearLinks } from './features/assistantSlice';
 
 function SlideOutPanel({ isPanelOpen, togglePanel, isDesktop }) {
+
+  const dispatch = useDispatch();
   // Select persistentLinks from the Redux store
   const links = useSelector((state) => state.assistant.persistentLinks);
+
+  const handleClearLinks = () => {
+    // Dispatch an action to clear the links
+    dispatch(clearLinks());
+  } 
 
   return (
     <div className={`slideout-panel ${isPanelOpen ? 'open' : ''}`}>
@@ -17,13 +25,18 @@ function SlideOutPanel({ isPanelOpen, togglePanel, isDesktop }) {
       </div>
       <div className="slideout-links">
         {links.length > 0 ? (
-          links.map((link, index) => (
-            <p key={index}>
-              <a href={link.url} target="_blank" rel="noopener noreferrer">
-                {link.text}
-              </a>
-            </p>
-          ))
+          <>
+            {links.map((link, index) => (
+              <p key={index}>
+                <a href={link.url} target="_blank" rel="noopener noreferrer">
+                  {link.text}
+                </a>
+              </p>
+            ))}
+            <button className="clear-links-btn" onClick={handleClearLinks}>
+              Clear Links
+            </button>
+          </>
         ) : (
           <p>No links available</p>
         )}

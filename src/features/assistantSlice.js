@@ -43,7 +43,7 @@ const assistantSlice = createSlice({
       state.newLinks = [];
       state.error = null;
       localStorage.removeItem('conversation');
-      localStorage.removeItem('persistentLinks');
+      // localStorage.removeItem('persistentLinks');
       localStorage.removeItem('threadId');
     },
     addLink(state, action) {
@@ -57,6 +57,11 @@ const assistantSlice = createSlice({
       state.newLinks = [newLink];
       localStorage.setItem('persistentLinks', JSON.stringify(uniqueLinks));
     },
+    clearLinks(state) {
+      state.persistentLinks = [];
+      localStorage.removeItem('persistentLinks');
+      state.newLinks = [];
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -112,5 +117,5 @@ const assistantSlice = createSlice({
   },
 });
 
-export const { resetAssistantState, addLink } = assistantSlice.actions;
+export const { resetAssistantState, addLink ,clearLinks } = assistantSlice.actions;
 export default assistantSlice.reducer;

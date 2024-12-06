@@ -146,7 +146,7 @@ const DalleForm = () => {
             <label htmlFor="style" className="form-label">
               Image:
             </label>
-            {image && <a href={image} target="_blank"><img className="dalle-3-image" src={image} alt="Generated" /></a>}
+            {image && <a href={image} target="_blank" rel="noreferrer"><img className="dalle-3-image" src={image} alt="Generated" /></a>}
           </div>
           {/* Error Message */}
           <p ref={errorRef} className="error-message">
