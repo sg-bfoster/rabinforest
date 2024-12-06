@@ -19,7 +19,13 @@ const Menu = ({ isMenuOpen, toggleMenu, isDesktop, setIsPanelOpen, setIsDesktop 
         }
     }
 
-    const isActive = (path) => window.location.pathname === path; // Check if the path matches the current location
+    const isActive = (path) => {
+        const [pathname, search] = path.split('?');
+        return (
+            window.location.pathname === pathname &&
+            (!search || window.location.search === `?${search}`)
+        );
+    };
 
     return (
         <div className={`menu-panel ${isMenuOpen || isDesktop ? 'open' : ''}`}>
@@ -31,8 +37,11 @@ const Menu = ({ isMenuOpen, toggleMenu, isDesktop, setIsPanelOpen, setIsDesktop 
                 </ul>
                 <span className='playground-menu-header'><i>Playground</i></span>
                 <ul>
-                    <li className={isActive('/playground') ? 'active' : ''}>
+                    <li className={isActive('/playground?view=dalle') ? 'active' : ''}>
                         <Link to="/playground?view=dalle" onClick={() => handleLinkClick('/playground')}>&#8226; Dalle-3</Link>
+                    </li>
+                    <li className={isActive('/playground?view=aichat') ? 'active' : ''}>
+                        <Link to="/playground?view=aichat" onClick={() => handleLinkClick('/playground')}>&#8226; AI Chat</Link>
                     </li>
                 </ul>
             </div>

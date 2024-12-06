@@ -2,6 +2,7 @@
 import React, { useEffect, useRef } from 'react';
 import DalleForm from './Dalle-3';
 import { useLocation } from 'react-router-dom';
+import AIChat from './AI-Chat';
 
 const Playground = (isDesktop) => {
 
@@ -37,6 +38,7 @@ const Playground = (isDesktop) => {
       <div className="playground-content" ref={playgroundRef}>
         <h1>Playground</h1>
         {view === 'dalle' && <DalleForm />}
+        {view === 'aichat' && <AIChat />}
       </div>
     </div>
   );
