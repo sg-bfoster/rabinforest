@@ -1,8 +1,13 @@
 // Playground.js
 import React, { useEffect, useRef } from 'react';
 import DalleForm from './Dalle-3';
+import { useLocation } from 'react-router-dom';
 
 const Playground = (isDesktop) => {
+
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const view = queryParams.get('view'); 
 
   const adjustPlaygroundHeight = () => {
     const header = document.querySelector('.navbar');
@@ -30,8 +35,8 @@ const Playground = (isDesktop) => {
   return (
     <div className={`Playground ${isDesktop ? 'open' : ''}`}>
       <div className="playground-content" ref={playgroundRef}>
-        <h1>Playground Page</h1>
-        <DalleForm />
+        <h1>Playground</h1>
+        {view === 'dalle' && <DalleForm />}
       </div>
     </div>
   );
