@@ -54,7 +54,7 @@ const assistantSlice = createSlice({
       const uniqueLinks = Array.from(new Set(updatedLinks.map(JSON.stringify))).map(JSON.parse);
 
       state.persistentLinks = uniqueLinks;
-      state.newLinks = newLink;
+      state.newLinks = [newLink];
       localStorage.setItem('persistentLinks', JSON.stringify(uniqueLinks));
     },
   },

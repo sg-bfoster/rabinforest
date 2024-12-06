@@ -1,29 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { useSelector } from 'react-redux';
 
-function SlideOutPanel({ isPanelOpen, togglePanel, persistentLinks, isDesktop }) {
-
-  const [links, setLinks] = useState([]);
-
-  useEffect(() => {
-    // Function to load persistent links from localStorage
-    const loadPersistentLinks = () => {
-      const storedLinks = localStorage.getItem('persistentLinks');
-      return storedLinks ? JSON.parse(storedLinks) : [];
-    };
-  
-    // Initial load of persistent links
-    setLinks(loadPersistentLinks());
-  
-    // Set up interval to check for changes in persistent links
-    const intervalId = setInterval(() => {
-      setLinks(loadPersistentLinks());
-    }, 4000); // Check every 4 seconds -- going to clean this up and use redux
-  
-    // Cleanup interval on component unmount
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, []);
+function SlideOutPanel({ isPanelOpen, togglePanel, isDesktop }) {
+  // Select persistentLinks from the Redux store
+  const links = useSelector((state) => state.assistant.persistentLinks);
 
   return (
     <div className={`slideout-panel ${isPanelOpen ? 'open' : ''}`}>
