@@ -120,9 +120,14 @@ const AIChat = () => {
     };
 
     const updateSubject = () => {
-        if (subjectInput.trim()) {
-            resetConversation(subjectInput.trim());
-            setSubjectInput("");
+        let topic = subjectInput.trim();
+    
+        if (!topic) {
+            topic = prompt("Please enter a topic to set as the starting message:");
+        }
+    
+        if (topic) {
+            resetConversation(topic);
         }
     };
 
@@ -182,7 +187,7 @@ const AIChat = () => {
                     disabled={isActive}
                 />
                 <div className="chat-buttons">
-                    <button onClick={updateSubject} disabled={isActive || !subjectInput.trim()}>
+                    <button onClick={updateSubject}>
                         Set Starting Topic
                     </button>
                     <button onClick={startOrPauseDiscussion}>
