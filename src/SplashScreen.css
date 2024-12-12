@@ -13,6 +13,7 @@
     z-index: 9999;
     opacity: 1;
     transition: opacity 1s ease-out;
+    background-position: center center;
   }
   
   .splash-screen.fade-out {

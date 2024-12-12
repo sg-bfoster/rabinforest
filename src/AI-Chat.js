@@ -11,6 +11,7 @@ const AIChat = () => {
     const conLength = 8;
     const reset = useRef(false); // Mutable ref to control resetting the conversation
     const messagesEndRef = useRef(null); // Ref for scrolling to the last message
+    const conversationRef = useRef(null);
 
     let assistantAHistory = [{ role: "user", content: initialSubject }];
     let assistantBHistory = [{ role: "assistant", content: initialSubject }];
@@ -50,6 +51,7 @@ const AIChat = () => {
         const { data } = await axios.post('https://bfoster-services.herokuapp.com/ai/ai-chat', { messages: conversation });
         return data.response;
     };
+
 
     const startDiscussion = async () => {
         setIsActive(true);
@@ -128,14 +130,36 @@ const AIChat = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
+    // Adjust conversation height
+    const adjustConversationHeight = () => {
+        const headerHeight = document.querySelector('.navbar').offsetHeight;
+        const footerHeight = document.querySelector('.footer').offsetHeight;
+        const inputHeight = document.querySelector('.chat-input-area').offsetHeight;
+
+        const availableHeight = window.innerHeight - headerHeight - inputHeight - footerHeight;
+        if (conversationRef.current) {
+            conversationRef.current.style.height = `${availableHeight - 5}px`;
+        }
+    };
+
+
     useEffect(() => {
         scrollToBottom(); // Ensure the conversation is scrolled to the bottom on new messages
     }, [messages]);
 
+    useEffect(() => {
+        window.addEventListener('resize', adjustConversationHeight);
+        adjustConversationHeight();
+
+        return () => {
+            window.removeEventListener('resize', adjustConversationHeight);
+        };
+    }, []);
+
     return (
         <div className="ai-chat-container">
             <h2 className="ai-chat-header">AI Chat</h2>
-            <div className="chat-messages">
+            <div className="chat-messages" ref={conversationRef}>
                 {messages.map((msg, idx) => (
                     <div
                         key={idx}

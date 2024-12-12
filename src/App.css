@@ -5,6 +5,7 @@ body {
   font-family: 'Montserrat', sans-serif;
   background-image: url('/public/forest-space-background.png');
   background-size: cover;
+  background-position: center center;
 }
 
 html,
