@@ -169,7 +169,9 @@ body {
 .chat-buttons button{
   background-color: #e9ffd0;
 }
-
+.chat-buttons {
+margin: 20px 0 0 0;
+}
 .badge {
   background-color: #e53935;
   color: white;
@@ -844,8 +846,8 @@ select {
   padding: 10px;
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 450px);
-  max-height: calc(100vh - 450px);
+  min-height: calc(100vh - 380px);
+  max-height: calc(100vh - 380px);
   border-top: 1px solid #ddd;
 }
 

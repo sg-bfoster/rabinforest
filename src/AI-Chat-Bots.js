@@ -4,38 +4,22 @@ import axios from 'axios';
 const AIChat = () => {
     const [messages, setMessages] = useState([]);
     const [isActive, setIsActive] = useState(false);
-    const [isPaused, setIsPaused] = useState(false);
-    const [subjectInput, setSubjectInput] = useState(""); // Input for the starting question
-    const [initialSubject, setInitialSubject] = useState("");
-    const pauseRef = useRef(false); // Mutable ref to control pausing in async loop
     const conLength = 8;
-    const reset = useRef(false); // Mutable ref to control resetting the conversation
-    const messagesEndRef = useRef(null); // Ref for scrolling to the last message
+    const messagesEndRef = useRef(null);
     const conversationRef = useRef(null);
 
-    let assistantAHistory = [{ role: "user", content: initialSubject }];
-    let assistantBHistory = [{ role: "assistant", content: initialSubject }];
+    let assistantAHistory = [];
+    let assistantBHistory = [];
 
-    const resetConversation = (newSubject = initialSubject) => {
-        reset.current = true;
+    const resetConversation = (newSubject) => {
         setMessages([]);
-        assistantAHistory = [{ role: "user", content: newSubject }];
-        assistantBHistory = [{ role: "assistant", content: newSubject }];
-        setInitialSubject(newSubject);
-
+        assistantAHistory = newSubject
+            ? [{ role: "user", content: newSubject }]
+            : [];
+        assistantBHistory = newSubject
+            ? [{ role: "assistant", content: newSubject }]
+            : [];
         setIsActive(false);
-        setIsPaused(false);
-        pauseRef.current = false;
-    };
-
-    const startOrPauseDiscussion = () => {
-        reset.current = false;
-        if (isActive) {
-            setIsPaused((prev) => !prev);
-            pauseRef.current = !pauseRef.current;
-        } else {
-            startDiscussion();
-        }
     };
 
     const fetchResponse = async (history, ending) => {
@@ -44,73 +28,60 @@ const AIChat = () => {
             {
                 role: "system",
                 content: ending
-                    ? "Finish up this conversation now. Be kind. Don't ask any followup questions."
-                    : "Be curious. Respond as a human. Answer with 30 words or fewer. Ask a follow up question.",
+                    ? "Finish up this conversation now. Be kind. Don't ask any follow-up questions."
+                    : "Be curious. Respond as a human. Answer with 30 words or fewer. Ask a follow-up question.",
             },
         ];
         const { data } = await axios.post('https://bfoster-services.herokuapp.com/ai/ai-chat', { messages: conversation });
         return data.response;
     };
 
-
     const startDiscussion = async () => {
+        const topic = prompt("Please enter a topic to start the conversation:");
+        if (!topic || !topic.trim()) {
+            alert("A topic is required to start the conversation.");
+            return;
+        }
+    
+        resetConversation(topic.trim());
         setIsActive(true);
-        setIsPaused(false); // Reset paused state
-        pauseRef.current = false;
-
-        let assistantA = "AssistantA";
-        let assistantB = "AssistantB";
-        let currentAssistant = assistantA; // Start with AssistantA
-
+    
         const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-        setMessages((prev) => [
-            ...prev,
-            { assistant: "AssistantA", message: initialSubject },
-        ]);
-
-        scrollToBottom(); // Ensure the initial message is in view
-
-        // Delay before the next response
+    
+        const assistants = ["AssistantA", "AssistantB"];
+        let currentAssistant = 1; // Start with AssistantB
+    
+        // Add the initial message as the user's topic
+        assistantAHistory.push({ role: "user", content: topic.trim() });
+        assistantBHistory.push({ role: "user", content: topic.trim() });
+    
+        setMessages([{ assistant: assistants[0], message: topic.trim() }]);
+        scrollToBottom();
         await delay(2000);
-
+    
         try {
             for (let i = 0; i < conLength; i++) {
-                if (reset.current === true) {
-                    break; // Exit the loop
-                }
-                while (pauseRef.current) {
-                    console.log("Paused...");
-                    await new Promise((resolve) => setTimeout(resolve, 1000));
-                }
-
-                const assistantCopy = currentAssistant;
-                const currentHistory = assistantCopy === assistantA ? assistantAHistory : assistantBHistory;
-
-                // Fetch the response
-                const response = await fetchResponse(currentHistory, i > conLength - 3);
-
-                // Update conversation history and switch assistants
-                if (assistantCopy === assistantA) {
+                const history = currentAssistant === 0 ? assistantAHistory : assistantBHistory;
+                const assistantIndex = currentAssistant; // Capture current assistant index
+    
+                const response = await fetchResponse(history, i >= conLength - 3);
+    
+                if (assistantIndex === 0) {
                     assistantAHistory.push({ role: "assistant", content: response });
                     assistantBHistory.push({ role: "user", content: response });
-                    currentAssistant = assistantB;
                 } else {
                     assistantBHistory.push({ role: "assistant", content: response });
                     assistantAHistory.push({ role: "user", content: response });
-                    currentAssistant = assistantA;
                 }
-
-                // Update UI messages state
+    
                 setMessages((prev) => [
                     ...prev,
-                    { assistant: assistantCopy === assistantA ? "AssistantB" : "AssistantA", message: response },
+                    { assistant: assistants[assistantIndex], message: response },
                 ]);
-
-                scrollToBottom(); // Scroll to the new message
-
-                // Delay before the next response
-                await delay(3000);
+    
+                currentAssistant = 1 - currentAssistant; // Toggle between 0 (A) and 1 (B)
+                scrollToBottom();
+                await delay(2000);
             }
         } catch (error) {
             console.error("Error during discussion:", error);
@@ -119,45 +90,30 @@ const AIChat = () => {
         }
     };
 
-    const updateSubject = () => {
-        let topic = subjectInput.trim();
-    
-        if (!topic) {
-            topic = prompt("Please enter a topic to set as the starting message:");
-        }
-    
-        if (topic) {
-            resetConversation(topic);
-        }
-    };
-
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
-    // Adjust conversation height
     const adjustConversationHeight = () => {
-        const headerHeight = document.querySelector('.navbar').offsetHeight;
-        const footerHeight = document.querySelector('.footer').offsetHeight;
-        const inputHeight = document.querySelector('.chat-input-area').offsetHeight;
+        const headerHeight = document.querySelector('.navbar')?.offsetHeight || 0;
+        const footerHeight = document.querySelector('.footer')?.offsetHeight || 0;
+        const inputHeight = document.querySelector('.chat-input-area')?.offsetHeight || 0;
+        const availableHeight = window.innerHeight - headerHeight - footerHeight - inputHeight;
 
-        const availableHeight = window.innerHeight - headerHeight - inputHeight - footerHeight;
         if (conversationRef.current) {
             conversationRef.current.style.height = `${availableHeight - 5}px`;
         }
     };
 
     useEffect(() => {
-        scrollToBottom(); // Ensure the conversation is scrolled to the bottom on new messages
+        scrollToBottom();
     }, [messages]);
 
     useEffect(() => {
         window.addEventListener('resize', adjustConversationHeight);
         adjustConversationHeight();
 
-        return () => {
-            window.removeEventListener('resize', adjustConversationHeight);
-        };
+        return () => window.removeEventListener('resize', adjustConversationHeight);
     }, []);
 
     return (
@@ -169,31 +125,18 @@ const AIChat = () => {
                         key={idx}
                         className={`message-bubble ${msg.assistant === "AssistantA" ? "assistant-a" : "assistant-b"}`}
                     >
-                        <p className="message-text">
-                            {msg.message}
-                        </p>
+                        <p className="message-text">{msg.message}</p>
                     </div>
                 ))}
-                <div ref={messagesEndRef} /> {/* Reference to scroll into view */}
+                <div ref={messagesEndRef} />
             </div>
             <div className="chat-input-area">
-                <textarea
-                    rows="2"
-                    className="subject-input"
-                    placeholder="Enter a topic. Ex: What is your favorite movie?"
-                    value={subjectInput}
-                    onChange={(e) => setSubjectInput(e.target.value)}
-                    disabled={isActive}
-                />
                 <div className="chat-buttons">
-                    <button onClick={updateSubject}>
-                        Set Starting Topic
+                    <button onClick={startDiscussion} disabled={isActive}>
+                        {isActive ? "Conversation Active" : "Start New Conversation"}
                     </button>
-                    <button onClick={startOrPauseDiscussion}>
-                        {isActive ? (isPaused ? "Resume Discussion" : "Pause Discussion") : "Start Discussion"}
-                    </button>
-                    <button onClick={() => resetConversation()} disabled={isActive && !isPaused}>
-                        New Conversation
+                    <button onClick={() => resetConversation("")} disabled={isActive}>
+                        Clear Conversation
                     </button>
                 </div>
             </div>
