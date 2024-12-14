@@ -23,6 +23,14 @@ function App() {
     error,
   } = useSelector((state) => state.assistant);
 
+  // Keep a local copy of conversation for immediate user message display
+  const [localConversation, setLocalConversation] = useState(conversation);
+
+  useEffect(() => {
+    // Sync localConversation whenever Redux conversation updates
+    setLocalConversation(conversation);
+  }, [conversation]);
+
   const [inputText, setInputText] = useState('');
   const [isPanelOpen, setIsPanelOpen] = useState(window.innerWidth >= 768);
   const [showSplash, setShowSplash] = useState(true);
@@ -30,11 +38,9 @@ function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
   const conversationEndRef = useRef(null);
-  const [showApp, setShowApp] = useState(false); // State to show the app after splash screen
-
+  const [showApp, setShowApp] = useState(false);
 
   useEffect(() => {
-    //setShowSplash(true);
     setShowApp(true);
     const splashTimeout = setTimeout(() => {
       setFadeOutSplash(true);
@@ -60,8 +66,12 @@ function App() {
   }, []);
 
   const handleSubmit = () => {
-    if (inputText) {
-      dispatch(fetchAssistantResponse({ inputText, threadId }));
+    if (inputText.trim()) {
+      // Immediately show the user's message by updating localConversation
+      setLocalConversation(prev => [...prev, { role: 'user', content: inputText.trim() }]);
+
+      // Now fetch the assistant's response (which will update Redux conversation)
+      dispatch(fetchAssistantResponse({ inputText: inputText.trim(), threadId }));
       setInputText('');
     }
   };
@@ -128,7 +138,8 @@ function App() {
               path="/"
               element={
                 <div className={`App ${isPanelOpen ? 'open' : ''}`}>
-                  <Conversation conversation={conversation} conversationEndRef={conversationEndRef} />
+                  {/* Use localConversation to display messages immediately */}
+                  <Conversation conversation={localConversation} conversationEndRef={conversationEndRef} />
                   <InputArea
                     isPanelOpen={isPanelOpen}
                     inputText={inputText}

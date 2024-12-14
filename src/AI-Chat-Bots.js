@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 
-const AIChat = () => {
+const AIChatBots = () => {
     const [messages, setMessages] = useState([]);
     const [isActive, setIsActive] = useState(false);
     const conLength = 8;
@@ -64,7 +64,7 @@ const AIChat = () => {
                 const history = currentAssistant === 0 ? assistantAHistory : assistantBHistory;
                 const assistantIndex = currentAssistant; // Capture current assistant index
     
-                const response = await fetchResponse(history, i >= conLength - 3);
+                const response = await fetchResponse(history, i >= conLength - 2);
     
                 if (assistantIndex === 0) {
                     assistantAHistory.push({ role: "assistant", content: response });
@@ -144,4 +144,4 @@ const AIChat = () => {
     );
 };
 
-export default AIChat;
+export default AIChatBots;
