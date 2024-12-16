@@ -200,6 +200,9 @@ margin: 20px 0 0 0;
   flex-direction: column;
   /* Ensures the header stays at the top */
 }
+h2 {
+  margin: 15px 0;
+}
 
 .slideout-panel h2 {
   margin: 0;
@@ -705,11 +708,15 @@ select {
   text-align: center;
 }
 
-.navbar-help-icon {
+.navbar-help-icon, .playground-help-icon {
   font-size: 1.5rem;
   margin: 0 0 25px 10px;
   color: var(--highlight-color); /* Replace with your app's highlight color */
   cursor: pointer;
+}
+
+.playground-help-icon {
+  margin: 15px 0 15px 10px;
 }
 
 .modal-overlay {
@@ -951,4 +958,30 @@ button {
 button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
+}
+.header-row {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+.about-button {
+  margin-left: 10px;
+}
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-content {
+  color: black;
+  background: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  max-width: 400px;
+  text-align: center;
+}
+.close-button {
+  margin-top: 10px;
 }

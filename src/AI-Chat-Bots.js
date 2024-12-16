@@ -1,9 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCircleQuestion } from '@fortawesome/free-solid-svg-icons';
 
 const AIChatBots = () => {
     const [messages, setMessages] = useState([]);
     const [isActive, setIsActive] = useState(false);
+    const [showModal, setShowModal] = useState(false); // New state for modal visibility
     const conLength = 8;
     const messagesEndRef = useRef(null);
     const conversationRef = useRef(null);
@@ -42,30 +45,30 @@ const AIChatBots = () => {
             alert("A topic is required to start the conversation.");
             return;
         }
-    
+
         resetConversation(topic.trim());
         setIsActive(true);
-    
+
         const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-    
+
         const assistants = ["AssistantA", "AssistantB"];
         let currentAssistant = 1; // Start with AssistantB
-    
+
         // Add the initial message as the user's topic
         assistantAHistory.push({ role: "user", content: topic.trim() });
         assistantBHistory.push({ role: "user", content: topic.trim() });
-    
+
         setMessages([{ assistant: assistants[0], message: topic.trim() }]);
         scrollToBottom();
         await delay(2000);
-    
+
         try {
             for (let i = 0; i < conLength; i++) {
                 const history = currentAssistant === 0 ? assistantAHistory : assistantBHistory;
                 const assistantIndex = currentAssistant; // Capture current assistant index
-    
+
                 const response = await fetchResponse(history, i >= conLength - 2);
-    
+
                 if (assistantIndex === 0) {
                     assistantAHistory.push({ role: "assistant", content: response });
                     assistantBHistory.push({ role: "user", content: response });
@@ -73,12 +76,12 @@ const AIChatBots = () => {
                     assistantBHistory.push({ role: "assistant", content: response });
                     assistantAHistory.push({ role: "user", content: response });
                 }
-    
+
                 setMessages((prev) => [
                     ...prev,
                     { assistant: assistants[assistantIndex], message: response },
                 ]);
-    
+
                 currentAssistant = 1 - currentAssistant; // Toggle between 0 (A) and 1 (B)
                 scrollToBottom();
                 await delay(2000);
@@ -118,7 +121,16 @@ const AIChatBots = () => {
 
     return (
         <div className="ai-chat-container">
-            <h2 className="ai-chat-header">AI Chat Bots</h2>
+            <div className="header-row">
+                <h2 className="ai-chat-header">AI Chat Bots</h2>
+                <FontAwesomeIcon
+                    icon={faCircleQuestion}
+                    className="playground-help-icon"
+                    onClick={() => setShowModal(true)}
+                    title="AI Chat Bots"
+                />
+            </div>
+
             <div className="chat-messages" ref={conversationRef}>
                 {messages.map((msg, idx) => (
                     <div
@@ -140,6 +152,18 @@ const AIChatBots = () => {
                     </button>
                 </div>
             </div>
+
+            {/* Modal Implementation */}
+            {showModal && (
+                <div className="modal-overlay" onClick={() => setShowModal(false)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        <h3>AI Chat Bots</h3>
+                        <p>This page allows two chat bots to discuss the topic you provide. When you start a new conversation and enter a topic, the two bots will talk to each other about it.</p>
+                        <button className="close-button" onClick={() => setShowModal(false)}>Close</button>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 };
