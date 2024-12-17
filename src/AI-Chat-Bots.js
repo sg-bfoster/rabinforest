@@ -60,7 +60,7 @@ const AIChatBots = () => {
     
         setMessages([{ assistant: assistants[0], message: topic.trim() }]);
         scrollToBottom();
-        await delay(2000);
+        await delay(1000);
     
         try {
             for (let i = 0; i < conLength; i++) {
@@ -85,7 +85,7 @@ const AIChatBots = () => {
     
                 currentAssistant = 1 - currentAssistant; // Toggle between 0 (A) and 1 (B)
                 scrollToBottom();
-                await delay(2000);
+                await delay(1000);
             }
         } catch (error) {
             console.error("Error during discussion:", error);
