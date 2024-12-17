@@ -4,9 +4,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleQuestion } from '@fortawesome/free-solid-svg-icons';
 
 const AIChatBots = () => {
-    const [messages, setMessages] = useState([]);
+    const [messages, setMessages] = useState([]); // State for messages
     const [isActive, setIsActive] = useState(false);
-    const [showModal, setShowModal] = useState(false); // New state for modal visibility
+    const [showModal, setShowModal] = useState(false);
     const conLength = 8;
     const messagesEndRef = useRef(null);
     const conversationRef = useRef(null);
@@ -15,7 +15,8 @@ const AIChatBots = () => {
     let assistantBHistory = [];
 
     const resetConversation = (newSubject) => {
-        setMessages([]);
+        setMessages([]); // Clear only the state, NOT localStorage
+        localStorage.removeItem("messages");
         assistantAHistory = newSubject
             ? [{ role: "user", content: newSubject }]
             : [];
@@ -45,30 +46,30 @@ const AIChatBots = () => {
             alert("A topic is required to start the conversation.");
             return;
         }
-
+    
         resetConversation(topic.trim());
         setIsActive(true);
-
+    
         const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
+    
         const assistants = ["AssistantA", "AssistantB"];
         let currentAssistant = 1; // Start with AssistantB
-
-        // Add the initial message as the user's topic
+    
         assistantAHistory.push({ role: "user", content: topic.trim() });
         assistantBHistory.push({ role: "user", content: topic.trim() });
-
+    
         setMessages([{ assistant: assistants[0], message: topic.trim() }]);
         scrollToBottom();
         await delay(2000);
-
+    
         try {
             for (let i = 0; i < conLength; i++) {
-                const history = currentAssistant === 0 ? assistantAHistory : assistantBHistory;
-                const assistantIndex = currentAssistant; // Capture current assistant index
-
+                const assistantIndex = currentAssistant; // Capture current value of `currentAssistant`
+    
+                const history = assistantIndex === 0 ? assistantAHistory : assistantBHistory;
+    
                 const response = await fetchResponse(history, i >= conLength - 2);
-
+    
                 if (assistantIndex === 0) {
                     assistantAHistory.push({ role: "assistant", content: response });
                     assistantBHistory.push({ role: "user", content: response });
@@ -76,12 +77,12 @@ const AIChatBots = () => {
                     assistantBHistory.push({ role: "assistant", content: response });
                     assistantAHistory.push({ role: "user", content: response });
                 }
-
+    
                 setMessages((prev) => [
                     ...prev,
                     { assistant: assistants[assistantIndex], message: response },
                 ]);
-
+    
                 currentAssistant = 1 - currentAssistant; // Toggle between 0 (A) and 1 (B)
                 scrollToBottom();
                 await delay(2000);
@@ -97,27 +98,20 @@ const AIChatBots = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
-    const adjustConversationHeight = () => {
-        const headerHeight = document.querySelector('.navbar')?.offsetHeight || 0;
-        const footerHeight = document.querySelector('.footer')?.offsetHeight || 0;
-        const inputHeight = document.querySelector('.chat-input-area')?.offsetHeight || 0;
-        const availableHeight = window.innerHeight - headerHeight - footerHeight - inputHeight;
-
-        if (conversationRef.current) {
-            conversationRef.current.style.height = `${availableHeight - 5}px`;
+    useEffect(() => {
+        // Load messages from localStorage on first mount
+        const storedMessages = localStorage.getItem("messages");
+        if (storedMessages) {
+            setMessages(JSON.parse(storedMessages));
         }
-    };
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
-
-    useEffect(() => {
-        window.addEventListener('resize', adjustConversationHeight);
-        adjustConversationHeight();
-
-        return () => window.removeEventListener('resize', adjustConversationHeight);
     }, []);
+
+    useEffect(() => {
+        // Save messages to localStorage when messages state changes
+        if (messages.length > 0) {
+            localStorage.setItem("messages", JSON.stringify(messages));
+        }
+    }, [messages]);
 
     return (
         <div className="ai-chat-container">
@@ -153,17 +147,16 @@ const AIChatBots = () => {
                 </div>
             </div>
 
-            {/* Modal Implementation */}
+            {/* Modal */}
             {showModal && (
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                         <h3>AI Chat Bots</h3>
-                        <p>This page allows two chat bots to discuss the topic you provide. When you start a new conversation and enter a topic, the two bots will talk to each other about it.</p>
+                        <p>This page allows two chat bots to discuss the topic you provide.</p>
                         <button className="close-button" onClick={() => setShowModal(false)}>Close</button>
                     </div>
                 </div>
             )}
-
         </div>
     );
 };
