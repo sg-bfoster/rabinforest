@@ -116,7 +116,7 @@ const AIChatBots = () => {
     return (
         <div className="ai-chat-container">
             <div className="header-row">
-                <h2 className="ai-chat-header">AI Chat Bots</h2>
+                <h2 className="ai-chat-header">AI Chat Bots - ChatGPT</h2>
                 <FontAwesomeIcon
                     icon={faCircleQuestion}
                     className="playground-help-icon"
@@ -152,7 +152,7 @@ const AIChatBots = () => {
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                         <h3>AI Chat Bots</h3>
-                        <p>This page allows two chat bots to discuss the topic you provide.</p>
+                        <p>This page allows two ChatGPT chat bots to discuss the topic you provide.</p>
                         <button className="close-button" onClick={() => setShowModal(false)}>Close</button>
                     </div>
                 </div>

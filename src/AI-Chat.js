@@ -1,205 +1,87 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { faCircleQuestion } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import axios from 'axios';
+import React, { useState, useEffect, useRef } from 'react';
 
-const AIChat = () => {
+function App() {
+    const [prompt, setPrompt] = useState('');
     const [messages, setMessages] = useState([]);
-    const [isActive, setIsActive] = useState(false);
-    const [isPaused, setIsPaused] = useState(false);
-    const [subjectInput, setSubjectInput] = useState(""); // Input for the starting question
-    const [initialSubject, setInitialSubject] = useState("What dog breed do you think is the best?");
-    const pauseRef = useRef(false); // Mutable ref to control pausing in async loop
-    const conLength = 8;
-    const reset = useRef(false); // Mutable ref to control resetting the conversation
-    const messagesEndRef = useRef(null); // Ref for scrolling to the last message
-    const conversationRef = useRef(null);
+    const messagesEndRef = useRef(null);
+    const messagesContainerRef = useRef(null);
+    const [showModal, setShowModal] = useState(false);
 
-    let assistantAHistory = [{ role: "user", content: initialSubject }];
-    let assistantBHistory = [{ role: "assistant", content: initialSubject }];
 
-    const resetConversation = (newSubject = initialSubject) => {
-        reset.current = true;
-        setMessages([]);
-        assistantAHistory = [{ role: "user", content: newSubject }];
-        assistantBHistory = [{ role: "assistant", content: newSubject }];
-        setInitialSubject(newSubject);
-
-        setIsActive(false);
-        setIsPaused(false);
-        pauseRef.current = false;
-    };
-
-    const startOrPauseDiscussion = () => {
-        reset.current = false;
-        if (isActive) {
-            setIsPaused((prev) => !prev);
-            pauseRef.current = !pauseRef.current;
-        } else {
-            startDiscussion();
-        }
-    };
-
-    const fetchResponse = async (history, ending) => {
-        const conversation = [
-            ...history,
-            {
-                role: "system",
-                content: ending
-                    ? "Finish up this conversation now. Be kind. Don't ask any followup questions."
-                    : "Be curious. Respond as a human. Answer with 30 words or fewer. Ask a follow up question.",
-            },
-        ];
-        const { data } = await axios.post('https://bfoster-services.herokuapp.com/ai/ai-chat', { messages: conversation });
+    const fetchResponse = async (prompt, history) => {
+        const { data } = await axios.post('https://bfoster-services.herokuapp.com/ai/generate-text-gemini', { prompt: prompt, history: history });
         return data.response;
     };
 
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
-    const startDiscussion = async () => {
-        setIsActive(true);
-        setIsPaused(false); // Reset paused state
-        pauseRef.current = false;
+        if (!prompt.trim()) return;
 
-        let assistantA = "AssistantA";
-        let assistantB = "AssistantB";
-        let currentAssistant = assistantA; // Start with AssistantA
+        // Add user's message to the chat
+        const userMessage = { role: 'user', parts: [{ text: prompt.trim() }] };
+        setMessages((prev) => [...prev, userMessage]);
 
-        const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-        setMessages((prev) => [
-            ...prev,
-            { assistant: "AssistantA", message: initialSubject },
-        ]);
-
-        scrollToBottom(); // Ensure the initial message is in view
-
-        // Delay before the next response
-        await delay(2000);
-
-        try {
-            for (let i = 0; i < conLength; i++) {
-                if (reset.current === true) {
-                    break; // Exit the loop
-                }
-                while (pauseRef.current) {
-                    console.log("Paused...");
-                    await new Promise((resolve) => setTimeout(resolve, 1000));
-                }
-
-                const assistantCopy = currentAssistant;
-                const currentHistory = assistantCopy === assistantA ? assistantAHistory : assistantBHistory;
-
-                // Fetch the response
-                const response = await fetchResponse(currentHistory, i > conLength - 3);
-
-                // Update conversation history and switch assistants
-                if (assistantCopy === assistantA) {
-                    assistantAHistory.push({ role: "assistant", content: response });
-                    assistantBHistory.push({ role: "user", content: response });
-                    currentAssistant = assistantB;
-                } else {
-                    assistantBHistory.push({ role: "assistant", content: response });
-                    assistantAHistory.push({ role: "user", content: response });
-                    currentAssistant = assistantA;
-                }
-
-                // Update UI messages state
-                setMessages((prev) => [
-                    ...prev,
-                    { assistant: assistantCopy === assistantA ? "AssistantB" : "AssistantA", message: response },
-                ]);
-
-                scrollToBottom(); // Scroll to the new message
-
-                // Delay before the next response
-                await delay(3000);
-            }
-        } catch (error) {
-            console.error("Error during discussion:", error);
-        } finally {
-            setIsActive(false);
-        }
+        const response = await fetchResponse(prompt, messages);
+        setPrompt('');
+        const mockResponse = { role: 'model', parts: [{ text: response }] };
+        setMessages((prev) => [...prev, mockResponse]);
     };
-
-    const updateSubject = () => {
-        let topic = subjectInput.trim();
-    
-        if (!topic) {
-            topic = prompt("Please enter a topic to set as the starting message:");
-        }
-    
-        if (topic) {
-            resetConversation(topic);
-        }
-    };
-
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
-
-    // Adjust conversation height
-    const adjustConversationHeight = () => {
-        const headerHeight = document.querySelector('.navbar').offsetHeight;
-        const footerHeight = document.querySelector('.footer').offsetHeight;
-        const inputHeight = document.querySelector('.chat-input-area').offsetHeight;
-
-        const availableHeight = window.innerHeight - headerHeight - inputHeight - footerHeight;
-        if (conversationRef.current) {
-            conversationRef.current.style.height = `${availableHeight - 5}px`;
-        }
-    };
-
 
     useEffect(() => {
-        scrollToBottom(); // Ensure the conversation is scrolled to the bottom on new messages
+        // Scroll to bottom when messages change
+        if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        }
     }, [messages]);
-
-    useEffect(() => {
-        window.addEventListener('resize', adjustConversationHeight);
-        adjustConversationHeight();
-
-        return () => {
-            window.removeEventListener('resize', adjustConversationHeight);
-        };
-    }, []);
 
     return (
         <div className="ai-chat-container">
-            <h2 className="ai-chat-header">AI Chat</h2>
-            <div className="chat-messages" ref={conversationRef}>
-                {messages.map((msg, idx) => (
-                    <div
-                        key={idx}
-                        className={`message-bubble ${msg.assistant === "AssistantA" ? "assistant-a" : "assistant-b"}`}
-                    >
-                        <p className="message-text">
-                            {msg.message}
-                        </p>
+            <div className="header-row">
+                <h2 className="ai-chat-header">AI Chat - Gemini</h2>
+                <FontAwesomeIcon
+                    icon={faCircleQuestion}
+                    className="playground-help-icon"
+                    onClick={() => setShowModal(true)}
+                    title="AI Chat - Gemini"
+                />
+            </div>
+            <div className="chat-messages" ref={messagesContainerRef}>
+                {messages.map((msg, index) => (
+                    <div key={index} c  className={`message-bubble ${msg.role === 'user' ? "assistant-b" : "assistant-a"}`}>
+                        <span dangerouslySetInnerHTML={{ __html: msg.parts[0].text }}></span>
                     </div>
                 ))}
-                <div ref={messagesEndRef} /> {/* Reference to scroll into view */}
+                <div ref={messagesEndRef} />
             </div>
             <div className="chat-input-area">
-                <textarea
-                    rows="2"
-                    className="subject-input"
-                    placeholder="Enter a topic. Ex: What is your favorite movie?"
-                    value={subjectInput}
-                    onChange={(e) => setSubjectInput(e.target.value)}
-                    disabled={isActive}
+
+            <form className="chat-buttons" onSubmit={handleSubmit}>
+                <input
+                    type="text"
+                    placeholder="Enter your prompt..."
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
                 />
-                <div className="chat-buttons">
-                    <button onClick={updateSubject}>
-                        Set Starting Topic
-                    </button>
-                    <button onClick={startOrPauseDiscussion}>
-                        {isActive ? (isPaused ? "Resume Discussion" : "Pause Discussion") : "Start Discussion"}
-                    </button>
-                    <button onClick={() => resetConversation()} disabled={isActive && !isPaused}>
-                        New Conversation
-                    </button>
-                </div>
+                <button type="submit" style={{ marginLeft: '5px' }}>Send</button>
+            </form>
+
             </div>
+            {/* Modal */}
+            {showModal && (
+                <div className="modal-overlay" onClick={() => setShowModal(false)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        <h3>AI Chat - Gemini</h3>
+                        <p>This page utilizies Google Gemini AI APIs for queries.</p>
+                        <button className="close-button" onClick={() => setShowModal(false)}>Close</button>
+                    </div>
+                </div>
+            )}
         </div>
     );
-};
+}
 
-export default AIChat;
+export default App;

@@ -52,8 +52,8 @@ body {
 
 @media (min-width: 768px) {
   .App.open, .Playground.open {
-    width: calc(100% - 505px);
-    margin-left: 175px;
+    width: calc(100% - 540px);
+    margin-left: 210px;
   }
 
   .navbar.open {
@@ -66,8 +66,8 @@ body {
   }
 
   .input-container.open {
-    width: calc(100% - 505px);
-    margin-left: 175px;
+    width: calc(100% - 540px);
+    margin-left: 210px;
   }
 }
 
@@ -509,14 +509,14 @@ button:disabled {
 .menu-panel {
   position: fixed;
   top: 0;
-  left: -175px;
-  width: 175px;
+  left: -210px;
+  width: 210px;
   height: 100%;
   background-color: #333;
   color: white;
   transition: left 0.3s ease;
   z-index: 200;
-  font-size: 18px;
+  font-size: 16px;
   margin-top: 64px;
 }
 
@@ -552,6 +552,11 @@ button:disabled {
   border-bottom: 1px solid #000;
 }
 
+.menu-content li:first-child {
+  border-top: 1px solid #000;
+
+}
+
 .menu-content li.active {
   background-color: #222;
 }
@@ -575,13 +580,13 @@ button:disabled {
 
 /* Adjust the App content when menu is open */
 .App.menu-open {
-  margin-left: 175px;
+  margin-left: 210px;
 }
 
 /* Ensure both panels work properly */
 @media (min-width: 768px) {
   .App.menu-open {
-    width: calc(100% - 175px);
+    width: calc(100% - 210px);
   }
 }
 
@@ -944,6 +949,16 @@ select {
   gap: 10px;
 }
 
+.chat-buttons input {
+  border-radius: 4px;
+  padding:3px;
+  border: 1px solid #ccc;
+  flex: 3; /* 3 parts for input */
+}
+
+.chat-buttons button {
+  flex: 1; /* 1 part for button */
+}
 button {
   padding: 10px;
   border: none;

@@ -37,6 +37,9 @@ const Menu = ({ isMenuOpen, toggleMenu, isDesktop, setIsPanelOpen, setIsDesktop 
                 </ul>
                 <span className='playground-menu-header'><i>Playground</i></span>
                 <ul>
+                    <li className={isActive('/playground?view=aichat') ? 'active' : ''}>
+                        <Link to="/playground?view=aichat" onClick={() => handleLinkClick('/playground')}>&#8226; AI Chat</Link>
+                    </li>
                     <li className={isActive('/playground?view=aichatbots') ? 'active' : ''}>
                         <Link to="/playground?view=aichatbots" onClick={() => handleLinkClick('/playground')}>&#8226; AI Chat Bots</Link>
                     </li>

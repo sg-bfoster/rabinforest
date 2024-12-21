@@ -65,7 +65,7 @@ const Navbar = ({ togglePanel, toggleMenu, newLinks, isDesktop, isPanelOpen }) =
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h2>About Rabin Forest</h2>
             <p>
-              Rabin Forest is an AI Personal Assistant designed using ChatGPT APIs to answer questions about Brian Foster. It's built using React and Node.js.  
+              Rabin Forest is an AI Personal Assistant designed using ChatGPT and Gemini APIs to answer questions about Brian Foster. It's built using React and Node.js.  
             </p>
             <button className="modal-close-btn" onClick={toggleModal}>
               Dismiss
