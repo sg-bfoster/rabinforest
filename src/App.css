@@ -861,6 +861,7 @@ select {
   min-height: calc(100vh - 380px);
   max-height: calc(100vh - 380px);
   border-top: 1px solid #ddd;
+  scroll-behavior: smooth;
 }
 
 /* AI Chat - Adjusted to match conversation bubbles */
@@ -997,6 +998,7 @@ button:disabled {
   border-radius: 5px;
   max-width: 400px;
   text-align: center;
+  margin: 0 20px;
 }
 .close-button {
   margin-top: 10px;
