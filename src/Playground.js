@@ -37,7 +37,7 @@ const Playground = (isDesktop) => {
   return (
     <div className={`Playground ${isDesktop ? 'open' : ''}`}>
       <div className="playground-content" ref={playgroundRef}>
-        <h1>Playground</h1>
+        <h1 className='playground-h1'>Playground</h1>
         {view === 'aichat' && <AIChat />}
         {view === 'aichatbots' && <AIChatBots />}
         {view === 'dalle' && <DalleForm />}

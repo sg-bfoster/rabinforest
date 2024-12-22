@@ -14,6 +14,30 @@ const AIChatBots = () => {
     let assistantAHistory = [];
     let assistantBHistory = [];
 
+    // Adjust conversation height
+    const adjustConversationHeight = () => {
+        const headerHeight = document.querySelector('.navbar').offsetHeight;
+        const footerHeight = document.querySelector('.footer').offsetHeight;
+        const headerRow = document.querySelector('.header-row').offsetHeight;
+        const headerH1 = document.querySelector('.playground-h1').offsetHeight;
+        const inputHeight = document.querySelector('.chat-input-area').offsetHeight;
+
+        const availableHeight = window.innerHeight - headerHeight - headerRow - headerH1 - inputHeight - footerHeight;
+        if (conversationRef.current) {
+            conversationRef.current.style.height = `${availableHeight - 103}px`;
+        }
+    };
+
+    useEffect(() => {
+        window.addEventListener('resize', adjustConversationHeight);
+        adjustConversationHeight();
+
+        return () => {
+            window.removeEventListener('resize', adjustConversationHeight);
+        };
+    }, []);
+
+
     const resetConversation = (newSubject) => {
         setMessages([]); // Clear only the state, NOT localStorage
         localStorage.removeItem("messages");
@@ -46,30 +70,30 @@ const AIChatBots = () => {
             alert("A topic is required to start the conversation.");
             return;
         }
-    
+
         resetConversation(topic.trim());
         setIsActive(true);
-    
+
         const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-    
+
         const assistants = ["AssistantA", "AssistantB"];
         let currentAssistant = 1; // Start with AssistantB
-    
+
         assistantAHistory.push({ role: "user", content: topic.trim() });
         assistantBHistory.push({ role: "user", content: topic.trim() });
-    
+
         setMessages([{ assistant: assistants[0], message: topic.trim() }]);
         scrollToBottom();
         await delay(1000);
-    
+
         try {
             for (let i = 0; i < conLength; i++) {
                 const assistantIndex = currentAssistant; // Capture current value of `currentAssistant`
-    
+
                 const history = assistantIndex === 0 ? assistantAHistory : assistantBHistory;
-    
+
                 const response = await fetchResponse(history, i >= conLength - 2);
-    
+
                 if (assistantIndex === 0) {
                     assistantAHistory.push({ role: "assistant", content: response });
                     assistantBHistory.push({ role: "user", content: response });
@@ -77,12 +101,12 @@ const AIChatBots = () => {
                     assistantBHistory.push({ role: "assistant", content: response });
                     assistantAHistory.push({ role: "user", content: response });
                 }
-    
+
                 setMessages((prev) => [
                     ...prev,
                     { assistant: assistants[assistantIndex], message: response },
                 ]);
-    
+
                 currentAssistant = 1 - currentAssistant; // Toggle between 0 (A) and 1 (B)
                 scrollToBottom();
                 await delay(1000);

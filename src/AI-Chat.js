@@ -31,6 +31,30 @@ function App() {
         setMessages((prev) => [...prev, mockResponse]);
     };
 
+        // Adjust conversation height
+        const adjustConversationHeight = () => {
+            const headerHeight = document.querySelector('.navbar').offsetHeight;
+            const footerHeight = document.querySelector('.footer').offsetHeight;
+            const headerRow = document.querySelector('.header-row').offsetHeight;
+            const headerH1 = document.querySelector('.playground-h1').offsetHeight;
+            const inputHeight = document.querySelector('.chat-input-area').offsetHeight;
+    
+            const availableHeight = window.innerHeight - headerHeight - headerRow - headerH1 - inputHeight - footerHeight;
+            if (messagesContainerRef.current) {
+                messagesContainerRef.current.style.height = `${availableHeight - 103}px`;
+            }
+        };
+    
+        useEffect(() => {
+            window.addEventListener('resize', adjustConversationHeight);
+            adjustConversationHeight();
+    
+            return () => {
+                window.removeEventListener('resize', adjustConversationHeight);
+            };
+        }, []);
+    
+
     useEffect(() => {
         // Scroll to bottom when messages change
         if (messagesContainerRef.current) {
@@ -51,7 +75,7 @@ function App() {
             </div>
             <div className="chat-messages" ref={messagesContainerRef}>
                 {messages.map((msg, index) => (
-                    <div key={index} c  className={`message-bubble ${msg.role === 'user' ? "assistant-b" : "assistant-a"}`}>
+                    <div key={index} className={`message-bubble ${msg.role === 'user' ? "assistant-b" : "assistant-a"}`}>
                         <span dangerouslySetInnerHTML={{ __html: msg.parts[0].text }}></span>
                     </div>
                 ))}
