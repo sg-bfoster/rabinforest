@@ -858,8 +858,8 @@ select {
   padding: 10px;
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 380px);
-  max-height: calc(100vh - 380px);
+  /* min-height: calc(100vh - 380px);
+  max-height: calc(100vh - 380px); */
   border-top: 1px solid #ddd;
   scroll-behavior: smooth;
 }
