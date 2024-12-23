@@ -2,14 +2,16 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleQuestion } from '@fortawesome/free-solid-svg-icons';
+import { useDispatch } from 'react-redux';
+import { openModal } from './features/modalSlice';
 
 const AIChatBots = () => {
     const [messages, setMessages] = useState([]); // State for messages
     const [isActive, setIsActive] = useState(false);
-    const [showModal, setShowModal] = useState(false);
     const conLength = 8;
     const messagesEndRef = useRef(null);
     const conversationRef = useRef(null);
+    const dispatch = useDispatch();
 
     let assistantAHistory = [];
     let assistantBHistory = [];
@@ -62,6 +64,14 @@ const AIChatBots = () => {
         ];
         const { data } = await axios.post('https://bfoster-services.herokuapp.com/ai/ai-chat', { messages: conversation });
         return data.response;
+    };
+    const handleOpenModal = () => {
+        dispatch(
+            openModal({
+                title: '',
+                type: 'chat-bots',
+            })
+        );
     };
 
     const startDiscussion = async () => {
@@ -144,7 +154,7 @@ const AIChatBots = () => {
                 <FontAwesomeIcon
                     icon={faCircleQuestion}
                     className="playground-help-icon"
-                    onClick={() => setShowModal(true)}
+                    onClick={() => handleOpenModal()}
                     title="AI Chat Bots"
                 />
             </div>
@@ -170,17 +180,6 @@ const AIChatBots = () => {
                     </button>
                 </div>
             </div>
-
-            {/* Modal */}
-            {showModal && (
-                <div className="modal-overlay" onClick={() => setShowModal(false)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <h3>AI Chat Bots</h3>
-                        <p>This page allows two ChatGPT chat bots to discuss the topic you provide.</p>
-                        <button className="close-button" onClick={() => setShowModal(false)}>Close</button>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

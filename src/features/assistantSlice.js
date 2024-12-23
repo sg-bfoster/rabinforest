@@ -43,7 +43,6 @@ const assistantSlice = createSlice({
       state.newLinks = [];
       state.error = null;
       localStorage.removeItem('conversation');
-      // localStorage.removeItem('persistentLinks');
       localStorage.removeItem('threadId');
     },
     addLink(state, action) {

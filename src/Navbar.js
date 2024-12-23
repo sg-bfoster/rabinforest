@@ -1,13 +1,22 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faCircleQuestion } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 
-const Navbar = ({ togglePanel, toggleMenu, newLinks, isDesktop, isPanelOpen }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+import { openModal } from './features/modalSlice';
+import { useDispatch } from 'react-redux';
 
-  const toggleModal = () => {
-    setIsModalOpen(!isModalOpen);
+const Navbar = ({ togglePanel, toggleMenu, newLinks, isDesktop, isPanelOpen }) => {
+  const dispatch = useDispatch();
+
+
+  const handleOpenModal = () => {
+    dispatch(
+      openModal({
+        title: '',
+        type: 'about',
+      })
+    );
   };
 
   return (
@@ -40,7 +49,7 @@ const Navbar = ({ togglePanel, toggleMenu, newLinks, isDesktop, isPanelOpen }) =
           <FontAwesomeIcon
             icon={faCircleQuestion}
             className="navbar-help-icon"
-            onClick={toggleModal}
+            onClick={handleOpenModal}
             title="About Rabin Forest"
           />
 
@@ -59,20 +68,6 @@ const Navbar = ({ togglePanel, toggleMenu, newLinks, isDesktop, isPanelOpen }) =
         </div>
       </div>
 
-      {/* Modal */}
-      {isModalOpen && (
-        <div className="modal-overlay" onClick={toggleModal}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>About Rabin Forest</h2>
-            <p>
-              Rabin Forest is an AI Personal Assistant designed using ChatGPT and Gemini APIs to answer questions about Brian Foster. It's built using React and Node.js.  
-            </p>
-            <button className="modal-close-btn" onClick={toggleModal}>
-              Dismiss
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 };

@@ -11,6 +11,7 @@ import Menu from './Menu';
 import Playground from './Playground';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { fetchAssistantResponse, resetAssistantState } from './features/assistantSlice';
+import Modal from './Modal';
 
 function App() {
   const dispatch = useDispatch();
@@ -157,6 +158,7 @@ function App() {
           </Routes>
         </>
         <Footer isPanelOpen={isPanelOpen}></Footer>
+        <Modal /> 
       </div>
     </Router>
   );

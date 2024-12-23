@@ -2,18 +2,28 @@ import { faCircleQuestion } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import axios from 'axios';
 import React, { useState, useEffect, useRef } from 'react';
+import { openModal } from './features/modalSlice';
+import { useDispatch } from 'react-redux';
 
 function App() {
     const [prompt, setPrompt] = useState('');
     const [messages, setMessages] = useState([]);
     const messagesEndRef = useRef(null);
     const messagesContainerRef = useRef(null);
-    const [showModal, setShowModal] = useState(false);
-
+    const dispatch = useDispatch();
 
     const fetchResponse = async (prompt, history) => {
         const { data } = await axios.post('https://bfoster-services.herokuapp.com/ai/generate-text-gemini', { prompt: prompt, history: history });
         return data.response;
+    };
+
+    const handleOpenModal = () => {
+        dispatch(
+            openModal({
+                title: '',
+                type: 'chat',
+            })
+        );
     };
 
     const handleSubmit = async (e) => {
@@ -69,7 +79,7 @@ function App() {
                 <FontAwesomeIcon
                     icon={faCircleQuestion}
                     className="playground-help-icon"
-                    onClick={() => setShowModal(true)}
+                    onClick={() => handleOpenModal()}
                     title="AI Chat - Gemini"
                 />
             </div>
@@ -94,16 +104,7 @@ function App() {
             </form>
 
             </div>
-            {/* Modal */}
-            {showModal && (
-                <div className="modal-overlay" onClick={() => setShowModal(false)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <h3>AI Chat - Gemini</h3>
-                        <p>This page utilizies Google Gemini AI APIs for queries.</p>
-                        <button className="close-button" onClick={() => setShowModal(false)}>Close</button>
-                    </div>
-                </div>
-            )}
+
         </div>
     );
 }
