@@ -4,6 +4,7 @@ import axios from 'axios';
 import React, { useState, useEffect, useRef } from 'react';
 import { openModal } from './features/modalSlice';
 import { useDispatch } from 'react-redux';
+import { addLink } from './features/assistantSlice';
 
 function App() {
     const [prompt, setPrompt] = useState('');
@@ -14,7 +15,7 @@ function App() {
 
     const fetchResponse = async (prompt, history) => {
         const { data } = await axios.post('https://bfoster-services.herokuapp.com/ai/generate-text-gemini', { prompt: prompt, history: history });
-        return data.response;
+        return JSON.parse(data.response);
     };
 
     const handleOpenModal = () => {
@@ -37,7 +38,12 @@ function App() {
 
         const response = await fetchResponse(prompt, messages);
         setPrompt('');
-        const mockResponse = { role: 'model', parts: [{ text: response }] };
+        const mockResponse = { role: 'model', parts: [{ text: response.text }] };
+        if (response.links && response.links.length > 0) {
+            response.links.forEach((link) => {
+            dispatch(addLink({'url': link, 'text': link}));
+            });
+        }
         setMessages((prev) => [...prev, mockResponse]);
     };
 
