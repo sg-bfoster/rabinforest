@@ -8,7 +8,11 @@ import { addLink } from './features/assistantSlice';
 
 function App() {
     const [prompt, setPrompt] = useState('');
-    const [messages, setMessages] = useState([]);
+    const [messages, setMessages] = useState(() => {
+        // Load messages from local storage on initial render.
+        const storedMessages = localStorage.getItem('chatMessages');
+        return storedMessages ? JSON.parse(storedMessages) : [];
+    });
     const messagesEndRef = useRef(null);
     const messagesContainerRef = useRef(null);
     const dispatch = useDispatch();
@@ -34,17 +38,26 @@ function App() {
 
         // Add user's message to the chat
         const userMessage = { role: 'user', parts: [{ text: prompt.trim() }] };
-        setMessages((prev) => [...prev, userMessage]);
+        const newMessages = [...messages, userMessage]; // Create new array for immutability
+        setMessages(newMessages); // Update state
 
         const response = await fetchResponse(prompt, messages);
         setPrompt('');
         const mockResponse = { role: 'model', parts: [{ text: response.text }] };
+
         if (response.links && response.links.length > 0) {
             response.links.forEach((link) => {
             dispatch(addLink({'url': link, 'text': link}));
             });
         }
-        setMessages((prev) => [...prev, mockResponse]);
+        const updatedMessages = [...newMessages, mockResponse]; // Create new array for immutability
+        setMessages(updatedMessages); // Update state
+    };
+    
+    // Function to handle resetting the chat
+    const handleResetChat = () => {
+        localStorage.removeItem('chatMessages');
+        setMessages([]);
     };
 
         // Adjust conversation height
@@ -69,13 +82,16 @@ function App() {
                 window.removeEventListener('resize', adjustConversationHeight);
             };
         }, []);
-    
+
 
     useEffect(() => {
         // Scroll to bottom when messages change
         if (messagesContainerRef.current) {
             messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
         }
+
+        // Save messages to local storage whenever they change
+        localStorage.setItem('chatMessages', JSON.stringify(messages));
     }, [messages]);
 
     return (
@@ -107,6 +123,15 @@ function App() {
                     onChange={(e) => setPrompt(e.target.value)}
                 />
                 <button type="submit" style={{ marginLeft: '5px' }}>Send</button>
+                <button  
+                    className="reset-chat" 
+                    type="button" 
+                    style={{ marginLeft: '5px' }}
+                    onClick={handleResetChat}
+                >
+                    Reset
+                </button>
+
             </form>
 
             </div>
