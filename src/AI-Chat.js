@@ -47,41 +47,41 @@ function App() {
 
         if (response.links && response.links.length > 0) {
             response.links.forEach((link) => {
-            dispatch(addLink({'url': link, 'text': link}));
+                dispatch(addLink({ 'url': link, 'text': link }));
             });
         }
         const updatedMessages = [...newMessages, mockResponse]; // Create new array for immutability
         setMessages(updatedMessages); // Update state
     };
-    
+
     // Function to handle resetting the chat
     const handleResetChat = () => {
         localStorage.removeItem('chatMessages');
         setMessages([]);
     };
 
-        // Adjust conversation height
-        const adjustConversationHeight = () => {
-            const headerHeight = document.querySelector('.navbar').offsetHeight;
-            const footerHeight = document.querySelector('.footer').offsetHeight;
-            const headerRow = document.querySelector('.header-row').offsetHeight;
-            const headerH1 = document.querySelector('.playground-h1').offsetHeight;
-            const inputHeight = document.querySelector('.chat-input-area').offsetHeight;
-    
-            const availableHeight = window.innerHeight - headerHeight - headerRow - headerH1 - inputHeight - footerHeight;
-            if (messagesContainerRef.current) {
-                messagesContainerRef.current.style.height = `${availableHeight - 103}px`;
-            }
+    // Adjust conversation height
+    const adjustConversationHeight = () => {
+        const headerHeight = document.querySelector('.navbar').offsetHeight;
+        const footerHeight = document.querySelector('.footer').offsetHeight;
+        const headerRow = document.querySelector('.header-row').offsetHeight;
+        const headerH1 = document.querySelector('.playground-h1').offsetHeight;
+        const inputHeight = document.querySelector('.chat-input-area').offsetHeight;
+
+        const availableHeight = window.innerHeight - headerHeight - headerRow - headerH1 - inputHeight - footerHeight;
+        if (messagesContainerRef.current) {
+            messagesContainerRef.current.style.height = `${availableHeight - 103}px`;
+        }
+    };
+
+    useEffect(() => {
+        window.addEventListener('resize', adjustConversationHeight);
+        adjustConversationHeight();
+
+        return () => {
+            window.removeEventListener('resize', adjustConversationHeight);
         };
-    
-        useEffect(() => {
-            window.addEventListener('resize', adjustConversationHeight);
-            adjustConversationHeight();
-    
-            return () => {
-                window.removeEventListener('resize', adjustConversationHeight);
-            };
-        }, []);
+    }, []);
 
 
     useEffect(() => {
@@ -115,24 +115,24 @@ function App() {
             </div>
             <div className="chat-input-area">
 
-            <form className="chat-buttons" onSubmit={handleSubmit}>
-                <input
-                    type="text"
-                    placeholder="Enter your prompt..."
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                />
-                <button type="submit" style={{ marginLeft: '5px' }}>Send</button>
-                <button  
-                    className="reset-chat" 
-                    type="button" 
-                    style={{ marginLeft: '5px' }}
-                    onClick={handleResetChat}
-                >
-                    Reset
-                </button>
+                <form className="chat-buttons" onSubmit={handleSubmit}>
+                    <input
+                        type="text"
+                        style={{ minWidth: '1%' }}
+                        placeholder="Enter your prompt..."
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                    />
+                    <button type="submit">Send</button>
+                    <button
+                        className="reset-chat"
+                        type="button"
+                        onClick={handleResetChat}
+                    >
+                        Reset
+                    </button>
 
-            </form>
+                </form>
 
             </div>
 

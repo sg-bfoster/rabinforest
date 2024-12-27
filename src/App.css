@@ -158,7 +158,6 @@ body {
   border: none;
   background-color: #D6B4E7;
   color: black;
-  padding: 7px;
   cursor: pointer;
   border-radius: 5px;
   font-size: 14px;
@@ -955,7 +954,7 @@ select {
   padding:3px;
   border: 1px solid #ccc;
   font-size: 18px;
-  flex: 3; /* 3 parts for input */
+  flex: 5; /* 3 parts for input */
 }
 
 .chat-buttons button {
