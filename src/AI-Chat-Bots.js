@@ -39,7 +39,6 @@ const AIChatBots = () => {
         };
     }, []);
 
-
     const resetConversation = (newSubject) => {
         setMessages([]); // Clear only the state, NOT localStorage
         localStorage.removeItem("messages");
@@ -141,6 +140,9 @@ const AIChatBots = () => {
     }, []);
 
     useEffect(() => {
+        if (conversationRef.current) {
+            conversationRef.current.scrollTop = conversationRef.current.scrollHeight;
+        }
         // Save messages to localStorage when messages state changes
         if (messages.length > 0) {
             localStorage.setItem("messages", JSON.stringify(messages));
