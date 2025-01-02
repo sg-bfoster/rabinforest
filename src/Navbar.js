@@ -39,7 +39,7 @@ const Navbar = ({ togglePanel, toggleMenu, newLinks, isDesktop, isPanelOpen }) =
             <img src="/favicon.png" alt="Logo" className="navbar-logo" />
           </Link>
           <div className="navbar-title">
-            <h1>Rabin Forest</h1>
+            <h1 className='gradient-text'>Rabin Forest</h1>
             <p className="subheader">
               AI Personal Assistant
               <br />
