@@ -1100,8 +1100,6 @@ button:disabled {
   color: #ffffff; /* Text color */
   padding: 10px 20px; /* Padding around the text */
   border-radius: 7px; /* Rounded corners */
-  font-size: 1.2rem; /* Adjust font size as needed */
-  text-align: center; /* Centers the text */
   max-width: 80%; /* Ensures the text doesn't overflow the image */
   min-width: 80%;
   word-wrap: break-word; /* Allows long words to break and wrap */
