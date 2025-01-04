@@ -27,7 +27,7 @@ const DalleForm = () => {
       const generatedImage = await DalleService.generateImage({ prompt, size, quality, style });
       console.log('DALL-E Response:', generatedImage);
       setImage(generatedImage);
-      dispatch(addLink({'url': generatedImage, 'text': prompt}));
+      dispatch(addLink({'url': generatedImage.url, 'text': prompt}));
       //savePersistentLinks(generatedImage); 
     } catch (err) {
       setError('Error generating image. Please try again.');
@@ -146,7 +146,10 @@ const DalleForm = () => {
             <label htmlFor="style" className="form-label">
               Image:
             </label>
-            {image && <a href={image} target="_blank" rel="noreferrer"><img className="dalle-3-image" src={image} alt="Generated" /></a>}
+            {image && <a href={image.url} target="_blank" rel="noreferrer">
+              <img className="dalle-3-image" src={image.url} alt="Generated" />
+              <div className="overlay-text">{image.revisedPrompt}</div>
+            </a>}
           </div>
           {/* Error Message */}
           <p ref={errorRef} className="error-message">

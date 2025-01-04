@@ -702,6 +702,7 @@ select {
   margin-top: 20px;
   padding-top: 20px;
   border-top: 1px solid #fff;
+  position: relative;
 }
 
 .playground-content {
@@ -1088,4 +1089,22 @@ button:disabled {
   #9f7595);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.overlay-text {
+  position: absolute;
+  bottom: 0; /* Centers vertically */
+  left: 50%; /* Centers horizontally */
+  transform: translate(-50%, -30%); /* Adjusts the position to be perfectly centered */
+  background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent background for readability */
+  color: #ffffff; /* Text color */
+  padding: 10px 20px; /* Padding around the text */
+  border-radius: 7px; /* Rounded corners */
+  font-size: 1.2rem; /* Adjust font size as needed */
+  text-align: center; /* Centers the text */
+  max-width: 80%; /* Ensures the text doesn't overflow the image */
+  min-width: 80%;
+  word-wrap: break-word; /* Allows long words to break and wrap */
+  font-size: 11px;
+  text-align: left;
 }

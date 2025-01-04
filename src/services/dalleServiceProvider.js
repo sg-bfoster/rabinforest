@@ -1,5 +1,5 @@
 const generateImage = async ({ prompt, size, quality, style }) => {
-    const apiUrl = 'https://bfoster-services.herokuapp.com/ai/generate-image-rf';
+    const apiUrl = 'http://localhost:8081/ai/generate-image-rf'; //https://bfoster-services.herokuapp.com/ai/generate-image-rf
   
     try {
       const response = await fetch(apiUrl, {
@@ -21,7 +21,7 @@ const generateImage = async ({ prompt, size, quality, style }) => {
       }
   
       const data = await response.json();
-      return data.response;
+      return {url: data.response, revisedPrompt: data.revisedPrompt, prompt}; // Return the full response for further processing
     } catch (error) {
       console.error('Error generating image:', error);
       throw error; // Re-throw to be handled by the calling component
