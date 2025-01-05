@@ -159,7 +159,7 @@ body {
   text-align: left;
 }
 
-.toggle-panel-btn, .clear-links-btn, .chat-buttons button{
+.toggle-panel-btn, .clear-links-btn button, .chat-buttons button{
   border: none;
   background-color: #D6B4E7;
   color: black;
@@ -175,6 +175,10 @@ body {
 }
 .chat-buttons {
 margin: 20px 0 0 0;
+}
+.clear-links-btn {
+  border-top: 1px solid #666;
+  padding: 15px;
 }
 .badge {
   background-color: #e53935;

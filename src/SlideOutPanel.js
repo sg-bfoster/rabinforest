@@ -11,7 +11,7 @@ function SlideOutPanel({ isPanelOpen, togglePanel, isDesktop }) {
   const handleClearLinks = () => {
     // Dispatch an action to clear the links
     dispatch(clearLinks());
-  } 
+  }
 
   return (
     <div className={`slideout-panel ${isPanelOpen ? 'open' : ''}`}>
@@ -33,13 +33,16 @@ function SlideOutPanel({ isPanelOpen, togglePanel, isDesktop }) {
                 </a>
               </p>
             ))}
-            <button className="clear-links-btn" onClick={handleClearLinks}>
-              Clear Links
-            </button>
+
           </>
         ) : (
           <p>No links available</p>
         )}
+      </div>
+      <div className="clear-links-btn">
+        <button onClick={handleClearLinks}>
+          Clear Links
+        </button>
       </div>
     </div>
   );
