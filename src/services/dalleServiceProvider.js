@@ -1,5 +1,5 @@
 const generateImage = async ({ prompt, size, quality, style }) => {
-    const apiUrl = 'http://localhost:8081/ai/generate-image-rf'; //https://bfoster-services.herokuapp.com/ai/generate-image-rf
+    const apiUrl = 'https://bfoster-services.herokuapp.com/ai/generate-image-rf'; //https://bfoster-services.herokuapp.com/ai/generate-image-rf
   
     try {
       const response = await fetch(apiUrl, {
