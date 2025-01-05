@@ -1103,7 +1103,7 @@ button:disabled {
   min-width: 80%;
   word-wrap: break-word; /* Allows long words to break and wrap */
   font-size: 11px;
-  text-align: left;
+  text-align: left; 
   max-height: 20%;
   overflow-y: scroll;
 }
