@@ -18,7 +18,7 @@ const Home = (isDesktop) => {
     const dispatch = useDispatch();
 
     const fetchResponse = async (prompt, history) => {
-        const { data } = await axios.post('http://localhost:8081/ai/gemini-assistant', { prompt: prompt, history: history });
+        const { data } = await axios.post('https://bfoster-services.herokuapp.com/ai/gemini-assistant', { prompt: prompt, history: history });
         return JSON.parse(data.response);
     };
 
