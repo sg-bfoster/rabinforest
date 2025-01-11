@@ -40,9 +40,11 @@ function SlideOutPanel({ isPanelOpen, togglePanel, isDesktop }) {
         )}
       </div>
       <div className="clear-links-btn">
-        <button onClick={handleClearLinks}>
-          Clear Links
-        </button>
+        {links.length > 0 && (
+          <button onClick={handleClearLinks}>
+            Clear Links
+          </button>
+        )}
       </div>
     </div>
   );

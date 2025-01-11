@@ -601,7 +601,7 @@ button:disabled {
 
 /* Container Styling */
 .form-container {
-  max-width: 600px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 0 20px;
   border: 1px solid #ccc;
@@ -804,7 +804,7 @@ select {
 }
 
 .ai-chat-container {
-  max-width: 600px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 0 20px 20px 20px;
   border: 1px solid #ccc;

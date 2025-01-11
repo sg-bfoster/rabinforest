@@ -22,7 +22,7 @@ const Modal = () => {
                     <div>
                         <h2>About Rabin Forest</h2>
                         <p>
-                            Rabin Forest is an AI Personal Assistant designed using ChatGPT and Gemini APIs to answer questions about Brian Foster. It's built using React and Node.js.
+                            Rabin Forest is an AI playground site using ChatGPT and Gemini APIs. It's built using React and Node.js.
                         </p>
                         <button onClick={handleClose}>Dismiss</button>
                     </div>
@@ -43,6 +43,16 @@ const Modal = () => {
                         <button onClick={handleClose}>Dismiss</button>
                     </div>
                 );
+
+                case 'assistant':
+                    return (
+                        <div>
+                            <h2>Gemini AI Personal Assistant</h2>
+                            <p>This page uses Gemini AI APIs to answer questions about Brian Foster.</p>
+                            <button onClick={handleClose}>Dismiss</button>
+                        </div>
+                    );
+
             case 'custom':
                 return (
                     <div>

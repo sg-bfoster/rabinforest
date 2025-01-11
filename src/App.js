@@ -12,6 +12,7 @@ import Playground from './Playground';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { fetchAssistantResponse, resetAssistantState } from './features/assistantSlice';
 import Modal from './Modal';
+import Home from './Home';
 
 function App() {
   const dispatch = useDispatch();
@@ -135,25 +136,26 @@ function App() {
             </div>
           )}
           <Routes>
-            <Route
-              path="/"
-              element={
-                <div className={`App ${isPanelOpen ? 'open' : ''}`}>
-                  {/* Use localConversation to display messages immediately */}
-                  <Conversation conversation={localConversation} conversationEndRef={conversationEndRef} />
-                  <InputArea
-                    isPanelOpen={isPanelOpen}
-                    inputText={inputText}
-                    setInputText={setInputText}
-                    handleSubmit={handleSubmit}
-                    handleReset={handleReset}
-                    handleKeyDown={handleKeyDown}
-                    loading={loading}
-                    error={error}
-                  />
-                </div>
-              }
-            />
+          {/* <Route
+          path="/"
+          element={
+            <div className={`App ${isPanelOpen ? 'open' : ''}`}>
+
+              <Conversation conversation={localConversation} conversationEndRef={conversationEndRef} />
+              <InputArea
+                isPanelOpen={isPanelOpen}
+                inputText={inputText}
+                setInputText={setInputText}
+                handleSubmit={handleSubmit}
+                handleReset={handleReset}
+                handleKeyDown={handleKeyDown}
+                loading={loading}
+                error={error}
+              />
+            </div>
+          }
+          /> */}
+            <Route path="/" element={<Home />} />
             <Route path="/playground" element={<Playground />} />
           </Routes>
         </>

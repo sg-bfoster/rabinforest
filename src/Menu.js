@@ -34,6 +34,9 @@ const Menu = ({ isMenuOpen, toggleMenu, isDesktop, setIsPanelOpen, setIsDesktop 
                     <li className={isActive('/') ? 'active' : ''}>
                         <Link to="/" onClick={() => handleLinkClick('/')}>Home</Link>
                     </li>
+                    {/* <li className={isActive('/home') ? 'active' : ''}>
+                        <Link to="/home" onClick={() => handleLinkClick('/home')}>Home</Link>
+                    </li> */}
                 </ul>
                 <span className='playground-menu-header'><i>Playground</i></span>
                 <ul>
