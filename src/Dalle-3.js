@@ -16,6 +16,8 @@ const DalleForm = () => {
   const imageRef = useRef(null);
   const errorRef = useRef(null);
 
+  const messagesContainerRef = useRef(null);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsGenerating(true);
@@ -42,6 +44,29 @@ const DalleForm = () => {
     }
   };
 
+  // Adjust conversation height
+  const adjustConversationHeight = () => {
+    const headerHeight = document.querySelector('.navbar').offsetHeight;
+    const footerHeight = document.querySelector('.footer').offsetHeight;
+    //const headerRow = document.querySelector('.form-container').offsetHeight;
+    const headerH1 = document.querySelector('.playground-h1').offsetHeight;
+   // const inputHeight = document.querySelector('.dalle-form').offsetHeight;
+
+    const availableHeight = window.innerHeight - headerHeight - headerH1 - footerHeight;
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.style.height = `${availableHeight - 43}px`;
+    }
+  };
+
+  useEffect(() => {
+      window.addEventListener('resize', adjustConversationHeight);
+      adjustConversationHeight();
+
+      return () => {
+          window.removeEventListener('resize', adjustConversationHeight);
+      };
+  }, []);
+
   useEffect(() => {
     if (image && imageRef.current) {
       setTimeout(() => {
@@ -55,9 +80,16 @@ const DalleForm = () => {
     }
   }, [image, error]);
 
+  useEffect(() => {
+      // Scroll to bottom when messages change
+      if (messagesContainerRef.current) {
+          messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+      }
+  }, []);
+  
   return (
     <div className="dalle">
-      <div className={`form-container ${isGenerating ? 'generating' : ''}`}>
+      <div className={`form-container dalle-form ${isGenerating ? 'generating' : ''}`}  ref={messagesContainerRef}>
         <h2>DALL-E 3 Image Generator</h2>
         <form onSubmit={handleSubmit} className="dalle-form">
           {/* Text Area */}

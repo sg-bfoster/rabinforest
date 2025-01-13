@@ -617,6 +617,7 @@ button:disabled {
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
+  overflow-y: scroll;
 }
 
 .dalle {
@@ -692,12 +693,16 @@ select {
 /* Responsive Styling */
 @media (max-width: 767px) {
   .dalle-form {
-    flex-direction: column; /* Stack elements vertically */
+    /* flex-direction: column;  */
   }
 
   .form-left, .form-right {
     flex: 1 1 100%; /* Take full width on mobile */
   }
+}
+
+.response {
+  width: 100%;
 }
 
 .response-image {

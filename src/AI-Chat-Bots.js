@@ -26,7 +26,7 @@ const AIChatBots = () => {
 
         const availableHeight = window.innerHeight - headerHeight - headerRow - headerH1 - inputHeight - footerHeight;
         if (conversationRef.current) {
-            conversationRef.current.style.height = `${availableHeight - 80}px`;
+            conversationRef.current.style.height = `${availableHeight - 84}px`;
         }
     };
 

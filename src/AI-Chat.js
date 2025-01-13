@@ -70,7 +70,7 @@ function App() {
 
         const availableHeight = window.innerHeight - headerHeight - headerRow - headerH1 - inputHeight - footerHeight;
         if (messagesContainerRef.current) {
-            messagesContainerRef.current.style.height = `${availableHeight - 80}px`;
+            messagesContainerRef.current.style.height = `${availableHeight - 84}px`;
         }
     };
 
