@@ -618,6 +618,7 @@ button:disabled {
   flex-wrap: wrap;
   gap: 20px;
   overflow-y: scroll;
+  width: 100%;
 }
 
 .dalle {
