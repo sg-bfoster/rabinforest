@@ -79,14 +79,14 @@ const DalleForm = () => {
       }, 1000);
     }
     // Scroll to bottom when messages change
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-  }
+  //   if (messagesContainerRef.current) {
+  //     messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+  // }
   }, [image, error]);
 
   return (
     <div className="dalle">
-      <div className={`form-container dalle-form ${isGenerating ? 'generating' : ''}`}  ref={messagesContainerRef}>
+      <div className={`form-container ${isGenerating ? 'generating' : ''}`}  ref={messagesContainerRef}>
         <h2>DALL-E 3 Image Generator</h2>
         <form onSubmit={handleSubmit} className="dalle-form">
           {/* Text Area */}
