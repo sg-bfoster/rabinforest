@@ -78,10 +78,7 @@ const DalleForm = () => {
         errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 1000);
     }
-    // Scroll to bottom when messages change
-  //   if (messagesContainerRef.current) {
-  //     messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-  // }
+
   }, [image, error]);
 
   return (
