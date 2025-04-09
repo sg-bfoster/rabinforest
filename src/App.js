@@ -2,9 +2,7 @@ import './App.css';
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import Navbar from './Navbar';
-import InputArea from './InputAreaSection';
 import Footer from './Footer';
-import Conversation from './Conversation';
 import SlideOutPanel from './SlideOutPanel';
 import SplashScreen from './SplashScreen';
 import Menu from './Menu';
@@ -21,8 +19,6 @@ function App() {
     persistentLinks,
     newLinks,
     threadId,
-    loading,
-    error,
   } = useSelector((state) => state.assistant);
 
   // Keep a local copy of conversation for immediate user message display
@@ -78,16 +74,7 @@ function App() {
     }
   };
 
-  const handleReset = () => {
-    dispatch(resetAssistantState());
-  };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit();
-    }
-  };
 
   return (
     <Router>
@@ -136,25 +123,6 @@ function App() {
             </div>
           )}
           <Routes>
-          {/* <Route
-          path="/"
-          element={
-            <div className={`App ${isPanelOpen ? 'open' : ''}`}>
-
-              <Conversation conversation={localConversation} conversationEndRef={conversationEndRef} />
-              <InputArea
-                isPanelOpen={isPanelOpen}
-                inputText={inputText}
-                setInputText={setInputText}
-                handleSubmit={handleSubmit}
-                handleReset={handleReset}
-                handleKeyDown={handleKeyDown}
-                loading={loading}
-                error={error}
-              />
-            </div>
-          }
-          /> */}
             <Route path="/" element={<Home />} />
             <Route path="/playground" element={<Playground />} />
           </Routes>
