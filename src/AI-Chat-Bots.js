@@ -173,12 +173,12 @@ const AIChatBots = () => {
                 <div ref={messagesEndRef} />
             </div>
             <div className="chat-input-area">
-                <div className="chat-buttons">
+                <div className="chat-buttons ai-chat-bots-buttons">
                     <button onClick={startDiscussion} disabled={isActive}>
-                        {isActive ? "Conversation Active" : "Start New Conversation"}
+                        {isActive ? "Conversation Active" : "Start New Convo"}
                     </button>
                     <button onClick={() => resetConversation("")} disabled={isActive}>
-                        Clear Conversation
+                        Clear 
                     </button>
                 </div>
             </div>

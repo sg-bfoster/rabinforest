@@ -66,11 +66,13 @@ function App() {
         const footerHeight = document.querySelector('.footer').offsetHeight;
         const headerRow = document.querySelector('.header-row').offsetHeight;
         const headerH1 = document.querySelector('.playground-h1').offsetHeight;
-        const inputHeight = document.querySelector('.chat-input-area').offsetHeight;
+        const inputArea = document.querySelector('.chat-input-area');
+        const textareaHeight = inputArea.querySelector('textarea').offsetHeight;
+        const inputHeight = inputArea.offsetHeight + (textareaHeight - 20); // Adjust for the new textarea height
 
         const availableHeight = window.innerHeight - headerHeight - headerRow - headerH1 - inputHeight - footerHeight;
         if (messagesContainerRef.current) {
-            messagesContainerRef.current.style.height = `${availableHeight - 84}px`;
+            messagesContainerRef.current.style.height = `${availableHeight - 35.5}px`;
         }
     };
 
@@ -94,6 +96,19 @@ function App() {
         localStorage.setItem('chatMessages', JSON.stringify(messages));
     }, [messages]);
 
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSubmit(e);
+        }
+    };
+
+    const autoResize = (e) => {
+        const textarea = e.target;
+        textarea.style.height = 'auto';
+        textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`; // Max height of 150px
+    };
+
     return (
         <div className="ai-chat-container">
             <div className="header-row">
@@ -114,28 +129,28 @@ function App() {
                 <div ref={messagesEndRef} />
             </div>
             <div className="chat-input-area">
-
                 <form className="chat-buttons" onSubmit={handleSubmit}>
-                    <input
-                        type="text"
-                        style={{ minWidth: '1%' }}
+                    <textarea
+                        style={{ minWidth: '1%', resize: 'vertical' }}
                         placeholder="Enter your prompt..."
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        onInput={autoResize}
+                        rows="3"
                     />
-                    <button type="submit">Send</button>
-                    <button
-                        className="reset-chat"
-                        type="button"
-                        onClick={handleResetChat}
-                    >
-                        Reset
-                    </button>
-
+                    <div className="button-container">
+                        <button type="submit">Send</button>
+                        <button
+                            className="reset-chat"
+                            type="button"
+                            onClick={handleResetChat}
+                        >
+                            Reset
+                        </button>
+                    </div>
                 </form>
-
             </div>
-
         </div>
     );
 }
