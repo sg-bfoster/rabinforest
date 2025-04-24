@@ -16,7 +16,7 @@ const EmmaSplashPage = () => {
     <div className="emma-splash-container">
       <div className={`emma-splash-content ${isVisible ? 'visible' : ''}`}>
         <div className="emma-header">
-          <h1>Emma's Bunny World</h1>
+          <h1>Emma Jane's World</h1>
           <div className="emma-divider"></div>
         </div>
         
@@ -24,15 +24,15 @@ const EmmaSplashPage = () => {
           <div className="emma-image-container">
             <img 
               src="/cartoonEFBunny2.png" 
-              alt="Emma's Cartoon Bunny" 
+              alt="Emma Jane's Cartoon Bunny" 
               className="emma-bunny-image"
             />
           </div>
           
           <div className="emma-text-content">
-            <h2>Welcome to Emma's Special Place</h2>
+            <h2>Welcome to Emma Jane's Special Place</h2>
             <p>
-              Hi there! I'm Emma, and this is my best friend, Bunny. We're excited to have you visit!
+              Hi there! I'm Emma Jane, and this is my best friend, Bunny. We're excited to have you visit!
             </p>
             
             <p>

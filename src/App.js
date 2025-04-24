@@ -36,7 +36,16 @@ const AppContent = () => {
     const urlParams = new URLSearchParams(location.search);
     const isTestMode = urlParams.get('emma') === 'true';
     
-    setIsEmmaReferrer(referrer.includes('emmajanefoster.net') || isTestMode);
+    // More robust check for emmajanefoster.net domain
+    const isEmmaDomain = referrer.includes('emmajanefoster.net') || 
+                         referrer.includes('www.emmajanefoster.net') ||
+                         referrer.includes('https://emmajanefoster.net') ||
+                         referrer.includes('http://emmajanefoster.net');
+    
+    console.log('Referrer:', referrer);
+    console.log('Is Emma referrer:', isEmmaDomain || isTestMode);
+    
+    setIsEmmaReferrer(isEmmaDomain || isTestMode);
   }, [location]);
 
   useEffect(() => {
