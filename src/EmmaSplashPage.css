@@ -33,7 +33,7 @@
 }
 
 .emma-header h1 {
-  color: #8a4fff;
+  color: #e91e63;
   margin-bottom: 1rem;
   font-size: 2.5rem;
   font-weight: 700;
@@ -43,7 +43,7 @@
 .emma-divider {
   height: 3px;
   width: 80px;
-  background-color: #b388ff;
+  background-color: #f48fb1;
   margin: 0 auto;
   border-radius: 3px;
 }
@@ -90,7 +90,7 @@
 }
 
 .emma-text-content h2 {
-  color: #6a1b9a;
+  color: #c2185b;
   margin-bottom: 1rem;
   font-size: 1.8rem;
 }

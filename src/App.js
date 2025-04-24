@@ -29,14 +29,14 @@ const AppContent = () => {
   const [isEmmaReferrer, setIsEmmaReferrer] = useState(false);
 
   useEffect(() => {
-    // Check if the referrer is emmajanefoster.com
+    // Check if the referrer is emmajanefoster.net
     const referrer = document.referrer;
     
     // Check for URL parameter for testing
     const urlParams = new URLSearchParams(location.search);
     const isTestMode = urlParams.get('emma') === 'true';
     
-    setIsEmmaReferrer(referrer.includes('emmajanefoster.com') || isTestMode);
+    setIsEmmaReferrer(referrer.includes('emmajanefoster.net') || isTestMode);
   }, [location]);
 
   useEffect(() => {
@@ -86,7 +86,7 @@ const AppContent = () => {
     }
   };
 
-  // If the user came from emmajanefoster.com, show only the Emma splash page
+  // If the user came from emmajanefoster.net, show only the Emma splash page
   if (isEmmaReferrer) {
     return <EmmaSplashPage />;
   }
