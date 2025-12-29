@@ -1,11 +1,12 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { API_ENDPOINTS } from '../config/api';
 
 // Thunk for making the API call
 export const fetchAssistantResponse = createAsyncThunk(
   'assistant/fetchResponse',
   async ({ inputText, threadId }, { getState, rejectWithValue }) => {
     try {
-      const response = await fetch('https://bfoster-services.herokuapp.com/ai/assistant', {
+      const response = await fetch(API_ENDPOINTS.ASSISTANT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

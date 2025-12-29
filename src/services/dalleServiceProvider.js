@@ -1,5 +1,7 @@
+import { API_ENDPOINTS } from '../config/api';
+
 const generateImage = async ({ prompt, size, quality, style }) => {
-    const apiUrl = 'https://bfoster-services.herokuapp.com/ai/generate-image-rf'; //https://bfoster-services.herokuapp.com/ai/generate-image-rf
+    const apiUrl = API_ENDPOINTS.GENERATE_IMAGE_RF;
   
     try {
       const response = await fetch(apiUrl, {

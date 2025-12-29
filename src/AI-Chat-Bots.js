@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleQuestion } from '@fortawesome/free-solid-svg-icons';
 import { useDispatch } from 'react-redux';
 import { openModal } from './features/modalSlice';
+import { API_ENDPOINTS } from './config/api';
 
 const AIChatBots = () => {
     const [messages, setMessages] = useState([]); // State for messages
@@ -61,7 +62,7 @@ const AIChatBots = () => {
                     : "Be curious. Respond as a human. Answer with 30 words or fewer. Ask a follow-up question.",
             },
         ];
-        const { data } = await axios.post('https://bfoster-services.herokuapp.com/ai/ai-chat', { messages: conversation });
+        const { data } = await axios.post(API_ENDPOINTS.AI_CHAT, { messages: conversation });
         return data.response;
     };
     const handleOpenModal = () => {
