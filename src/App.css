@@ -1075,6 +1075,25 @@ select {
   color: #000000;
 }
 
+.modal-dismiss-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  background-color: #4a90e2;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+  font-size: 16px;
+  margin-top: 15px;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.modal-dismiss-button:hover {
+  opacity: 0.85;
+  background-color: #357abd;
+}
+
 .modal-body {
   font-size: 1rem;
   padding-bottom: 20px;
