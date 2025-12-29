@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { openModal } from './features/modalSlice';
 import { useDispatch } from 'react-redux';
 
-const Navbar = ({ togglePanel, toggleMenu, newLinks, isDesktop, isPanelOpen }) => {
+const Navbar = ({ togglePanel, toggleMenu, newLinks, persistentLinks, isDesktop, isPanelOpen }) => {
   const dispatch = useDispatch();
 
 
@@ -62,7 +62,7 @@ const Navbar = ({ togglePanel, toggleMenu, newLinks, isDesktop, isPanelOpen }) =
                 togglePanel();
               }}
             >
-              Links {newLinks.length > 0 && <span className="badge">{newLinks.length}</span>}
+              Links {persistentLinks.length > 0 && <span className="badge">{persistentLinks.length}</span>}
             </button>
           )}
         </div>

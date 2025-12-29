@@ -119,6 +119,7 @@ const AppContent = () => {
             setIsPanelOpen(false);
           }}
           newLinks={newLinks}
+          persistentLinks={persistentLinks}
           isDesktop={isDesktop}
           isPanelOpen={isPanelOpen}
         />

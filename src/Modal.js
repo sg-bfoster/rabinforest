@@ -24,7 +24,7 @@ const Modal = () => {
                         <p>
                             Rabin Forest is an AI playground site using ChatGPT and Gemini APIs. It's built using React and Node.js.
                         </p>
-                        <button onClick={handleClose}>Dismiss</button>
+                        <button className="modal-dismiss-button" onClick={handleClose}>Dismiss</button>
                     </div>
                 );
             case 'chat':
@@ -32,7 +32,7 @@ const Modal = () => {
                     <div>
                         <h2>AI Chat - Gemini</h2>
                         <p>This page utilizies Google Gemini AI APIs for queries.</p>
-                        <button onClick={handleClose}>Dismiss</button>
+                        <button className="modal-dismiss-button" onClick={handleClose}>Dismiss</button>
                     </div>
                 );
             case 'chat-bots':
@@ -40,7 +40,7 @@ const Modal = () => {
                     <div>
                         <h2>AI Chat Bots</h2>
                         <p>This page allows two ChatGPT chat bots to discuss the topic you provide.</p>
-                        <button onClick={handleClose}>Dismiss</button>
+                        <button className="modal-dismiss-button" onClick={handleClose}>Dismiss</button>
                     </div>
                 );
 
@@ -49,14 +49,14 @@ const Modal = () => {
                         <div>
                             <h2>Gemini AI Personal Assistant</h2>
                             <p>This page uses Gemini AI APIs to answer questions about Brian Foster.</p>
-                            <button onClick={handleClose}>Dismiss</button>
+                            <button className="modal-dismiss-button" onClick={handleClose}>Dismiss</button>
                         </div>
                     );
 
             case 'custom':
                 return (
                     <div>
-                        <button onClick={handleClose}>Close</button>
+                        <button className="modal-dismiss-button" onClick={handleClose}>Close</button>
                     </div>
                 );
             // Add more cases as needed

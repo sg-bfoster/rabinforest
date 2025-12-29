@@ -5,6 +5,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { openModal } from './features/modalSlice';
 import { useDispatch } from 'react-redux';
 import { addLink } from './features/assistantSlice';
+import { API_ENDPOINTS } from './config/api';
 
 const Home = (isDesktop) => {
     const [prompt, setPrompt] = useState('');
@@ -18,7 +19,7 @@ const Home = (isDesktop) => {
     const dispatch = useDispatch();
 
     const fetchResponse = async (prompt, history) => {
-        const { data } = await axios.post('https://bfoster-services.herokuapp.com/ai/gemini-assistant', { prompt: prompt, history: history });
+        const { data } = await axios.post(API_ENDPOINTS.GEMINI_ASSISTANT, { prompt: prompt, history: history });
         return JSON.parse(data.response);
     };
 
@@ -36,13 +37,18 @@ const Home = (isDesktop) => {
 
         if (!prompt.trim()) return;
 
+        // Store the prompt value before clearing
+        const currentPrompt = prompt.trim();
+        
+        // Clear the input immediately
+        setPrompt('');
+
         // Add user's message to the chat
-        const userMessage = { role: 'user', parts: [{ text: prompt.trim() }] };
+        const userMessage = { role: 'user', parts: [{ text: currentPrompt }] };
         const newMessages = [...messages, userMessage]; // Create new array for immutability
         setMessages(newMessages); // Update state
 
-        const response = await fetchResponse(prompt, messages);
-        setPrompt('');
+        const response = await fetchResponse(currentPrompt, messages);
         const mockResponse = { role: 'model', parts: [{ text: response.text }] };
 
         if (response.links && response.links.length > 0) {
