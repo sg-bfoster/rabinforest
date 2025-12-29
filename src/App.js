@@ -12,6 +12,7 @@ import { fetchAssistantResponse, resetAssistantState } from './features/assistan
 import Modal from './Modal';
 import Home from './Home';
 import EmmaSplashPage from './EmmaSplashPage';
+import Admin from './Admin';
 
 // Helper component to access location
 const AppContent = () => {
@@ -148,6 +149,7 @@ const AppContent = () => {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/playground" element={<Playground />} />
+          <Route path="/admin" element={<Admin />} />
         </Routes>
       </>
       <Footer isPanelOpen={isPanelOpen}></Footer>
