@@ -85,21 +85,12 @@ const Admin = () => {
             setSaving(true);
             setSaveMessage(null);
             setError(null);
-            // Send password in header or body (backend checks both)
-            const updatePassword = process.env.REACT_APP_ASSISTANT_UPDATE_PASSWORD || ADMIN_PASSWORD;
-            await axios.put(API_ENDPOINTS.ASSISTANT_BFOSTER_SAVE, 
-                { content, password: updatePassword },
-                { headers: { 'x-api-password': updatePassword } }
-            );
+            await axios.put(API_ENDPOINTS.ASSISTANT_BFOSTER_SAVE, { content });
             setSaveMessage('Content saved successfully!');
             setTimeout(() => setSaveMessage(null), 3000);
         } catch (err) {
             console.error('Error saving assistant content:', err);
-            if (err.response?.status === 401) {
-                setError('Unauthorized: Invalid password. Please check your configuration.');
-            } else {
-                setError('Failed to save assistant content');
-            }
+            setError('Failed to save assistant content');
         } finally {
             setSaving(false);
         }
