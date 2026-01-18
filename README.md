@@ -249,4 +249,4 @@ Brian Foster - https://www.rabinforest.com
 
 - AI services provided by OpenAI and Google Gemini
 - Background images and assets created by Brian Foster
-- Built with modern React best practices
+- Built with modern React best practices 
