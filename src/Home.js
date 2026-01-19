@@ -6,6 +6,7 @@ import { openModal } from './features/modalSlice';
 import { useDispatch } from 'react-redux';
 import { addLink } from './features/assistantSlice';
 import { API_ENDPOINTS } from './config/api';
+import { detectSitesInText } from './utils/siteDetector';
 
 const Home = (isDesktop) => {
     const [prompt, setPrompt] = useState('');
@@ -28,6 +29,20 @@ const Home = (isDesktop) => {
             openModal({
                 title: '',
                 type: 'assistant',
+            })
+        );
+    };
+
+    const handleThumbnailClick = (site) => {
+        dispatch(
+            openModal({
+                type: 'screenshot',
+                title: site.displayName,
+                payload: {
+                    screenshotPath: site.screenshotPath,
+                    siteName: site.displayName,
+                    url: site.url,
+                },
             })
         );
     };
@@ -131,11 +146,38 @@ const Home = (isDesktop) => {
                         />
                     </div>
                     <div className="chat-messages" ref={messagesContainerRef}>
-                        {messages.map((msg, index) => (
-                            <div key={index} className={`message-bubble ${msg.role === 'user' ? "assistant-b" : "assistant-a"}`}>
-                                <span dangerouslySetInnerHTML={{ __html: msg.parts[0].text }}></span>
-                            </div>
-                        ))}
+                        {messages.map((msg, index) => {
+                            const isAssistantMessage = msg.role === 'model';
+                            const messageText = msg.parts[0].text;
+                            const detectedSites = isAssistantMessage ? detectSitesInText(messageText) : [];
+
+                            return (
+                                <div key={index} className={`message-wrapper ${msg.role === 'user' ? "user-message-wrapper" : "assistant-message-wrapper"}`}>
+                                    <div className={`message-bubble ${msg.role === 'user' ? "assistant-b" : "assistant-a"}`}>
+                                        <span dangerouslySetInnerHTML={{ __html: messageText }}></span>
+                                        {detectedSites.length > 0 && (
+                                            <div className="site-thumbnails-container">
+                                                {detectedSites.map((site) => (
+                                                    <div
+                                                        key={site.key}
+                                                        className="site-thumbnail"
+                                                        onClick={() => handleThumbnailClick(site)}
+                                                        title={`Click to view ${site.displayName} screenshot`}
+                                                    >
+                                                        <img
+                                                            src={site.screenshotPath}
+                                                            alt={`${site.displayName} thumbnail`}
+                                                            className="site-thumbnail-image"
+                                                        />
+                                                        <span className="site-thumbnail-label">{site.displayName}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
                         <div ref={messagesEndRef} />
                     </div>
                     <div className="chat-input-area">

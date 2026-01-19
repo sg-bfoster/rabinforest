@@ -7,7 +7,7 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons';
 
 const Modal = () => {
     const dispatch = useDispatch();
-    const { isVisible, type, title } = useSelector(selectModal);
+    const { isVisible, type, title, payload } = useSelector(selectModal);
 
     if (!isVisible) return null;
 
@@ -53,6 +53,31 @@ const Modal = () => {
                         </div>
                     );
 
+            case 'screenshot':
+                const handleOpenWebsite = () => {
+                    if (payload && payload.url) {
+                        window.open(payload.url, '_blank', 'noopener,noreferrer');
+                    }
+                };
+                return (
+                    <div className="modal-screenshot-container">
+                        {payload && payload.screenshotPath && (
+                            <img
+                                src={payload.screenshotPath}
+                                alt={`${payload.siteName || 'Site'} screenshot`}
+                                className="modal-screenshot"
+                            />
+                        )}
+                        <div className="modal-screenshot-buttons">
+                            {payload && payload.url && (
+                                <button className="modal-open-website-button" onClick={handleOpenWebsite}>
+                                    Open Website
+                                </button>
+                            )}
+                            <button className="modal-dismiss-button" onClick={handleClose}>Close</button>
+                        </div>
+                    </div>
+                );
             case 'custom':
                 return (
                     <div>
@@ -67,7 +92,7 @@ const Modal = () => {
 
     return (
         <div className="modal-overlay" onClick={handleClose} aria-modal="true" role="dialog">
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className={`modal-content ${type === 'screenshot' ? 'modal-screenshot' : 'modal-regular'}`} onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
                     {title && <h2 className="modal-title">{title}</h2>}
                     <button className="modal-close-button" onClick={handleClose} aria-label="Close Modal">
