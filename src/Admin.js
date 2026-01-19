@@ -14,7 +14,7 @@ const Admin = () => {
     const [passwordError, setPasswordError] = useState('');
     const contentRef = useRef(null);
     
-    const ADMIN_PASSWORD = process.env.REACT_APP_ADMIN_PASSWORD || 'Tucker4848!!';
+    const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'Tucker4848!!';
 
     useEffect(() => {
         const handleResize = () => {

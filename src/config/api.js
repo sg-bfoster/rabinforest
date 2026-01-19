@@ -14,13 +14,13 @@ const getApiBaseUrl = () => {
   }
   
   // For localhost development, use env var or default to localhost:8081
-  return process.env.REACT_APP_API_BASE_URL || 'http://localhost:8081';
+  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
 };
 
 const API_BASE_URL = getApiBaseUrl();
 
 // Log the API base URL in development (helps verify local vs production)
-if (process.env.NODE_ENV === 'development') {
+if (import.meta.env.DEV) {
   console.log('🔗 API Base URL:', API_BASE_URL);
 }
 

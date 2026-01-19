@@ -5,7 +5,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-image: url('/public/forest-space-background-fade.png');
+    background-image: url('/forest-space-background-fade.png');
     background-size: cover;
     display: flex;
     justify-content: center;
