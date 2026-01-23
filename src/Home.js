@@ -8,8 +8,23 @@ import { addLink } from './features/assistantSlice';
 import { API_ENDPOINTS } from './config/api';
 import { detectSitesInText } from './utils/siteDetector';
 
+// Generate a unique conversation ID
+const generateConversationId = () => {
+    return 'conv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+};
+
 const Home = (isDesktop) => {
     const [prompt, setPrompt] = useState('');
+    const [conversationId, setConversationId] = useState(() => {
+        // Get or create conversation ID from localStorage
+        const storedId = localStorage.getItem('conversationId');
+        if (storedId) {
+            return storedId;
+        }
+        const newId = generateConversationId();
+        localStorage.setItem('conversationId', newId);
+        return newId;
+    });
     const [messages, setMessages] = useState(() => {
         // Load messages from local storage on initial render.
         const storedMessages = localStorage.getItem('assistantMessages');
@@ -19,8 +34,12 @@ const Home = (isDesktop) => {
     const messagesContainerRef = useRef(null);
     const dispatch = useDispatch();
 
-    const fetchResponse = async (prompt, history) => {
-        const { data } = await axios.post(API_ENDPOINTS.GEMINI_ASSISTANT, { prompt: prompt, history: history });
+    const fetchResponse = async (prompt, history, conversationId) => {
+        const { data } = await axios.post(API_ENDPOINTS.GEMINI_ASSISTANT, { 
+            prompt: prompt, 
+            history: history,
+            conversationId: conversationId
+        });
         return JSON.parse(data.response);
     };
 
@@ -63,7 +82,7 @@ const Home = (isDesktop) => {
         const newMessages = [...messages, userMessage]; // Create new array for immutability
         setMessages(newMessages); // Update state
 
-        const response = await fetchResponse(currentPrompt, messages);
+        const response = await fetchResponse(currentPrompt, messages, conversationId);
         const mockResponse = { role: 'model', parts: [{ text: response.text }] };
 
         if (response.links && response.links.length > 0) {
@@ -78,6 +97,10 @@ const Home = (isDesktop) => {
     // Function to handle resetting the chat
     const handleResetChat = () => {
         localStorage.removeItem('assistantMessages');
+        // Generate a new conversation ID for the new session
+        const newConversationId = generateConversationId();
+        localStorage.setItem('conversationId', newConversationId);
+        setConversationId(newConversationId);
         setMessages([]);
     };
 
@@ -184,7 +207,7 @@ const Home = (isDesktop) => {
                         <form className="chat-buttons" onSubmit={handleSubmit}>
                             <textarea
                                 style={{ minWidth: '1%', resize: 'vertical' }}
-                                placeholder="Ex: What does Brian do?"
+                                placeholder="Ex: What skills does Brian have? Is Brian available for hire?"
                                 value={prompt}
                                 onChange={(e) => setPrompt(e.target.value)}
                                 onKeyDown={handleKeyDown}

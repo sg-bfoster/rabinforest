@@ -32,6 +32,9 @@ export const API_ENDPOINTS = {
   GENERATE_IMAGE_RF: `${API_BASE_URL}/ai/generate-image-rf`,
   ASSISTANT_BFOSTER: `${API_BASE_URL}/ai/assistant-bfoster`,
   ASSISTANT_BFOSTER_SAVE: `${API_BASE_URL}/ai/assistant-bfoster`,
+  CONVERSATION_LOGS: `${API_BASE_URL}/ai/conversation-logs`,
+  DELETE_CONVERSATION: (conversationId) => 
+    `${API_BASE_URL}/ai/conversation-logs/${conversationId}`,
 };
 
 export default API_BASE_URL;

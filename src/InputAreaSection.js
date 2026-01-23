@@ -18,7 +18,7 @@ const InputArea = ({
       onChange={(e) => setInputText(e.target.value)}
       onKeyDown={handleKeyDown}
       rows="2"
-      placeholder="Ex: What does Brian do?"
+      placeholder="Ex: What skills does Brian have? Is Brian available for hire?"
     />
     <button onClick={handleSubmit} disabled={loading} className='submit'>
       {loading ? <span className="spinner"></span> : <span>Ask</span>}
