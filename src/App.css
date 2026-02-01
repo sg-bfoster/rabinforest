@@ -1186,6 +1186,52 @@ select {
   overflow: hidden;
 }
 
+.modal-screenshot-summary {
+  width: 100%;
+  max-width: 1100px;
+  background: rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #111;
+}
+
+.modal-gallery-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  margin: 0 0 10px 0;
+}
+
+.modal-gallery-nav-button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 4px;
+  background-color: #4a90e2;
+  color: white;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.modal-gallery-nav-button:disabled {
+  background-color: #bbb;
+  cursor: not-allowed;
+}
+
+.modal-gallery-counter {
+  min-width: 70px;
+  text-align: center;
+  font-size: 13px;
+  color: #222;
+}
+
 .modal-screenshot-buttons {
   display: flex;
   gap: 10px;

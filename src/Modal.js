@@ -1,5 +1,5 @@
 // src/components/Modal.js
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectModal, closeModal, openModal } from './features/modalSlice';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -182,7 +182,25 @@ const ConversationLogContent = ({ payload, onClose, dispatch }) => {
 const Modal = () => {
     const dispatch = useDispatch();
     const { isVisible, type, title, payload } = useSelector(selectModal);
+    const [galleryIndex, setGalleryIndex] = useState(0);
 
+    const screenshotPaths = useMemo(() => {
+        if (type !== 'screenshot') return [];
+        if (payload && Array.isArray(payload.screenshotPaths) && payload.screenshotPaths.length > 0) {
+            return payload.screenshotPaths.filter(Boolean);
+        }
+        if (payload && payload.screenshotPath) return [payload.screenshotPath];
+        return [];
+    }, [payload, type]);
+
+    const activeScreenshotPath = screenshotPaths[galleryIndex] || screenshotPaths[0] || null;
+
+    useEffect(() => {
+        if (type !== 'screenshot') return;
+        setGalleryIndex(0);
+    }, [type, payload?.screenshotPath, payload?.screenshotPaths]);
+
+    // IMPORTANT: Do not return early before hooks run, or hook order changes between renders.
     if (!isVisible) return null;
 
     const handleClose = () => {
@@ -233,14 +251,47 @@ const Modal = () => {
                         window.open(payload.url, '_blank', 'noopener,noreferrer');
                     }
                 };
+
+                const hasMultipleImages = screenshotPaths.length > 1;
+                const canGoPrev = hasMultipleImages && galleryIndex > 0;
+                const canGoNext = hasMultipleImages && galleryIndex < screenshotPaths.length - 1;
+
                 return (
                     <div className="modal-screenshot-container">
-                        {payload && payload.screenshotPath && (
+                        {payload && payload.summary && (
+                            <div className="modal-screenshot-summary">{payload.summary}</div>
+                        )}
+
+                        {activeScreenshotPath && (
                             <img
-                                src={payload.screenshotPath}
+                                src={activeScreenshotPath}
                                 alt={`${payload.siteName || 'Site'} screenshot`}
                                 className="modal-screenshot"
                             />
+                        )}
+
+                        {hasMultipleImages && (
+                            <div className="modal-gallery-controls">
+                                <button
+                                    className="modal-gallery-nav-button"
+                                    onClick={() => setGalleryIndex((i) => Math.max(i - 1, 0))}
+                                    disabled={!canGoPrev}
+                                    type="button"
+                                >
+                                    Prev
+                                </button>
+                                <div className="modal-gallery-counter">
+                                    {galleryIndex + 1} / {screenshotPaths.length}
+                                </div>
+                                <button
+                                    className="modal-gallery-nav-button"
+                                    onClick={() => setGalleryIndex((i) => Math.min(i + 1, screenshotPaths.length - 1))}
+                                    disabled={!canGoNext}
+                                    type="button"
+                                >
+                                    Next
+                                </button>
+                            </div>
                         )}
                         <div className="modal-screenshot-buttons">
                             {payload && payload.url && (

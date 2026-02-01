@@ -59,6 +59,8 @@ const Home = (isDesktop) => {
                 title: site.displayName,
                 payload: {
                     screenshotPath: site.screenshotPath,
+                    screenshotPaths: site.screenshotPaths || (site.screenshotPath ? [site.screenshotPath] : []),
+                    summary: site.summary || '',
                     siteName: site.displayName,
                     url: site.url,
                 },

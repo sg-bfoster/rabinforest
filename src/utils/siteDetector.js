@@ -227,6 +227,117 @@ const SITE_CONFIG = {
       /https?:\/\/.*mygenesisprotection\.com/gi,
     ],
   },
+  whoop: {
+    key: 'whoop',
+    displayName: 'Whoop',
+    category: 'portfolio',
+    summary:
+      'Designed and developed the UX/UI and implemented the web app UI, focusing on enterprise-style workflows, data-rich screens, and integrations.',
+    screenshotPaths: [
+      '/screenshots/whoop1.png',
+      '/screenshots/whoop2.png',
+      '/screenshots/whoop3.png',
+      '/screenshots/whoop4.png',
+      '/screenshots/whoop5.png',
+      '/screenshots/whoop6.png',
+    ],
+    // Used for the thumbnail in chat
+    screenshotPath: '/screenshots/whoop1.png',
+    url: null,
+    // Keep patterns focused; broader triggers are weighted in scoreRules.
+    patterns: [/\bwhoop\b/gi, /whoop\s*everything\s*mobile/gi, /whoopsales/gi],
+    // High aggressiveness, but require a meaningful combined match to avoid false positives.
+    minScore: 3,
+    scoreRules: [
+      // Strong identifiers
+      { pattern: /\bwhoop\b/gi, score: 5 },
+      { pattern: /whoop\s*everything\s*mobile/gi, score: 5 },
+      { pattern: /whoopsales/gi, score: 4 },
+
+      // Strong feature phrases
+      { pattern: /\bcontact\s*management\b/gi, score: 3 },
+      { pattern: /\bmedia\s*library\b/gi, score: 3 },
+      { pattern: /\bcreate\s*sms\b/gi, score: 3 },
+      { pattern: /\breports?\s*&?\s*analytics\b/gi, score: 3 },
+      { pattern: /\btag\s*cloud\b/gi, score: 2 },
+      { pattern: /\bapp\s*builder\b/gi, score: 2 },
+
+      // Weaker keyword hints (need to combine with others to pass minScore)
+      { pattern: /\binitiative(s)?\b/gi, score: 1 },
+      { pattern: /\bsms\b/gi, score: 1 },
+    ],
+  },
+  concurrent: {
+    key: 'concurrent',
+    displayName: 'Concurrent (ECS)',
+    category: 'portfolio',
+    summary:
+      'Designed and developed the UX/UI and implemented dashboards and admin configuration screens for an Enterprise Control System, emphasizing data visualization and complex workflows.',
+    screenshotPaths: [
+      '/screenshots/ConcurrentECS-webtool.png',
+      '/screenshots/ConcurrentECS-webtool2.png',
+    ],
+    screenshotPath: '/screenshots/ConcurrentECS-webtool.png',
+    url: null,
+    patterns: [
+      /\bconcurrent\b/gi,
+      /\benterprise\s*control\s*system\b/gi,
+      /\becs\b/gi,
+      /\bdata\s*intelligence\b/gi,
+      /\btopology\s*management\b/gi,
+      /\brequest\s*router(\s*service)?\b/gi,
+    ],
+    minScore: 3,
+    scoreRules: [
+      // Strong identifiers
+      { pattern: /\bconcurrent\b/gi, score: 5 },
+      { pattern: /\benterprise\s*control\s*system\b/gi, score: 5 },
+      { pattern: /\becs\b/gi, score: 4 },
+      { pattern: /\bedge\/tcs\b/gi, score: 4 },
+      { pattern: /\bdata\s*intelligence\b/gi, score: 3 },
+
+      // Strong feature phrases
+      { pattern: /\bsystem\s*dashboard\b/gi, score: 3 },
+      { pattern: /\bmanage\s*topology\b/gi, score: 3 },
+      { pattern: /\btopology\s*management\b/gi, score: 3 },
+      { pattern: /\brequest\s*router(\s*service)?\b/gi, score: 3 },
+      { pattern: /\bgeographic\s*restrictions\b/gi, score: 3 },
+      { pattern: /\btoken\s*authentication\b/gi, score: 3 },
+      { pattern: /\badvanced\s*configuration\b/gi, score: 2 },
+      { pattern: /\bip\s*restrictions\b/gi, score: 2 },
+    ],
+  },
+  silk: {
+    key: 'silk',
+    displayName: 'Silk',
+    category: 'portfolio',
+    summary:
+      'Designed and developed the UX/UI and implemented a web-based interface for operational workflows, focusing on usability, information density, and integrations.',
+    screenshotPaths: ['/screenshots/silk1.png', '/screenshots/silk2.png'],
+    screenshotPath: '/screenshots/silk1.png',
+    url: null,
+    patterns: [/\bsilk\b/gi, /silk\s*information\s*systems/gi, /\bpm\/emr\b/gi, /\bemr\b/gi],
+    minScore: 3,
+    scoreRules: [
+      // Strong identifiers
+      { pattern: /\bsilk\b/gi, score: 5 },
+      { pattern: /silk\s*information\s*systems/gi, score: 5 },
+      { pattern: /\bpm\/emr\b/gi, score: 4 },
+      { pattern: /\bemr\b/gi, score: 3 },
+
+      // Strong feature phrases
+      { pattern: /\bpatient\s*registration\b/gi, score: 3 },
+      { pattern: /\bpatient\s*summary\b/gi, score: 3 },
+      { pattern: /\bmedical\s*record\b/gi, score: 3 },
+      { pattern: /\bclinic(al)?\s*reporting\b/gi, score: 3 },
+
+      // Weaker hints
+      { pattern: /\bscheduling\b/gi, score: 1 },
+      { pattern: /\bbilling\b/gi, score: 1 },
+      { pattern: /\breporting\b/gi, score: 1 },
+      { pattern: /\bsaas\b/gi, score: 1 },
+    ],
+  },
 };
 
 /**
@@ -242,6 +353,16 @@ export const detectSitesInText = (text) => {
   const detectedSites = [];
   const foundKeys = new Set(); // Prevent duplicates
 
+  const safeTest = (pattern, value) => {
+    try {
+      // Patterns are frequently /g; reset to avoid lastIndex issues across calls.
+      pattern.lastIndex = 0;
+      return pattern.test(value);
+    } catch {
+      return false;
+    }
+  };
+
   // Check each site configuration
   Object.values(SITE_CONFIG).forEach((site) => {
     // Skip if already found
@@ -249,21 +370,54 @@ export const detectSitesInText = (text) => {
       return;
     }
 
-    // Check if any pattern matches
-    const hasMatch = site.patterns.some((pattern) => pattern.test(text));
+    // Check if any pattern matches / compute score for portfolio items.
+    let score = 0;
+    let hasMatch = false;
+
+    if (Array.isArray(site.scoreRules) && site.scoreRules.length > 0) {
+      score = site.scoreRules.reduce((acc, rule) => {
+        if (rule?.pattern && typeof rule?.score === 'number' && safeTest(rule.pattern, text)) {
+          return acc + rule.score;
+        }
+        return acc;
+      }, 0);
+      hasMatch = score >= (typeof site.minScore === 'number' ? site.minScore : 1);
+    } else {
+      hasMatch = site.patterns.some((pattern) => safeTest(pattern, text));
+      score = hasMatch ? 1 : 0;
+    }
 
     if (hasMatch) {
+      const screenshotPaths = Array.isArray(site.screenshotPaths) && site.screenshotPaths.length > 0
+        ? site.screenshotPaths
+        : (site.screenshotPath ? [site.screenshotPath] : []);
+
       detectedSites.push({
         key: site.key,
+        category: site.category || 'site',
         displayName: site.displayName,
-        screenshotPath: site.screenshotPath,
-        url: site.url,
+        // Back-compat (single thumbnail image)
+        screenshotPath: site.screenshotPath || screenshotPaths[0],
+        // New: gallery support
+        screenshotPaths,
+        summary: site.summary || '',
+        url: site.url || null,
+        _score: score,
       });
       foundKeys.add(site.key);
     }
   });
 
-  return detectedSites;
+  // Cap portfolio matches to at most 2 to avoid UI spam.
+  const portfolio = detectedSites
+    .filter((s) => s.category === 'portfolio')
+    .sort((a, b) => (b._score || 0) - (a._score || 0))
+    .slice(0, 2);
+  const nonPortfolio = detectedSites.filter((s) => s.category !== 'portfolio');
+  const capped = [...nonPortfolio, ...portfolio];
+
+  // Remove internal scoring field before returning.
+  return capped.map(({ _score, ...rest }) => rest);
 };
 
 /**
