@@ -363,6 +363,16 @@ export const detectSitesInText = (text) => {
     }
   };
 
+  const safeSearchIndex = (pattern, value) => {
+    try {
+      pattern.lastIndex = 0;
+      const idx = value.search(pattern);
+      return typeof idx === 'number' ? idx : -1;
+    } catch {
+      return -1;
+    }
+  };
+
   // Check each site configuration
   Object.values(SITE_CONFIG).forEach((site) => {
     // Skip if already found
@@ -373,10 +383,16 @@ export const detectSitesInText = (text) => {
     // Check if any pattern matches / compute score for portfolio items.
     let score = 0;
     let hasMatch = false;
+    let firstMatchPos = -1;
 
     if (Array.isArray(site.scoreRules) && site.scoreRules.length > 0) {
       score = site.scoreRules.reduce((acc, rule) => {
-        if (rule?.pattern && typeof rule?.score === 'number' && safeTest(rule.pattern, text)) {
+        if (!rule?.pattern || typeof rule?.score !== 'number') return acc;
+        if (safeTest(rule.pattern, text)) {
+          const idx = safeSearchIndex(rule.pattern, text);
+          if (idx !== -1) {
+            firstMatchPos = firstMatchPos === -1 ? idx : Math.min(firstMatchPos, idx);
+          }
           return acc + rule.score;
         }
         return acc;
@@ -384,6 +400,12 @@ export const detectSitesInText = (text) => {
       hasMatch = score >= (typeof site.minScore === 'number' ? site.minScore : 1);
     } else {
       hasMatch = site.patterns.some((pattern) => safeTest(pattern, text));
+      if (hasMatch) {
+        const indices = site.patterns
+          .map((p) => safeSearchIndex(p, text))
+          .filter((n) => n !== -1);
+        firstMatchPos = indices.length > 0 ? Math.min(...indices) : -1;
+      }
       score = hasMatch ? 1 : 0;
     }
 
@@ -403,21 +425,36 @@ export const detectSitesInText = (text) => {
         summary: site.summary || '',
         url: site.url || null,
         _score: score,
+        _pos: firstMatchPos,
       });
       foundKeys.add(site.key);
     }
   });
 
-  // Cap portfolio matches to at most 2 to avoid UI spam.
-  const portfolio = detectedSites
-    .filter((s) => s.category === 'portfolio')
-    .sort((a, b) => (b._score || 0) - (a._score || 0))
-    .slice(0, 2);
+  const portfolioAll = detectedSites.filter((s) => s.category === 'portfolio');
+  const strongPortfolioCount = portfolioAll.filter((s) => (s._score || 0) >= 5).length;
+
+  // Default cap is 2. If the assistant explicitly names 3+ portfolio projects in one message,
+  // allow up to 3 so we don't hide a project the assistant just mentioned.
+  const portfolioCap = strongPortfolioCount >= 3 ? 3 : 2;
+
+  const portfolio = portfolioAll
+    .sort((a, b) => {
+      // Prefer order-of-appearance when there are many strong matches,
+      // otherwise prefer score. This keeps the UI aligned with the written response.
+      const posA = typeof a._pos === 'number' ? a._pos : -1;
+      const posB = typeof b._pos === 'number' ? b._pos : -1;
+      if (strongPortfolioCount >= 3 && posA !== -1 && posB !== -1 && posA !== posB) {
+        return posA - posB;
+      }
+      return (b._score || 0) - (a._score || 0);
+    })
+    .slice(0, portfolioCap);
   const nonPortfolio = detectedSites.filter((s) => s.category !== 'portfolio');
   const capped = [...nonPortfolio, ...portfolio];
 
   // Remove internal scoring field before returning.
-  return capped.map(({ _score, ...rest }) => rest);
+  return capped.map(({ _score, _pos, ...rest }) => rest);
 };
 
 /**
