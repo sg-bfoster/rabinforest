@@ -338,6 +338,24 @@ const SITE_CONFIG = {
       { pattern: /\bsaas\b/gi, score: 1 },
     ],
   },
+  tellspinners: {
+    key: 'tellspinners',
+    displayName: 'Tellspinners',
+    screenshotPaths: [
+      '/screenshots/tellspinners1.png',
+      '/screenshots/tellspinners2.png',
+      '/screenshots/tellspinners3.png',
+    ],
+    screenshotPath: '/screenshots/tellspinners2.png',
+    url: 'https://www.tellspinners.com',
+    patterns: [
+      /tellspinners\.com/gi,
+      /www\.tellspinners\.com/gi,
+      /https?:\/\/.*tellspinners\.com/gi,
+      /\btell\s*spinners\b/gi,
+      /\btellspinners\b/gi,
+    ],
+  },
 };
 
 /**

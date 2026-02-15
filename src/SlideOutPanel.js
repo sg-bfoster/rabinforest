@@ -8,6 +8,34 @@ function SlideOutPanel({ isPanelOpen, togglePanel, isDesktop }) {
   // Select persistentLinks from the Redux store
   const links = useSelector((state) => state.assistant.persistentLinks);
 
+  const isSelfLink = (url) => {
+    if (!url || typeof url !== 'string') return false;
+
+    // Filter relative links to same origin (including "/")
+    if (!/^https?:\/\//i.test(url)) {
+      try {
+        if (typeof window !== 'undefined') {
+          const resolved = new URL(url, window.location.origin);
+          return resolved.hostname === window.location.hostname;
+        }
+      } catch {
+        // ignore
+      }
+      return url === '/';
+    }
+
+    // Filter only Rabin Forest root domain (keep subdomains like fmp.rabinforest.com)
+    try {
+      const parsed = new URL(url);
+      const host = (parsed.hostname || '').toLowerCase();
+      return host === 'rabinforest.com' || host === 'www.rabinforest.com';
+    } catch {
+      return false;
+    }
+  };
+
+  const filteredLinks = Array.isArray(links) ? links.filter((l) => !isSelfLink(l?.url)) : [];
+
   const handleClearLinks = () => {
     // Dispatch an action to clear the links
     dispatch(clearLinks());
@@ -24,9 +52,9 @@ function SlideOutPanel({ isPanelOpen, togglePanel, isDesktop }) {
         <h2>Links</h2>
       </div>
       <div className="slideout-links">
-        {links.length > 0 ? (
+        {filteredLinks.length > 0 ? (
           <>
-            {links.map((link, index) => (
+            {filteredLinks.map((link, index) => (
               <p key={index}>
                 <a href={link.url} target="_blank" rel="noopener noreferrer">
                   {link.text}
