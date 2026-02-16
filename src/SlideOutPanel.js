@@ -1,38 +1,13 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearLinks } from './features/assistantSlice';
+import { isSelfLink } from './utils/linkUtils';
 
 function SlideOutPanel({ isPanelOpen, togglePanel, isDesktop }) {
 
   const dispatch = useDispatch();
   // Select persistentLinks from the Redux store
   const links = useSelector((state) => state.assistant.persistentLinks);
-
-  const isSelfLink = (url) => {
-    if (!url || typeof url !== 'string') return false;
-
-    // Filter relative links to same origin (including "/")
-    if (!/^https?:\/\//i.test(url)) {
-      try {
-        if (typeof window !== 'undefined') {
-          const resolved = new URL(url, window.location.origin);
-          return resolved.hostname === window.location.hostname;
-        }
-      } catch {
-        // ignore
-      }
-      return url === '/';
-    }
-
-    // Filter only Rabin Forest root domain (keep subdomains like fmp.rabinforest.com)
-    try {
-      const parsed = new URL(url);
-      const host = (parsed.hostname || '').toLowerCase();
-      return host === 'rabinforest.com' || host === 'www.rabinforest.com';
-    } catch {
-      return false;
-    }
-  };
 
   const filteredLinks = Array.isArray(links) ? links.filter((l) => !isSelfLink(l?.url)) : [];
 

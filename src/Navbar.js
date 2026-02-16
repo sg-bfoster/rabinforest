@@ -5,9 +5,11 @@ import { Link } from 'react-router-dom';
 
 import { openModal } from './features/modalSlice';
 import { useDispatch } from 'react-redux';
+import { isSelfLink } from './utils/linkUtils';
 
 const Navbar = ({ togglePanel, toggleMenu, newLinks, persistentLinks, isDesktop, isPanelOpen }) => {
   const dispatch = useDispatch();
+  const filteredCount = (persistentLinks || []).filter((l) => !isSelfLink(l?.url)).length;
 
 
   const handleOpenModal = () => {
@@ -62,7 +64,7 @@ const Navbar = ({ togglePanel, toggleMenu, newLinks, persistentLinks, isDesktop,
                 togglePanel();
               }}
             >
-              Links {persistentLinks.length > 0 && <span className="badge">{persistentLinks.length}</span>}
+              Links {filteredCount > 0 && <span className="badge">{filteredCount}</span>}
             </button>
           )}
         </div>

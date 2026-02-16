@@ -341,11 +341,13 @@ const SITE_CONFIG = {
   tellspinners: {
     key: 'tellspinners',
     displayName: 'Tellspinners',
+    category: 'portfolio',
     screenshotPaths: [
       '/screenshots/tellspinners1.png',
       '/screenshots/tellspinners2.png',
       '/screenshots/tellspinners3.png',
     ],
+    summary: 'Designed and developed the concept, UX/UI, all code (frontend and backend), and deployment for a kid friendly story creation and sharing platform.', 
     screenshotPath: '/screenshots/tellspinners2.png',
     url: 'https://www.tellspinners.com',
     patterns: [
