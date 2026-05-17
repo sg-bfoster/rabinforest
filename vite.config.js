@@ -1,8 +1,12 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  const apiLocalUrl = env.VITE_API_LOCAL_URL || 'http://localhost:8081';
+
+  return {
   plugins: [
     react({
       include: '**/*.{jsx,js}',
@@ -24,7 +28,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/ai': {
-        target: 'http://localhost:8081',
+        target: apiLocalUrl,
         changeOrigin: true,
       },
     },
@@ -34,4 +38,5 @@ export default defineConfig({
     sourcemap: false,
   },
   publicDir: 'public',
+  };
 });

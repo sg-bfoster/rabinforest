@@ -48,14 +48,31 @@ const assistantSlice = createSlice({
     },
     addLink(state, action) {
       const newLink = action.payload;
-      const updatedLinks = [newLink, ...state.persistentLinks];
+      let updatedLinks;
 
-      // Ensure no duplicates
-      const uniqueLinks = Array.from(new Set(updatedLinks.map(JSON.stringify))).map(JSON.parse);
+      if (newLink.isImage) {
+        updatedLinks = [
+          newLink,
+          ...state.persistentLinks.filter((l) => !(l.isImage && l.text === newLink.text)),
+        ];
+      } else {
+        updatedLinks = [newLink, ...state.persistentLinks];
+        updatedLinks = Array.from(new Set(updatedLinks.map(JSON.stringify))).map(JSON.parse);
+      }
 
-      state.persistentLinks = uniqueLinks;
+      state.persistentLinks = updatedLinks;
       state.newLinks = [newLink];
-      localStorage.setItem('persistentLinks', JSON.stringify(uniqueLinks));
+
+      try {
+        const storable = updatedLinks.map((link) =>
+          link.isImage
+            ? { url: link.url, text: link.text, isImage: true, imageId: link.imageId }
+            : link
+        );
+        localStorage.setItem('persistentLinks', JSON.stringify(storable));
+      } catch {
+        // Quota exceeded (large images) — links still live in Redux for this session
+      }
     },
     clearLinks(state) {
       state.persistentLinks = [];

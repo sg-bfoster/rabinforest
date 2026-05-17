@@ -2,6 +2,7 @@ import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearLinks } from './features/assistantSlice';
 import { isSelfLink } from './utils/linkUtils';
+import { isInlineImageUrl, isExpiredImageLink, openImageInNewTab, resolveImageLinkUrl } from './utils/imageUrl';
 
 function SlideOutPanel({ isPanelOpen, togglePanel, isDesktop }) {
 
@@ -12,9 +13,16 @@ function SlideOutPanel({ isPanelOpen, togglePanel, isDesktop }) {
   const filteredLinks = Array.isArray(links) ? links.filter((l) => !isSelfLink(l?.url)) : [];
 
   const handleClearLinks = () => {
-    // Dispatch an action to clear the links
     dispatch(clearLinks());
-  }
+  };
+
+  const handleLinkClick = (e, link) => {
+    if (link.isImage || isInlineImageUrl(link.url) || isInlineImageUrl(link.dataUrl)) {
+      e.preventDefault();
+      const imageUrl = resolveImageLinkUrl(link);
+      openImageInNewTab(imageUrl, link.text);
+    }
+  };
 
   return (
     <div className={`slideout-panel ${isPanelOpen ? 'open' : ''}`}>
@@ -29,13 +37,26 @@ function SlideOutPanel({ isPanelOpen, togglePanel, isDesktop }) {
       <div className="slideout-links">
         {filteredLinks.length > 0 ? (
           <>
-            {filteredLinks.map((link, index) => (
-              <p key={index}>
-                <a href={link.url} target="_blank" rel="noopener noreferrer">
-                  {link.text}
-                </a>
-              </p>
-            ))}
+            {filteredLinks.map((link, index) => {
+              const imageUrl = resolveImageLinkUrl(link);
+              const isImageLink = link.isImage || isInlineImageUrl(imageUrl);
+              const expired = isImageLink && isExpiredImageLink(imageUrl);
+              return (
+                <p key={index}>
+                  <a
+                    href={isImageLink ? '#' : link.url}
+                    target={isImageLink ? undefined : '_blank'}
+                    rel={isImageLink ? undefined : 'noopener noreferrer'}
+                    onClick={(e) => handleLinkClick(e, link)}
+                    className={expired ? 'link-expired' : undefined}
+                    title={expired ? 'This link has expired — clear links or regenerate' : undefined}
+                  >
+                    {link.text}
+                    {expired ? ' (expired)' : ''}
+                  </a>
+                </p>
+              );
+            })}
 
           </>
         ) : (

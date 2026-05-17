@@ -1,26 +1,48 @@
-// API Configuration
-// Automatically detects production vs localhost based on domain
-const getApiBaseUrl = () => {
-  // Check if we're running on a production domain
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    const isProduction = hostname === 'rabinforest.com' || 
-                        hostname === 'www.rabinforest.com' ||
-                        (!hostname.includes('localhost') && !hostname.includes('127.0.0.1'));
-    
-    if (isProduction) {
-      return 'https://bfoster-services.herokuapp.com';
-    }
+// API configuration — bfoster-services backend
+const PRODUCTION_API_URL =
+  import.meta.env.VITE_API_PRODUCTION_URL ||
+  'https://bfoster-services.herokuapp.com';
+
+const LOCAL_API_URL =
+  import.meta.env.VITE_API_LOCAL_URL || 'http://localhost:8081';
+
+const resolveTargetFromHostname = () => {
+  if (typeof window === 'undefined') {
+    return 'local';
   }
-  
-  // For localhost development, use env var or default to localhost:8081
-  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
+  const hostname = window.location.hostname;
+  const isLocalHost =
+    hostname === 'localhost' || hostname === '127.0.0.1';
+  return isLocalHost ? 'local' : 'production';
+};
+
+const getApiBaseUrl = () => {
+  // Explicit override (full URL) — legacy / advanced
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '');
+  }
+
+  const target = (
+    import.meta.env.VITE_API_TARGET || resolveTargetFromHostname()
+  ).toLowerCase();
+
+  if (target === 'production') {
+    return PRODUCTION_API_URL.replace(/\/$/, '');
+  }
+  if (target === 'local') {
+    return LOCAL_API_URL.replace(/\/$/, '');
+  }
+
+  console.warn(
+    `Unknown VITE_API_TARGET="${target}"; expected "local" or "production". Using local.`,
+  );
+  return LOCAL_API_URL.replace(/\/$/, '');
 };
 
 const API_BASE_URL = getApiBaseUrl();
 
-// Log the API base URL in development (helps verify local vs production)
 if (import.meta.env.DEV) {
+  console.log('🔗 API target:', import.meta.env.VITE_API_TARGET || '(auto)');
   console.log('🔗 API Base URL:', API_BASE_URL);
 }
 
@@ -30,12 +52,12 @@ export const API_ENDPOINTS = {
   GENERATE_TEXT_GEMINI: `${API_BASE_URL}/ai/generate-text-gemini`,
   AI_CHAT: `${API_BASE_URL}/ai/ai-chat`,
   GENERATE_IMAGE_RF: `${API_BASE_URL}/ai/generate-image-rf`,
+  GENERATE_IMAGE_RF_IMAGEN: `${API_BASE_URL}/ai/generate-image-rf-imagen`,
   ASSISTANT_BFOSTER: `${API_BASE_URL}/ai/assistant-bfoster`,
   ASSISTANT_BFOSTER_SAVE: `${API_BASE_URL}/ai/assistant-bfoster`,
   CONVERSATION_LOGS: `${API_BASE_URL}/ai/conversation-logs`,
-  DELETE_CONVERSATION: (conversationId) => 
+  DELETE_CONVERSATION: (conversationId) =>
     `${API_BASE_URL}/ai/conversation-logs/${conversationId}`,
 };
 
 export default API_BASE_URL;
-

@@ -1,6 +1,6 @@
 // Playground.js
 import React, { useEffect, useRef } from 'react';
-import DalleForm from './Dalle-3';
+import AiImageryForm from './Dalle-3';
 import { useLocation } from 'react-router-dom';
 import AIChatBots from './AI-Chat-Bots';
 import AIChat from './AI-Chat';
@@ -40,7 +40,7 @@ const Playground = (isDesktop) => {
         <h1 className='playground-h1'>Playground</h1>
         {view === 'aichat' && <AIChat />}
         {view === 'aichatbots' && <AIChatBots />}
-        {view === 'dalle' && <DalleForm />}
+        {(view === 'ai-imagery' || view === 'dalle') && <AiImageryForm />}
       </div>
     </div>
   );

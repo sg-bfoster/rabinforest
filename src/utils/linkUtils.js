@@ -7,6 +7,15 @@
 export function isSelfLink(url) {
   if (!url || typeof url !== 'string') return false;
 
+  // Generated images and inline previews are never "self" site links
+  if (
+    url.startsWith('data:image/') ||
+    url.startsWith('blob:') ||
+    url.startsWith('#image:')
+  ) {
+    return false;
+  }
+
   // Filter relative links to same origin (including "/")
   if (!/^https?:\/\//i.test(url)) {
     try {

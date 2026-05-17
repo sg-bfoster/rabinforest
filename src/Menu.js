@@ -46,8 +46,8 @@ const Menu = ({ isMenuOpen, toggleMenu, isDesktop, setIsPanelOpen, setIsDesktop 
                     <li className={isActive('/playground?view=aichatbots') ? 'active' : ''}>
                         <Link to="/playground?view=aichatbots" onClick={() => handleLinkClick('/playground')}>&#8226; AI Chat Bots</Link>
                     </li>
-                    <li className={isActive('/playground?view=dalle') ? 'active' : ''}>
-                        <Link to="/playground?view=dalle" onClick={() => handleLinkClick('/playground')}>&#8226; Dalle-3</Link>
+                    <li className={isActive('/playground?view=ai-imagery') || isActive('/playground?view=dalle') ? 'active' : ''}>
+                        <Link to="/playground?view=ai-imagery" onClick={() => handleLinkClick('/playground')}>&#8226; AI Imagery</Link>
                     </li>
                 </ul>
             </div>
