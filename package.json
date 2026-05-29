@@ -7,7 +7,7 @@
     "@fortawesome/free-solid-svg-icons": "^7.1.0",
     "@fortawesome/react-fontawesome": "^3.1.1",
     "@reduxjs/toolkit": "^2.11.2",
-    "axios": "^1.15.0",
+    "axios": "^1.16.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-redux": "^9.2.0",
@@ -47,6 +47,6 @@
   },
   "overrides": {
     "nth-check": "^2.0.1",
-    "postcss": "^8.4.31"
+    "postcss": "^8.5.10"
   }
 }
