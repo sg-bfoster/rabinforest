@@ -2,6 +2,17 @@ export function isDataImageUrl(url) {
   return typeof url === 'string' && url.startsWith('data:image/');
 }
 
+/** File extension (no dot) for a data URL, for downloads. */
+export function fileExtensionFromDataUrl(url) {
+  if (typeof url !== 'string' || !url.startsWith('data:image/')) return 'png';
+  const mime = url.slice('data:image/'.length).split(';')[0]?.toLowerCase() || '';
+  if (mime === 'jpeg' || mime === 'jpg') return 'jpg';
+  if (mime === 'webp') return 'webp';
+  if (mime === 'gif') return 'gif';
+  if (mime === 'png') return 'png';
+  return 'png';
+}
+
 export function isBlobImageUrl(url) {
   return typeof url === 'string' && url.startsWith('blob:');
 }

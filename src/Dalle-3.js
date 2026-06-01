@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import imageService from './services/imageServiceProvider';
 import { useDispatch } from 'react-redux';
 import { addLink } from './features/assistantSlice';
-import { downloadImage, openImageInNewTab, revokeBlobUrl } from './utils/imageUrl';
+import { downloadImage, fileExtensionFromDataUrl, openImageInNewTab, revokeBlobUrl } from './utils/imageUrl';
 
 const ENGINE_LABELS = {
   openai: 'OpenAI GPT Image',
@@ -34,7 +34,11 @@ const ComparisonPanel = ({ engine, image, error, isGenerating, onViewImage, onDo
           <button
             type="button"
             className="image-action-btn"
-            onClick={() => onDownload(image.dataUrl || image.url, `${engine}-generated.png`)}
+            onClick={() => {
+              const src = image.dataUrl || image.url;
+              const ext = fileExtensionFromDataUrl(src);
+              onDownload(src, `${engine}-generated.${ext}`);
+            }}
           >
             Download
           </button>
