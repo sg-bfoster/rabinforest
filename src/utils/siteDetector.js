@@ -358,6 +358,31 @@ const SITE_CONFIG = {
       /\btellspinners\b/gi,
     ],
   },
+  lost_corridors: {
+    key: 'lost_corridors',
+    displayName: 'Lost Corridors',
+    category: 'portfolio',
+    screenshotPaths: [
+      '/screenshots/lost-corridors3.png',
+      '/screenshots/lost-corridors2.png',
+      '/screenshots/lost-corridors4.png',
+      '/screenshots/lost-corridors5.png',
+      '/screenshots/lost-corridors6.png',
+      '/screenshots/lost-corridors7.png',
+      '/screenshots/lost-corridors1.png',
+    ],
+    summary:
+      "Lost Corridors is inspired by the Backrooms, the internet myth of endless liminal spaces you stumble into when you clip out of reality. Explore fluorescent-lit carpet halls, crawl tubes, ramps, and multi-level passages rendered in WebGL with real physics. The map is built and extended by AI, with the long-term goal of a world that grows forever: new rooms and corridors added automatically so there is always somewhere you haven't been. Controls are in the nav bar, and your last position is saved between reloads.",
+    screenshotPath: '/screenshots/lost-corridors3.png',
+    url: 'https://www.lostcorridors.com',
+    patterns: [
+      /lostcorridors\.com/gi,
+      /www\.lostcorridors\.com/gi,
+      /https?:\/\/.*lostcorridors\.com/gi,
+      /\blost\s*corridors\b/gi,
+      /\blostcorridors\b/gi,
+    ],
+  },
 };
 
 /**
