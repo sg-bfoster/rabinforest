@@ -338,6 +338,30 @@ const SITE_CONFIG = {
       { pattern: /\bsaas\b/gi, score: 1 },
     ],
   },
+  experimental_cheese: {
+    key: 'experimental_cheese',
+    displayName: 'Experimental Cheese',
+    screenshotPaths: [
+      '/screenshots/x-cheese1.png',
+      '/screenshots/x-cheese2.png',
+      '/screenshots/x-cheese3.png',
+      '/screenshots/x-cheese4.png',
+    ],
+    summary:
+      "Brian's hodgepodge lab for software and physical experiments, AI toys, dormant projects, selected portfolio work, and occasional rants.",
+    screenshotPath: '/screenshots/x-cheese1.png',
+    url: 'https://www.experimentalcheese.com',
+    patterns: [
+      /experimentalcheese\.com/gi,
+      /www\.experimentalcheese\.com/gi,
+      /https?:\/\/.*experimentalcheese\.com/gi,
+      /x-cheese\.com/gi,
+      /www\.x-cheese\.com/gi,
+      /https?:\/\/.*x-cheese\.com/gi,
+      /\bexperimental\s*cheese\b/gi,
+      /\bx[\s-]*cheese\b/gi,
+    ],
+  },
   tellspinners: {
     key: 'tellspinners',
     displayName: 'Tellspinners',
