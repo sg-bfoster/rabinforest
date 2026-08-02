@@ -407,6 +407,47 @@ const SITE_CONFIG = {
       /\blostcorridors\b/gi,
     ],
   },
+  askgwinnett: {
+    key: 'askgwinnett',
+    displayName: 'AskGwinnett',
+    category: 'portfolio',
+    screenshotPaths: [
+      '/screenshots/askgwinnett1.png',
+      '/screenshots/askgwinnett2.png',
+    ],
+    summary:
+      'Plain-language answers about Gwinnett County, GA: property taxes, schools, parks, traffic, voting, and BOC & school board meetings — free, bilingual, and every answer links its source.',
+    screenshotPath: '/screenshots/askgwinnett1.png',
+    url: 'https://www.askgwinnett.com',
+    patterns: [
+      /askgwinnett\.com/gi,
+      /www\.askgwinnett\.com/gi,
+      /https?:\/\/.*askgwinnett\.com/gi,
+      /\bask\s*gwinnett\b/gi,
+      /\baskgwinnett\b/gi,
+    ],
+  },
+  callmata: {
+    key: 'callmata',
+    displayName: 'Callmata',
+    category: 'portfolio',
+    screenshotPaths: [
+      '/screenshots/callmata1.png',
+      '/screenshots/callmata2.png',
+      '/screenshots/callmata3.png',
+    ],
+    summary:
+      'One private room for your whole family. Tap a name and everyone rings at once — no accounts to juggle, no ads, no algorithm.',
+    screenshotPath: '/screenshots/callmata1.png',
+    url: 'https://www.callmata.com',
+    patterns: [
+      /callmata\.com/gi,
+      /www\.callmata\.com/gi,
+      /https?:\/\/.*callmata\.com/gi,
+      /\bcall\s*mata\b/gi,
+      /\bcallmata\b/gi,
+    ],
+  },
 };
 
 /**
