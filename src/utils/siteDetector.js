@@ -1,5 +1,7 @@
 // Site detection utility for identifying mentions of sites Brian worked on
 
+import API_BASE_URL from '../config/api';
+
 // Site configuration mapping
 const SITE_CONFIG = {
   rabinforest: {
@@ -422,11 +424,11 @@ const SITE_CONFIG = {
     docs: [
       {
         label: 'Architecture (overview)',
-        url: 'https://www.rabinforest.com/AskGWINnett-Architecture-non-technical.pdf',
+        url: `${API_BASE_URL}/docs/AskGWINnett-Architecture-non-technical.pdf`,
       },
       {
         label: 'Architecture (technical)',
-        url: 'https://www.rabinforest.com/AskGWINnett-Architecture.pdf',
+        url: `${API_BASE_URL}/docs/AskGWINnett-Architecture.pdf`,
       },
     ],
     patterns: [
@@ -453,11 +455,11 @@ const SITE_CONFIG = {
     docs: [
       {
         label: 'Architecture (overview)',
-        url: 'https://www.rabinforest.com/Callmata-Architecture-non-technical.pdf',
+        url: `${API_BASE_URL}/docs/Callmata-Architecture-non-technical.pdf`,
       },
       {
         label: 'Architecture (technical)',
-        url: 'https://www.rabinforest.com/Callmata-Architecture.pdf',
+        url: `${API_BASE_URL}/docs/Callmata-Architecture.pdf`,
       },
     ],
     patterns: [
