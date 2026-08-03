@@ -1399,6 +1399,7 @@ select {
   gap: 10px;
   justify-content: center;
   margin-top: 10px;
+  flex-wrap: wrap;
 }
 
 .modal-open-website-button {
@@ -1416,6 +1417,23 @@ select {
 .modal-open-website-button:hover {
   opacity: 0.85;
   background-color: #357abd;
+}
+
+.modal-doc-button {
+  padding: 8px 16px;
+  border: 1px solid #4a90e2;
+  border-radius: 4px;
+  background-color: transparent;
+  color: #2f6fad;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+
+.modal-doc-button:hover {
+  background-color: rgba(74, 144, 226, 0.12);
+  color: #245a8c;
 }
 
 .modal-screenshot {

@@ -252,6 +252,8 @@ const Modal = () => {
                     }
                 };
 
+                const docs = Array.isArray(payload?.docs) ? payload.docs.filter((d) => d?.url) : [];
+
                 const hasMultipleImages = screenshotPaths.length > 1;
                 const canGoPrev = hasMultipleImages && galleryIndex > 0;
                 const canGoNext = hasMultipleImages && galleryIndex < screenshotPaths.length - 1;
@@ -299,6 +301,16 @@ const Modal = () => {
                                     Open Website
                                 </button>
                             )}
+                            {docs.map((doc) => (
+                                <button
+                                    key={doc.url}
+                                    className="modal-doc-button"
+                                    type="button"
+                                    onClick={() => window.open(doc.url, '_blank', 'noopener,noreferrer')}
+                                >
+                                    {doc.label || 'Architecture Doc'}
+                                </button>
+                            ))}
                             <button className="modal-dismiss-button" onClick={handleClose}>Close</button>
                         </div>
                     </div>

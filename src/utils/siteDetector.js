@@ -419,6 +419,16 @@ const SITE_CONFIG = {
       'Plain-language answers about Gwinnett County, GA: property taxes, schools, parks, traffic, voting, and BOC & school board meetings — free, bilingual, and every answer links its source.',
     screenshotPath: '/screenshots/askgwinnett1.png',
     url: 'https://www.askgwinnett.com',
+    docs: [
+      {
+        label: 'Architecture (overview)',
+        url: 'https://www.rabinforest.com/AskGWINnett-Architecture-non-technical.pdf',
+      },
+      {
+        label: 'Architecture (technical)',
+        url: 'https://www.rabinforest.com/AskGWINnett-Architecture.pdf',
+      },
+    ],
     patterns: [
       /askgwinnett\.com/gi,
       /www\.askgwinnett\.com/gi,
@@ -440,6 +450,16 @@ const SITE_CONFIG = {
       'One private room for your whole family. Tap a name and everyone rings at once — no accounts to juggle, no ads, no algorithm.',
     screenshotPath: '/screenshots/callmata1.png',
     url: 'https://www.callmata.com',
+    docs: [
+      {
+        label: 'Architecture (overview)',
+        url: 'https://www.rabinforest.com/Callmata-Architecture-non-technical.pdf',
+      },
+      {
+        label: 'Architecture (technical)',
+        url: 'https://www.rabinforest.com/Callmata-Architecture.pdf',
+      },
+    ],
     patterns: [
       /callmata\.com/gi,
       /www\.callmata\.com/gi,
@@ -534,6 +554,7 @@ export const detectSitesInText = (text) => {
         screenshotPaths,
         summary: site.summary || '',
         url: site.url || null,
+        docs: Array.isArray(site.docs) ? site.docs : [],
         _score: score,
         _pos: firstMatchPos,
       });

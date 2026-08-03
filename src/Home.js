@@ -63,6 +63,7 @@ const Home = (isDesktop) => {
                     summary: site.summary || '',
                     siteName: site.displayName,
                     url: site.url,
+                    docs: site.docs || [],
                 },
             })
         );
