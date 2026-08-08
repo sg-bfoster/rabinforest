@@ -1,10 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux'; // Import Provider
+import { inject } from '@vercel/analytics';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import store from './store'; // Import your Redux store
+
+inject();
 
 if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost' && !window.location.hostname.includes('10.0.0')) {
   window.location.href = `https://${window.location.host}${window.location.pathname}${window.location.search}`;
