@@ -1,6 +1,7 @@
 {
   "short_name": "Rabin Forest",
-  "name": "Rabin Forest AI",
+  "name": "Rabin Forest — Brian Foster AI Portfolio",
+  "description": "AI-powered portfolio and Gemini assistant for Brian Foster.",
   "icons": [
     {
       "src": "favicon.png",
