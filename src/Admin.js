@@ -25,8 +25,8 @@ const Admin = () => {
     const [logsError, setLogsError] = useState(null);
     const dispatch = useDispatch();
     
-    // Must match Heroku ADMIN_API_KEY — same value is sent as X-Admin-Key.
-    const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || '';
+    // Same value must be Heroku ADMIN_API_KEY (sent as X-Admin-Key after login).
+    const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'Tucker4848!!';
 
     useEffect(() => {
         const handleResize = () => {
@@ -106,17 +106,12 @@ const Admin = () => {
     
     const handlePasswordSubmit = (e) => {
         e.preventDefault();
-        // If VITE_ADMIN_PASSWORD is set, require an exact match first.
-        // Always persist the typed value as X-Admin-Key for API calls.
-        if (ADMIN_PASSWORD && password !== ADMIN_PASSWORD) {
+        if (password !== ADMIN_PASSWORD) {
             setPasswordError('Incorrect password');
             setPassword('');
             return;
         }
-        if (!password) {
-            setPasswordError('Password is required');
-            return;
-        }
+        // Reuse the admin password as X-Admin-Key for bfoster-services.
         sessionStorage.setItem(ADMIN_KEY_STORAGE, password);
         setIsAuthenticated(true);
         setPasswordError('');
@@ -163,7 +158,7 @@ const Admin = () => {
                 sessionStorage.removeItem(ADMIN_KEY_STORAGE);
                 setIsAuthenticated(false);
                 setPasswordError(
-                    'Admin key rejected by API. Use the same value as Heroku ADMIN_API_KEY.',
+                    'API rejected admin key. Set Heroku ADMIN_API_KEY to the same admin password.',
                 );
                 setError(null);
             } else {
