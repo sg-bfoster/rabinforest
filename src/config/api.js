@@ -60,4 +60,21 @@ export const API_ENDPOINTS = {
     `${API_BASE_URL}/ai/conversation-logs/${conversationId}`,
 };
 
+/** sessionStorage key for the admin API credential entered at login */
+export const ADMIN_KEY_STORAGE = 'rf-admin-key';
+
+/**
+ * Headers for bfoster-services routes gated by ADMIN_API_KEY.
+ * Prefer the password typed at Admin login (must match Heroku ADMIN_API_KEY);
+ * fall back to VITE_ADMIN_API_KEY when set at build time.
+ */
+export const getAdminHeaders = () => {
+  const key =
+    (typeof sessionStorage !== 'undefined' &&
+      sessionStorage.getItem(ADMIN_KEY_STORAGE)) ||
+    import.meta.env.VITE_ADMIN_API_KEY ||
+    '';
+  return key ? { 'X-Admin-Key': key } : {};
+};
+
 export default API_BASE_URL;

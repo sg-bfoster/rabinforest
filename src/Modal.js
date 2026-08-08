@@ -5,7 +5,7 @@ import { selectModal, closeModal, openModal } from './features/modalSlice';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faTrash } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
-import { API_ENDPOINTS } from './config/api';
+import { API_ENDPOINTS, getAdminHeaders } from './config/api';
 
 // Conversation Log Component with delete functionality
 const ConversationLogContent = ({ payload, onClose, dispatch }) => {
@@ -39,7 +39,9 @@ const ConversationLogContent = ({ payload, onClose, dispatch }) => {
             setDeleting(true);
             setError(null);
             
-            await axios.delete(API_ENDPOINTS.DELETE_CONVERSATION(conversationId));
+            await axios.delete(API_ENDPOINTS.DELETE_CONVERSATION(conversationId), {
+                headers: getAdminHeaders(),
+            });
             
             // Close the modal after successful deletion
             onClose();

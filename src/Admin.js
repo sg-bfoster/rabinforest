@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { API_ENDPOINTS } from './config/api';
+import { API_ENDPOINTS, ADMIN_KEY_STORAGE, getAdminHeaders } from './config/api';
 import axios from 'axios';
 import { useDispatch } from 'react-redux';
 import { openModal } from './features/modalSlice';
@@ -11,7 +11,9 @@ const Admin = () => {
     const [saving, setSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState(null);
     const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(
+        () => Boolean(sessionStorage.getItem(ADMIN_KEY_STORAGE)),
+    );
     const [password, setPassword] = useState('');
     const [passwordError, setPasswordError] = useState('');
     const contentRef = useRef(null);
@@ -23,7 +25,8 @@ const Admin = () => {
     const [logsError, setLogsError] = useState(null);
     const dispatch = useDispatch();
     
-    const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'Tucker4848!!';
+    // Must match Heroku ADMIN_API_KEY — same value is sent as X-Admin-Key.
+    const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || '';
 
     useEffect(() => {
         const handleResize = () => {
@@ -71,7 +74,9 @@ const Admin = () => {
         try {
             setLogsLoading(true);
             setLogsError(null);
-            const response = await axios.get(API_ENDPOINTS.CONVERSATION_LOGS);
+            const response = await axios.get(API_ENDPOINTS.CONVERSATION_LOGS, {
+                headers: getAdminHeaders(),
+            });
             setConversationLogs(response.data.logs || []);
         } catch (err) {
             console.error('Error fetching conversation logs:', err);
@@ -101,14 +106,21 @@ const Admin = () => {
     
     const handlePasswordSubmit = (e) => {
         e.preventDefault();
-        if (password === ADMIN_PASSWORD) {
-            setIsAuthenticated(true);
-            setPasswordError('');
-            setPassword('');
-        } else {
+        // If VITE_ADMIN_PASSWORD is set, require an exact match first.
+        // Always persist the typed value as X-Admin-Key for API calls.
+        if (ADMIN_PASSWORD && password !== ADMIN_PASSWORD) {
             setPasswordError('Incorrect password');
             setPassword('');
+            return;
         }
+        if (!password) {
+            setPasswordError('Password is required');
+            return;
+        }
+        sessionStorage.setItem(ADMIN_KEY_STORAGE, password);
+        setIsAuthenticated(true);
+        setPasswordError('');
+        setPassword('');
     };
 
     const adjustContentHeight = () => {
@@ -137,12 +149,26 @@ const Admin = () => {
             setSaving(true);
             setSaveMessage(null);
             setError(null);
-            await axios.put(API_ENDPOINTS.ASSISTANT_BFOSTER_SAVE, { content });
+            await axios.put(
+                API_ENDPOINTS.ASSISTANT_BFOSTER_SAVE,
+                { content },
+                { headers: getAdminHeaders() },
+            );
             setSaveMessage('Content saved successfully!');
             setTimeout(() => setSaveMessage(null), 3000);
         } catch (err) {
             console.error('Error saving assistant content:', err);
-            setError('Failed to save assistant content');
+            const status = err.response?.status;
+            if (status === 401) {
+                sessionStorage.removeItem(ADMIN_KEY_STORAGE);
+                setIsAuthenticated(false);
+                setPasswordError(
+                    'Admin key rejected by API. Use the same value as Heroku ADMIN_API_KEY.',
+                );
+                setError(null);
+            } else {
+                setError('Failed to save assistant content');
+            }
         } finally {
             setSaving(false);
         }
