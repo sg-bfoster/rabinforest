@@ -221,14 +221,6 @@ const Modal = () => {
                         <button className="modal-dismiss-button" onClick={handleClose}>Dismiss</button>
                     </div>
                 );
-            case 'chat':
-                return (
-                    <div>
-                        <h2>AI Chat - Gemini</h2>
-                        <p>This page utilizies Google Gemini AI APIs for queries.</p>
-                        <button className="modal-dismiss-button" onClick={handleClose}>Dismiss</button>
-                    </div>
-                );
             case 'chat-bots':
                 return (
                     <div>

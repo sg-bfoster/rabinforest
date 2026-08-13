@@ -168,7 +168,7 @@ const Home = (isDesktop) => {
                             icon={faCircleQuestion}
                             className="playground-help-icon"
                             onClick={() => handleOpenModal()}
-                            title="AI Chat - Gemini"
+                            title="Gemini AI Personal Assistant"
                         />
                     </div>
                     <div className="chat-messages" ref={messagesContainerRef}>
