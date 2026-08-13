@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { API_ENDPOINTS, ADMIN_KEY_STORAGE, getAdminHeaders } from './config/api';
+import { API_ENDPOINTS, ADMIN_KEY_STORAGE, getAdminHeaders, clearAdminSession } from './config/api';
 import axios from 'axios';
 import { useDispatch } from 'react-redux';
 import { openModal } from './features/modalSlice';
@@ -16,6 +16,7 @@ const Admin = () => {
     );
     const [password, setPassword] = useState('');
     const [passwordError, setPasswordError] = useState('');
+    const [loginBusy, setLoginBusy] = useState(false);
     const contentRef = useRef(null);
     
     // New state for conversation logs
@@ -24,9 +25,12 @@ const Admin = () => {
     const [logsLoading, setLogsLoading] = useState(false);
     const [logsError, setLogsError] = useState(null);
     const dispatch = useDispatch();
-    
-    // Same value must be Heroku ADMIN_API_KEY (sent as X-Admin-Key after login).
-    const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'Tucker4848!!';
+
+    const rejectAdminSession = useCallback((message) => {
+        clearAdminSession();
+        setIsAuthenticated(false);
+        setPasswordError(message);
+    }, []);
 
     useEffect(() => {
         const handleResize = () => {
@@ -80,11 +84,20 @@ const Admin = () => {
             setConversationLogs(response.data.logs || []);
         } catch (err) {
             console.error('Error fetching conversation logs:', err);
+            const status = err.response?.status;
+            if (status === 401 || status === 503) {
+                rejectAdminSession(
+                    status === 503
+                        ? 'Admin key is not configured on the server.'
+                        : 'API rejected admin key.',
+                );
+                return;
+            }
             setLogsError('Failed to load conversation logs');
         } finally {
             setLogsLoading(false);
         }
-    }, [isAuthenticated, activeSection]);
+    }, [isAuthenticated, activeSection, rejectAdminSession]);
 
     useEffect(() => {
         fetchLogs();
@@ -104,18 +117,37 @@ const Admin = () => {
         };
     }, [activeSection, fetchLogs]);
     
-    const handlePasswordSubmit = (e) => {
+    const handlePasswordSubmit = async (e) => {
         e.preventDefault();
-        if (password !== ADMIN_PASSWORD) {
-            setPasswordError('Incorrect password');
-            setPassword('');
+        const typed = password;
+        if (!typed) {
+            setPasswordError('Enter the admin key');
             return;
         }
-        // Reuse the admin password as X-Admin-Key for bfoster-services.
-        sessionStorage.setItem(ADMIN_KEY_STORAGE, password);
-        setIsAuthenticated(true);
+        setLoginBusy(true);
         setPasswordError('');
-        setPassword('');
+        try {
+            await axios.post(
+                API_ENDPOINTS.ADMIN_VERIFY,
+                {},
+                { headers: { 'X-Admin-Key': typed } },
+            );
+            sessionStorage.setItem(ADMIN_KEY_STORAGE, typed);
+            setIsAuthenticated(true);
+            setPassword('');
+        } catch (err) {
+            const status = err.response?.status;
+            if (status === 503) {
+                setPasswordError('Admin key is not configured on the server.');
+            } else if (status === 429) {
+                setPasswordError('Too many failed attempts. Try again in 15 minutes.');
+            } else {
+                setPasswordError('Incorrect password');
+            }
+            setPassword('');
+        } finally {
+            setLoginBusy(false);
+        }
     };
 
     const adjustContentHeight = () => {
@@ -154,11 +186,11 @@ const Admin = () => {
         } catch (err) {
             console.error('Error saving assistant content:', err);
             const status = err.response?.status;
-            if (status === 401) {
-                sessionStorage.removeItem(ADMIN_KEY_STORAGE);
-                setIsAuthenticated(false);
-                setPasswordError(
-                    'API rejected admin key. Set Heroku ADMIN_API_KEY to the same admin password.',
+            if (status === 401 || status === 503) {
+                rejectAdminSession(
+                    status === 503
+                        ? 'Admin key is not configured on the server.'
+                        : 'API rejected admin key.',
                 );
                 setError(null);
             } else {
@@ -245,6 +277,7 @@ const Admin = () => {
                                 </div>
                                 <button
                                     type="submit"
+                                    disabled={loginBusy}
                                     style={{
                                         padding: '12px 30px',
                                         fontSize: '16px',
@@ -252,10 +285,11 @@ const Admin = () => {
                                         color: 'white',
                                         border: 'none',
                                         borderRadius: '8px',
-                                        cursor: 'pointer'
+                                        cursor: loginBusy ? 'not-allowed' : 'pointer',
+                                        opacity: loginBusy ? 0.6 : 1
                                     }}
                                 >
-                                    Login
+                                    {loginBusy ? 'Checking...' : 'Login'}
                                 </button>
                             </form>
                         </div>

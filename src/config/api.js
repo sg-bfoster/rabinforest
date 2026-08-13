@@ -54,25 +54,30 @@ export const API_ENDPOINTS = {
   GENERATE_IMAGE_RF_IMAGEN: `${API_BASE_URL}/ai/generate-image-rf-imagen`,
   ASSISTANT_BFOSTER: `${API_BASE_URL}/ai/assistant-bfoster`,
   ASSISTANT_BFOSTER_SAVE: `${API_BASE_URL}/ai/assistant-bfoster`,
+  ADMIN_VERIFY: `${API_BASE_URL}/ai/admin/verify`,
   CONVERSATION_LOGS: `${API_BASE_URL}/ai/conversation-logs`,
   DELETE_CONVERSATION: (conversationId) =>
     `${API_BASE_URL}/ai/conversation-logs/${conversationId}`,
 };
 
-/** sessionStorage key for the admin API credential entered at login */
+/** sessionStorage key for the admin credential typed at login (never baked into the bundle) */
 export const ADMIN_KEY_STORAGE = 'rf-admin-key';
+
+export const clearAdminSession = () => {
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.removeItem(ADMIN_KEY_STORAGE);
+  }
+};
 
 /**
  * Headers for bfoster-services routes gated by ADMIN_API_KEY.
- * Prefer the password typed at Admin login (must match Heroku ADMIN_API_KEY);
- * fall back to VITE_ADMIN_API_KEY when set at build time.
+ * Only the value typed at Admin login — nothing from VITE_ or source.
  */
 export const getAdminHeaders = () => {
   const key =
-    (typeof sessionStorage !== 'undefined' &&
-      sessionStorage.getItem(ADMIN_KEY_STORAGE)) ||
-    import.meta.env.VITE_ADMIN_API_KEY ||
-    '';
+    typeof sessionStorage !== 'undefined'
+      ? sessionStorage.getItem(ADMIN_KEY_STORAGE) || ''
+      : '';
   return key ? { 'X-Admin-Key': key } : {};
 };
 

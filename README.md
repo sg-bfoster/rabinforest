@@ -77,9 +77,10 @@ The application features a responsive design with a forest-themed UI, slide-out 
 
 3. (Optional) Create `.env` file for local development:
    ```env
-   REACT_APP_ADMIN_PASSWORD=your_admin_password
-   REACT_APP_API_BASE_URL=http://localhost:8081
+   VITE_API_TARGET=local
+   VITE_API_LOCAL_URL=http://localhost:8081
    ```
+   Admin login uses the same `ADMIN_API_KEY` set on bfoster-services. Do not put that key in any `VITE_` variable.
 
 4. Start the development server:
    ```bash
@@ -206,8 +207,7 @@ The application is configured for Heroku deployment:
 ### Environment Variables (Heroku)
 
 Set in Heroku dashboard if needed:
-- `REACT_APP_ADMIN_PASSWORD` - Admin panel password
-- `REACT_APP_API_BASE_URL` - Override API base URL (usually not needed)
+- `VITE_API_BASE_URL` - Override API base URL (usually not needed)
 
 ## Technologies Used
 

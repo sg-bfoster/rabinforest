@@ -180,7 +180,7 @@ const Home = (isDesktop) => {
                             return (
                                 <div key={index} className={`message-wrapper ${msg.role === 'user' ? "user-message-wrapper" : "assistant-message-wrapper"}`}>
                                     <div className={`message-bubble ${msg.role === 'user' ? "assistant-b" : "assistant-a"}`}>
-                                        <span dangerouslySetInnerHTML={{ __html: messageText }}></span>
+                                        <span style={{ whiteSpace: 'pre-wrap' }}>{messageText}</span>
                                         {detectedSites.length > 0 && (
                                             <div className="site-thumbnails-container">
                                                 {detectedSites.map((site) => (

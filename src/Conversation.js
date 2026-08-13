@@ -34,7 +34,7 @@ const Conversation = ({ conversation, conversationEndRef }) => {
       {conversation.map((msg, index) => (
         <div key={index} className={msg.role === 'user' ? 'user-message' : 'assistant-message'}>
           <div className="message-bubble">
-            <p dangerouslySetInnerHTML={{ __html: msg.content }} style={{ margin: 0 }}></p>
+            <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{msg.content}</p>
           </div>
         </div>
       ))}

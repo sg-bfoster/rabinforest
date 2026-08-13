@@ -5,7 +5,7 @@ import { selectModal, closeModal, openModal } from './features/modalSlice';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faTrash } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
-import { API_ENDPOINTS, getAdminHeaders } from './config/api';
+import { API_ENDPOINTS, getAdminHeaders, clearAdminSession } from './config/api';
 
 // Conversation Log Component with delete functionality
 const ConversationLogContent = ({ payload, onClose, dispatch }) => {
@@ -50,7 +50,12 @@ const ConversationLogContent = ({ payload, onClose, dispatch }) => {
             window.dispatchEvent(new CustomEvent('conversationDeleted', { detail: { conversationId } }));
         } catch (err) {
             console.error('Error deleting conversation:', err);
-            setError('Failed to delete conversation. Please try again.');
+            if (err.response?.status === 401 || err.response?.status === 503) {
+                clearAdminSession();
+                setError('Admin session expired. Close this and log in again.');
+            } else {
+                setError('Failed to delete conversation. Please try again.');
+            }
         } finally {
             setDeleting(false);
         }
@@ -160,8 +165,9 @@ const ConversationLogContent = ({ payload, onClose, dispatch }) => {
                                             whiteSpace: 'pre-wrap',
                                             wordWrap: 'break-word'
                                         }}
-                                        dangerouslySetInnerHTML={{ __html: messageText }}
-                                    />
+                                    >
+                                        {messageText}
+                                    </div>
                                 </div>
                             );
                         })}
