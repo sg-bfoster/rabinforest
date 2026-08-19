@@ -7,6 +7,7 @@ import { useDispatch } from 'react-redux';
 import { addLink } from './features/assistantSlice';
 import { API_ENDPOINTS } from './config/api';
 import { detectSitesInText } from './utils/siteDetector';
+import { LinkedText } from './utils/linkedText';
 
 // Generate a unique conversation ID
 const generateConversationId = () => {
@@ -180,7 +181,9 @@ const Home = (isDesktop) => {
                             return (
                                 <div key={index} className={`message-wrapper ${msg.role === 'user' ? "user-message-wrapper" : "assistant-message-wrapper"}`}>
                                     <div className={`message-bubble ${msg.role === 'user' ? "assistant-b" : "assistant-a"}`}>
-                                        <span style={{ whiteSpace: 'pre-wrap' }}>{messageText}</span>
+                                        <span style={{ whiteSpace: 'pre-wrap' }}>
+                                            {isAssistantMessage ? <LinkedText text={messageText} /> : messageText}
+                                        </span>
                                         {detectedSites.length > 0 && (
                                             <div className="site-thumbnails-container">
                                                 {detectedSites.map((site) => (

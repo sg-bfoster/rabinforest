@@ -1081,6 +1081,15 @@ select {
   position: relative;
 }
 
+.message-bubble.assistant-a a {
+  color: #003366;
+  text-decoration: underline;
+}
+
+.message-bubble.assistant-a a:hover {
+  color: #001a33;
+}
+
 .assistant-a::after {
   content: "";
   position: absolute;

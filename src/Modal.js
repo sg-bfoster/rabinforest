@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faTrash } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
 import { API_ENDPOINTS, getAdminHeaders, clearAdminSession } from './config/api';
+import { LinkedText } from './utils/linkedText';
 
 // Conversation Log Component with delete functionality
 const ConversationLogContent = ({ payload, onClose, dispatch }) => {
@@ -166,7 +167,7 @@ const ConversationLogContent = ({ payload, onClose, dispatch }) => {
                                             wordWrap: 'break-word'
                                         }}
                                     >
-                                        {messageText}
+                                        {isUser ? messageText : <LinkedText text={messageText} />}
                                     </div>
                                 </div>
                             );
