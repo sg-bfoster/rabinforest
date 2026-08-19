@@ -34,14 +34,10 @@ The application features a responsive design with a forest-themed UI, slide-out 
   - Real-time content editing with auto-save
   - Responsive design for desktop and mobile
 
-- **AI Chat Interfaces**
-  - **AI Chat**: Direct interface to Gemini AI for general text generation
-  - **AI Chat Bots**: Conversation simulator with two AI assistants discussing topics
-  - **Playground**: Experimental AI features and testing
-
-- **DALL-E Integration**
-  - Image generation interface
-  - Customizable size, quality, and style options
+- **Playground**
+  - **AI Chat Bots** (`/playground/ai-chat-bots`): Conversation simulator with two AI assistants discussing topics
+  - **AI Imagery** (`/playground/ai-imagery`): Side-by-side image generation with OpenAI GPT Image and Google Imagen
+  - Legacy `/playground?view=` URLs 301 to the path routes above
 
 - **Special Features**
   - **Emma Splash Page**: Special landing page for visitors from emmajanefoster.net

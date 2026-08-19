@@ -1,4 +1,35 @@
 {
+  "redirects": [
+    {
+      "source": "/playground",
+      "has": [{ "type": "query", "key": "view", "value": "aichat" }],
+      "destination": "/playground/ai-chat-bots",
+      "permanent": true
+    },
+    {
+      "source": "/playground",
+      "has": [{ "type": "query", "key": "view", "value": "aichatbots" }],
+      "destination": "/playground/ai-chat-bots",
+      "permanent": true
+    },
+    {
+      "source": "/playground",
+      "has": [{ "type": "query", "key": "view", "value": "dalle" }],
+      "destination": "/playground/ai-imagery",
+      "permanent": true
+    },
+    {
+      "source": "/playground",
+      "has": [{ "type": "query", "key": "view", "value": "ai-imagery" }],
+      "destination": "/playground/ai-imagery",
+      "permanent": true
+    },
+    {
+      "source": "/playground",
+      "destination": "/playground/ai-chat-bots",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]

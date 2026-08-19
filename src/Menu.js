@@ -1,8 +1,11 @@
 // Menu.js
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { PLAYGROUND_CHAT_BOTS, PLAYGROUND_IMAGERY } from './playgroundRoutes';
 
 const Menu = ({ isMenuOpen, toggleMenu, isDesktop, setIsPanelOpen, setIsDesktop }) => {
+    const { pathname } = useLocation();
+
     const handleLinkClick = (targetPath) => {
 
         toggleMenu();
@@ -19,13 +22,7 @@ const Menu = ({ isMenuOpen, toggleMenu, isDesktop, setIsPanelOpen, setIsDesktop 
         }
     }
 
-    const isActive = (path) => {
-        const [pathname, search] = path.split('?');
-        return (
-            window.location.pathname === pathname &&
-            (!search || window.location.search === `?${search}`)
-        );
-    };
+    const isActive = (path) => pathname === path;
 
     return (
         <div className={`menu-panel ${isMenuOpen || isDesktop ? 'open' : ''}`}>
@@ -34,17 +31,14 @@ const Menu = ({ isMenuOpen, toggleMenu, isDesktop, setIsPanelOpen, setIsDesktop 
                     <li className={isActive('/') ? 'active' : ''}>
                         <Link to="/" onClick={() => handleLinkClick('/')}>Home</Link>
                     </li>
-                    {/* <li className={isActive('/home') ? 'active' : ''}>
-                        <Link to="/home" onClick={() => handleLinkClick('/home')}>Home</Link>
-                    </li> */}
                 </ul>
                 <span className='playground-menu-header'><i>Playground</i></span>
                 <ul>
-                    <li className={isActive('/playground?view=aichatbots') ? 'active' : ''}>
-                        <Link to="/playground?view=aichatbots" onClick={() => handleLinkClick('/playground')}>&#8226; AI Chat Bots</Link>
+                    <li className={isActive(PLAYGROUND_CHAT_BOTS) ? 'active' : ''}>
+                        <Link to={PLAYGROUND_CHAT_BOTS} onClick={() => handleLinkClick(PLAYGROUND_CHAT_BOTS)}>&#8226; AI Chat Bots</Link>
                     </li>
-                    <li className={isActive('/playground?view=ai-imagery') || isActive('/playground?view=dalle') ? 'active' : ''}>
-                        <Link to="/playground?view=ai-imagery" onClick={() => handleLinkClick('/playground')}>&#8226; AI Imagery</Link>
+                    <li className={isActive(PLAYGROUND_IMAGERY) ? 'active' : ''}>
+                        <Link to={PLAYGROUND_IMAGERY} onClick={() => handleLinkClick(PLAYGROUND_IMAGERY)}>&#8226; AI Imagery</Link>
                     </li>
                 </ul>
             </div>

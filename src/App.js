@@ -7,7 +7,11 @@ import SlideOutPanel from './SlideOutPanel';
 import SplashScreen from './SplashScreen';
 import Menu from './Menu';
 import Playground from './Playground';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import AIChatBots from './AI-Chat-Bots';
+import AiImageryForm from './Dalle-3';
+import DocumentHead from './DocumentHead';
+import { PLAYGROUND_CHAT_BOTS } from './playgroundRoutes';
 import { fetchAssistantResponse, resetAssistantState } from './features/assistantSlice';
 import Modal from './Modal';
 import Home from './Home';
@@ -147,9 +151,14 @@ const AppContent = () => {
             <div className="overlay-content"></div>
           </div>
         )}
+        <DocumentHead />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/playground" element={<Playground />} />
+          <Route path="/playground" element={<Playground />}>
+            <Route index element={<Navigate to={PLAYGROUND_CHAT_BOTS} replace />} />
+            <Route path="ai-chat-bots" element={<AIChatBots />} />
+            <Route path="ai-imagery" element={<AiImageryForm />} />
+          </Route>
           <Route path="/admin" element={<Admin />} />
         </Routes>
       </>
