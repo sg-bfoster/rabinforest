@@ -36,7 +36,7 @@ The application features a responsive design with a forest-themed UI, slide-out 
 
 - **Playground**
   - **AI Chat Bots** (`/playground/ai-chat-bots`): Conversation simulator with two AI assistants discussing topics
-  - **AI Imagery** (`/playground/ai-imagery`): Side-by-side image generation with OpenAI GPT Image and Google Imagen
+  - **AI Imagery** (`/playground/ai-imagery`): Side-by-side image generation with OpenAI GPT Image and Google Gemini Image
   - Legacy `/playground?view=` URLs 301 to the path routes above
 
 - **Special Features**

@@ -6,7 +6,7 @@ import { downloadImage, fileExtensionFromDataUrl, openImageInNewTab, revokeBlobU
 
 const ENGINE_LABELS = {
   openai: 'OpenAI GPT Image',
-  imagen: 'Google Imagen',
+  imagen: 'Google Gemini Image',
 };
 
 const ComparisonPanel = ({ engine, image, error, isGenerating, onViewImage, onDownload }) => (
@@ -92,7 +92,7 @@ const AiImageryForm = () => {
       setImages({ openai, imagen });
       setErrors({
         openai: engineErrors.openai ? 'OpenAI generation failed.' : null,
-        imagen: engineErrors.imagen ? 'Imagen generation failed.' : null,
+        imagen: engineErrors.imagen ? 'Gemini image generation failed.' : null,
         global: !openai && !imagen ? 'Both engines failed. Please try again.' : null,
       });
 
@@ -100,7 +100,7 @@ const AiImageryForm = () => {
         dispatch(addLink({ url: openai.dataUrl, dataUrl: openai.dataUrl, text: `${prompt} (OpenAI)`, isImage: true }));
       }
       if (imagen?.dataUrl) {
-        dispatch(addLink({ url: imagen.dataUrl, dataUrl: imagen.dataUrl, text: `${prompt} (Imagen)`, isImage: true }));
+        dispatch(addLink({ url: imagen.dataUrl, dataUrl: imagen.dataUrl, text: `${prompt} (Gemini)`, isImage: true }));
       }
     } catch {
       setErrors({ openai: null, imagen: null, global: 'Error generating images. Please try again.' });
@@ -151,7 +151,7 @@ const AiImageryForm = () => {
       <div className={`form-container ${isGenerating ? 'generating' : ''}`} ref={messagesContainerRef}>
         <h2>AI Imagery</h2>
         <p className="image-compare-intro">
-          Enter one prompt to compare OpenAI GPT Image and Google Imagen side by side.
+          Enter one prompt to compare OpenAI GPT Image and Google Gemini Image side by side.
         </p>
         <form onSubmit={handleSubmit} className="ai-imagery-form">
           <div className="form-left">

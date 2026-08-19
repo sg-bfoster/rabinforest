@@ -26,7 +26,7 @@ const PAGES = {
   [PLAYGROUND_IMAGERY]: {
     title: 'AI Imagery | Rabin Forest',
     description:
-      "Generate images with OpenAI GPT Image and Google Imagen side by side. A playground tool on Rabin Forest, Brian Foster's portfolio.",
+      "Generate images with OpenAI GPT Image and Google Gemini Image side by side. A playground tool on Rabin Forest, Brian Foster's portfolio.",
     canonical: `${SITE}${PLAYGROUND_IMAGERY}`,
     robots: 'index, follow',
   },
