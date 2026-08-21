@@ -5,9 +5,9 @@ import React from 'react';
 // Composed for a 760-wide viewBox so it renders ~1:1 inside the 760px column.
 const StilltrueFlow = () => (
   <svg
-    viewBox="0 0 760 620"
+    viewBox="0 0 760 690"
     role="img"
-    aria-label="Flowchart: the stilltrue package contains a deterministic drift lane and a verify pipeline with an empty stage slot. The Gemini judge model sits outside the package, in the host app, and is plugged into that slot. The GitHub Actions drift run never touches the judge."
+    aria-label="Flowchart: the stilltrue package contains a deterministic drift lane, a verify pipeline with an empty stage slot, and a golden regression-eval lane. The Gemini judge model sits outside the package, in the host app, and is plugged into that slot. The GitHub Actions drift run never touches the judge."
   >
     <defs>
       <marker id="st-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -19,7 +19,7 @@ const StilltrueFlow = () => (
     </defs>
 
     {/* package boundary */}
-    <rect x="166" y="40" width="404" height="420" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="7 5" />
+    <rect x="166" y="40" width="404" height="500" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="7 5" />
     <text x="178" y="64" fontSize="12" fontWeight="700" letterSpacing="1.5" fill="currentColor">THE STILLTRUE PACKAGE</text>
     <text x="178" y="80" fontSize="11" fill="var(--color-neutral-600)">no AI inside — harness, pipeline, report</text>
 
@@ -87,23 +87,32 @@ const StilltrueFlow = () => (
     <text x="580" y="374" fontSize="11" fill="var(--color-neutral-600)">(fails open if the</text>
     <text x="580" y="389" fontSize="11" fill="var(--color-neutral-600)">judge is down)</text>
 
-    <text x="178" y="384" fontSize="11" fill="var(--color-neutral-600)">stilltrue only orchestrates: stages in order, short-circuit</text>
-    <text x="178" y="399" fontSize="11" fill="var(--color-neutral-600)">on failure, and the generate → verify → retry loop.</text>
-    <text x="178" y="414" fontSize="11" fill="var(--color-neutral-600)">A stage is any function you supply.</text>
+    <text x="178" y="384" fontSize="11" fill="var(--color-neutral-600)">stilltrue only orchestrates: stages in</text>
+    <text x="178" y="399" fontSize="11" fill="var(--color-neutral-600)">order, short-circuit on failure, and the</text>
+    <text x="178" y="414" fontSize="11" fill="var(--color-neutral-600)">generate → verify → retry loop.</text>
+
+    <line x1="178" y1="436" x2="558" y2="436" stroke="var(--color-neutral-300)" strokeWidth="1" />
+
+    {/* golden lane */}
+    <text x="178" y="462" fontSize="11" fontWeight="700" letterSpacing="1.5" fill="currentColor">GOLDEN · REGRESSION EVALS</text>
+    <text x="178" y="482" fontSize="11" fill="var(--color-neutral-600)">fixed question → answer cases re-run</text>
+    <text x="178" y="497" fontSize="11" fill="var(--color-neutral-600)">through the real pipeline on every code</text>
+    <text x="178" y="512" fontSize="11" fill="var(--color-neutral-600)">change; every fixed bug becomes a case.</text>
+    <text x="178" y="527" fontSize="11" fill="var(--color-neutral-600)">Deterministic assertions — no AI.</text>
 
     {/* the judge, outside the boundary */}
-    <rect x="230" y="540" width="300" height="64" fill="none" stroke="var(--color-accent)" strokeWidth="2" />
-    <text x="380" y="564" fontSize="13" fontWeight="700" textAnchor="middle" fill="var(--color-accent)">Gemini judge · temperature 0</text>
-    <text x="380" y="582" fontSize="11" textAnchor="middle" fill="currentColor">lives in your app (bfoster-services) — the only AI</text>
+    <rect x="230" y="614" width="300" height="64" fill="none" stroke="var(--color-accent)" strokeWidth="2" />
+    <text x="380" y="638" fontSize="13" fontWeight="700" textAnchor="middle" fill="var(--color-accent)">Gemini judge · temperature 0</text>
+    <text x="380" y="656" fontSize="11" textAnchor="middle" fill="currentColor">lives in your app (bfoster-services) — the only AI</text>
 
-    <line x1="428" y1="536" x2="428" y2="360" stroke="var(--color-accent)" strokeWidth="2" markerEnd="url(#st-arr-red)" />
-    <text x="440" y="472" fontSize="11" fill="var(--color-accent)">plugged into the slot</text>
-    <text x="440" y="488" fontSize="11" fill="var(--color-neutral-600)">AskGwinnett answer review ·</text>
-    <text x="440" y="503" fontSize="11" fill="var(--color-neutral-600)">this Fact Check page</text>
+    <line x1="428" y1="610" x2="428" y2="360" stroke="var(--color-accent)" strokeWidth="2" markerEnd="url(#st-arr-red)" />
+    <text x="440" y="562" fontSize="11" fill="var(--color-accent)">plugged into the slot</text>
+    <text x="440" y="578" fontSize="11" fill="var(--color-neutral-600)">AskGwinnett answer review ·</text>
+    <text x="440" y="593" fontSize="11" fill="var(--color-neutral-600)">this Fact Check page</text>
 
-    <text x="8" y="560" fontSize="11" fill="var(--color-neutral-600)">The weekly GitHub run executes the drift</text>
-    <text x="8" y="575" fontSize="11" fill="var(--color-neutral-600)">lane only — it never reaches this box.</text>
-    <text x="8" y="590" fontSize="11" fill="var(--color-neutral-600)">No key, no tokens, no model.</text>
+    <text x="8" y="628" fontSize="11" fill="var(--color-neutral-600)">The weekly GitHub run executes the drift</text>
+    <text x="8" y="643" fontSize="11" fill="var(--color-neutral-600)">lane only — it never reaches this box.</text>
+    <text x="8" y="658" fontSize="11" fill="var(--color-neutral-600)">No key, no tokens, no model.</text>
   </svg>
 );
 
