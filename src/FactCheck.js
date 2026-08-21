@@ -92,12 +92,32 @@ const FactCheck = () => {
     <div>
       <h2 className="screen-h2">One claim, one source.</h2>
       <p className="screen-sub">
-        Paste a claim and the source that supposedly backs it — text or a URL. A judge model
-        reads only the source and rules: supported, not supported, or can't tell. This is the
-        trust layer behind{' '}
-        <a href="https://www.askgwinnett.com" target="_blank" rel="noopener noreferrer">AskGwinnett</a>,
-        packaged as{' '}
+        AI answers sound confident whether or not their sources back them up. This page is the
+        checkpoint that catches the difference: paste a claim and the source that supposedly
+        backs it — pasted text, or a URL to fetch — and a judge model rules on it. It's the
+        trust layer running behind{' '}
+        <a href="https://www.askgwinnett.com" target="_blank" rel="noopener noreferrer">AskGwinnett</a>{' '}
+        on every answer, packaged as{' '}
         <a href="https://github.com/sg-bfoster/stilltrue" target="_blank" rel="noopener noreferrer">stilltrue</a>.
+      </p>
+
+      <div className="fact-check-legend">
+        <div className="fact-check-legend-row">
+          <span className="fact-check-verdict verdict-supported">Supported</span>
+          <span>The source affirmatively backs the claim — the deciding sentence is quoted as evidence.</span>
+        </div>
+        <div className="fact-check-legend-row">
+          <span className="fact-check-verdict verdict-not_supported">Not supported</span>
+          <span>The source contradicts the claim, or says something incompatible with it.</span>
+        </div>
+        <div className="fact-check-legend-row">
+          <span className="fact-check-verdict verdict-cant_tell">Can't tell</span>
+          <span>The source never addresses the claim. Silence is not support — even a true claim fails on the wrong source.</span>
+        </div>
+      </div>
+      <p className="fact-check-rules">
+        The judge reads <em>only</em> the source you give it — no web search, no outside
+        knowledge, temperature 0. It is judging the pairing, not the truth of the world.
       </p>
       <div className="fact-check-examples">
         <span className="fact-check-examples-label">Try one</span>

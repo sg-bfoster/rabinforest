@@ -380,6 +380,32 @@ a:hover { color: var(--color-accent-600); }
 }
 
 /* ── fact check ────────────────────────────────────────────────────────── */
+.fact-check-legend {
+  display: grid;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.fact-check-legend-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 72ch;
+}
+.fact-check-legend-row .fact-check-verdict {
+  flex: none;
+  width: 132px;
+  text-align: center;
+  white-space: nowrap;
+}
+.fact-check-rules {
+  margin: 0 0 var(--space-4);
+  font-size: 13px;
+  line-height: 1.55;
+  max-width: 64ch;
+  color: var(--color-neutral-600);
+}
 .fact-check-examples {
   display: flex;
   align-items: baseline;
