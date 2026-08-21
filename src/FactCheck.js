@@ -12,23 +12,42 @@ const VERDICT_LABELS = {
 };
 
 // One example per verdict so first-time visitors see what the judge does.
+// Each carries its flow, shown while the example is loaded untouched.
 const EXAMPLES = [
   {
     label: 'A claim a web page backs up',
     claim: 'The example.com domain is reserved for use in illustrative examples in documents.',
     source: 'https://example.com',
+    expected: 'supported',
+    flow: [
+      'The source is a URL, so the backend fetches https://example.com and strips the HTML down to plain text.',
+      'The judge reads only that text — no outside knowledge allowed.',
+      'The page itself says the domain is for use in documentation examples, so the claim is affirmatively backed, with the deciding sentence quoted as evidence.',
+    ],
   },
   {
     label: 'A claim the source contradicts',
     claim: 'The board meets every Tuesday.',
     source:
       'County newsletter, August edition: At its last session the board voted unanimously to move its weekly meeting permanently to Thursday afternoons at 2:00 PM, citing scheduling conflicts with the planning commission.',
+    expected: 'not_supported',
+    flow: [
+      'No URL this time — the pasted newsletter text is the source, sent as-is.',
+      'The judge compares the claim (meets every Tuesday) against what the text actually says.',
+      'The text says the meeting moved permanently to Thursday — incompatible with the claim, so it is ruled not supported, not merely unproven.',
+    ],
   },
   {
     label: "A claim the source doesn't address",
     claim: 'The property tax millage rate is 6.95 this year.',
     source:
       'Parks department announcement: Six new pickleball courts will open this fall at Rhodes Jordan Park, with free community play on weekend mornings and league sign-ups beginning in September.',
+    expected: 'cant_tell',
+    flow: [
+      'The source is a parks announcement about pickleball courts.',
+      'It never mentions taxes or a millage rate at all — it neither confirms nor denies the claim.',
+      "Silence is not support: even a true-sounding claim gets can't tell when this source doesn't back it. That rule is the whole point of the tool.",
+    ],
   },
 ];
 
@@ -45,6 +64,9 @@ const FactCheck = () => {
       resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, [result, error]);
+
+  // Which example is sitting untouched in the form (cleared by any manual edit).
+  const activeExample = EXAMPLES.find((ex) => ex.claim === claim && ex.source === source);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -96,6 +118,21 @@ const FactCheck = () => {
           </button>
         ))}
       </div>
+      {activeExample && (
+        <div className="fact-check-example-flow">
+          <div className="fact-check-example-flow-head">
+            <span className="fact-check-example-flow-label">What will happen</span>
+            <span className={`fact-check-verdict verdict-${activeExample.expected}`}>
+              Expected: {VERDICT_LABELS[activeExample.expected]}
+            </span>
+          </div>
+          <ol>
+            {activeExample.flow.map((step, index) => (
+              <li key={index}>{step}</li>
+            ))}
+          </ol>
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="fact-check-form">
         <div className="field">
           <label htmlFor="fc-claim">Claim</label>
