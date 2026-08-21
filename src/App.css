@@ -476,9 +476,10 @@ a:hover { color: var(--color-accent-600); }
   max-width: 60ch;
   color: var(--color-neutral-700);
 }
-.fact-check-flow { margin: 0; overflow-x: auto; }
+.fact-check-flow { margin: 0; }
+.fact-check-flow-scroll { overflow-x: auto; }
 .fact-check-flow svg {
-  min-width: 820px;
+  min-width: 560px;
   width: 100%;
   height: auto;
   display: block;

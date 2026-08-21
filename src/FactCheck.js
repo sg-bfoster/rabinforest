@@ -208,7 +208,9 @@ const FactCheck = () => {
           judge model into one.
         </p>
         <figure className="fact-check-flow">
-          <StilltrueFlow />
+          <div className="fact-check-flow-scroll">
+            <StilltrueFlow />
+          </div>
           <figcaption>
             The dashed boundary is what ships on npm: the drift engine (deterministic) and the
             verify pipeline (empty stage slots). The one red box — the Gemini judge — lives in the
