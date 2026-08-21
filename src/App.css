@@ -429,6 +429,38 @@ a:hover { color: var(--color-accent-600); }
   max-width: 60ch;
 }
 .fact-check-meta { margin: 0; font-size: 12px; color: var(--color-neutral-500); overflow-wrap: anywhere; }
+.fact-check-how {
+  margin-top: var(--space-8);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-neutral-300);
+}
+.fact-check-how-title {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--space-2);
+}
+.fact-check-how-sub {
+  margin: 0 0 var(--space-4);
+  font-size: 14px;
+  line-height: 1.55;
+  max-width: 60ch;
+  color: var(--color-neutral-700);
+}
+.fact-check-flow { margin: 0; overflow-x: auto; }
+.fact-check-flow svg {
+  min-width: 820px;
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.fact-check-flow figcaption {
+  font-size: 12px;
+  color: var(--color-neutral-500);
+  margin-top: var(--space-2);
+  max-width: 72ch;
+}
 .fact-check-footer {
   margin-top: var(--space-8);
   padding-top: var(--space-3);

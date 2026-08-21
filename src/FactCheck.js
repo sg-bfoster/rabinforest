@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { API_ENDPOINTS } from './config/api';
+import StilltrueFlow from './components/StilltrueFlow';
 
 const VERDICT_LABELS = {
   supported: 'Supported',
@@ -161,6 +162,23 @@ const FactCheck = () => {
           )}
         </div>
       )}
+
+      <div className="fact-check-how">
+        <h3 className="fact-check-how-title">How stilltrue works</h3>
+        <p className="fact-check-how-sub">
+          The npm package ships no AI. Its scheduled drift checks are pure string matching; its
+          verify pipeline is a row of slots — and this page is what happens when an app plugs a
+          judge model into one.
+        </p>
+        <figure className="fact-check-flow">
+          <StilltrueFlow />
+          <figcaption>
+            The dashed boundary is what ships on npm: the drift engine (deterministic) and the
+            verify pipeline (empty stage slots). The one red box — the Gemini judge — lives in the
+            host app and is plugged into a slot only for jobs that need reading comprehension.
+          </figcaption>
+        </figure>
+      </div>
 
       <p className="fact-check-footer">
         Powered by{' '}
