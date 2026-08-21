@@ -10,6 +10,27 @@ const VERDICT_LABELS = {
   cant_tell: "Can't tell",
 };
 
+// One example per verdict so first-time visitors see what the judge does.
+const EXAMPLES = [
+  {
+    label: 'A claim a web page backs up',
+    claim: 'The example.com domain is reserved for use in illustrative examples in documents.',
+    source: 'https://example.com',
+  },
+  {
+    label: 'A claim the source contradicts',
+    claim: 'The board meets every Tuesday.',
+    source:
+      'County newsletter, August edition: At its last session the board voted unanimously to move its weekly meeting permanently to Thursday afternoons at 2:00 PM, citing scheduling conflicts with the planning commission.',
+  },
+  {
+    label: "A claim the source doesn't address",
+    claim: 'The property tax millage rate is 6.95 this year.',
+    source:
+      'Parks department announcement: Six new pickleball courts will open this fall at Rhodes Jordan Park, with free community play on weekend mornings and league sign-ups beginning in September.',
+  },
+];
+
 const FactCheck = () => {
   const [claim, setClaim] = useState('');
   const [source, setSource] = useState('');
@@ -55,6 +76,25 @@ const FactCheck = () => {
         packaged as{' '}
         <a href="https://github.com/sg-bfoster/stilltrue" target="_blank" rel="noopener noreferrer">stilltrue</a>.
       </p>
+      <div className="fact-check-examples">
+        <span className="fact-check-examples-label">Try one</span>
+        {EXAMPLES.map((example) => (
+          <button
+            key={example.label}
+            type="button"
+            className="fact-check-example"
+            disabled={isChecking}
+            onClick={() => {
+              setClaim(example.claim);
+              setSource(example.source);
+              setResult(null);
+              setError(null);
+            }}
+          >
+            {example.label}
+          </button>
+        ))}
+      </div>
       <form onSubmit={handleSubmit} className="fact-check-form">
         <div className="field">
           <label htmlFor="fc-claim">Claim</label>

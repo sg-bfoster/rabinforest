@@ -373,6 +373,30 @@ a:hover { color: var(--color-accent-600); }
 }
 
 /* ── fact check ────────────────────────────────────────────────────────── */
+.fact-check-examples {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+.fact-check-examples-label {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-neutral-500);
+}
+.fact-check-example {
+  background: none;
+  border: 1px solid var(--color-neutral-300);
+  padding: 3px 10px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--color-text);
+}
+.fact-check-example:hover { border-color: var(--color-accent); }
+.fact-check-example:disabled { opacity: 0.45; cursor: not-allowed; }
 .fact-check-form { display: grid; gap: var(--space-3); }
 .fact-check-actions { display: flex; gap: var(--space-2); }
 .fact-check-result {
