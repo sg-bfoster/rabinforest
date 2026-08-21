@@ -443,7 +443,7 @@ a:hover { color: var(--color-accent-600); }
   padding: 3px 10px;
   border: 1px solid currentColor;
 }
-.verdict-supported { color: var(--color-text); }
+.verdict-supported { color: #2e7d32; } /* same green as the flowchart's pass/publish */
 .verdict-not_supported { color: var(--color-accent-700); }
 .verdict-cant_tell { color: var(--color-neutral-500); }
 .fact-check-reasoning { margin: 0; line-height: 1.55; max-width: 60ch; }
