@@ -1,9 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleQuestion } from '@fortawesome/free-solid-svg-icons';
-import { useDispatch } from 'react-redux';
-import { openModal } from './features/modalSlice';
 import { API_ENDPOINTS } from './config/api';
 
 const AIChatBots = () => {
@@ -11,34 +7,9 @@ const AIChatBots = () => {
     const [isActive, setIsActive] = useState(false);
     const conLength = 8;
     const messagesEndRef = useRef(null);
-    const conversationRef = useRef(null);
-    const dispatch = useDispatch();
 
     let assistantAHistory = [];
     let assistantBHistory = [];
-
-    // Adjust conversation height
-    const adjustConversationHeight = () => {
-        const headerHeight = document.querySelector('.navbar').offsetHeight;
-        const footerHeight = document.querySelector('.footer').offsetHeight;
-        const headerRow = document.querySelector('.header-row').offsetHeight;
-        const headerH1 = document.querySelector('.playground-h1').offsetHeight;
-        const inputHeight = document.querySelector('.chat-input-area').offsetHeight;
-
-        const availableHeight = window.innerHeight - headerHeight - headerRow - headerH1 - inputHeight - footerHeight;
-        if (conversationRef.current) {
-            conversationRef.current.style.height = `${availableHeight - 84}px`;
-        }
-    };
-
-    useEffect(() => {
-        window.addEventListener('resize', adjustConversationHeight);
-        adjustConversationHeight();
-
-        return () => {
-            window.removeEventListener('resize', adjustConversationHeight);
-        };
-    }, []);
 
     const resetConversation = (newSubject) => {
         setMessages([]); // Clear only the state, NOT localStorage
@@ -64,14 +35,6 @@ const AIChatBots = () => {
         ];
         const { data } = await axios.post(API_ENDPOINTS.AI_CHAT, { messages: conversation });
         return data.response;
-    };
-    const handleOpenModal = () => {
-        dispatch(
-            openModal({
-                title: '',
-                type: 'chat-bots',
-            })
-        );
     };
 
     const startDiscussion = async () => {
@@ -141,9 +104,6 @@ const AIChatBots = () => {
     }, []);
 
     useEffect(() => {
-        if (conversationRef.current) {
-            conversationRef.current.scrollTop = conversationRef.current.scrollHeight;
-        }
         // Save messages to localStorage when messages state changes
         if (messages.length > 0) {
             localStorage.setItem("messages", JSON.stringify(messages));
@@ -151,38 +111,34 @@ const AIChatBots = () => {
     }, [messages]);
 
     return (
-        <div className="ai-chat-container">
-            <div className="header-row">
-                <h2 className="ai-chat-header">AI Chat Bots - ChatGPT</h2>
-                <FontAwesomeIcon
-                    icon={faCircleQuestion}
-                    className="playground-help-icon"
-                    onClick={() => handleOpenModal()}
-                    title="AI Chat Bots"
-                />
+        <div>
+            <h2 className="screen-h2">Two bots, one topic.</h2>
+            <p className="screen-sub">
+                Give ChatGPT a subject and two assistants talk it out — eight turns, then they wrap up.
+            </p>
+            <div className="screen-actions">
+                <button className="btn btn-primary" onClick={startDiscussion} disabled={isActive}>
+                    {isActive ? "Conversation active…" : "Start a new conversation"}
+                </button>
+                <button className="btn btn-ghost" onClick={() => resetConversation("")} disabled={isActive}>
+                    Clear
+                </button>
             </div>
-
-            <div className="chat-messages" ref={conversationRef}>
-                {messages.map((msg, idx) => (
-                    <div
-                        key={idx}
-                        className={`message-bubble ${msg.assistant === "AssistantA" ? "assistant-a" : "assistant-b"}`}
-                    >
-                        <p className="message-text">{msg.message}</p>
-                    </div>
-                ))}
-                <div ref={messagesEndRef} />
-            </div>
-            <div className="chat-input-area">
-                <div className="chat-buttons ai-chat-bots-buttons">
-                    <button onClick={startDiscussion} disabled={isActive}>
-                        {isActive ? "Conversation Active" : "Start New Convo"}
-                    </button>
-                    <button onClick={() => resetConversation("")} disabled={isActive}>
-                        Clear 
-                    </button>
+            {messages.length > 0 && (
+                <div className="conversation">
+                    {messages.map((msg, idx) =>
+                        msg.assistant === "AssistantA" ? (
+                            <div key={idx} className="msg-assistant msg-labeled">
+                                <span className="bot-label">Bot A</span>
+                                <p className="msg-text" style={{ margin: 0 }}>{msg.message}</p>
+                            </div>
+                        ) : (
+                            <div key={idx} className="msg-user">{msg.message}</div>
+                        )
+                    )}
+                    <div ref={messagesEndRef} />
                 </div>
-            </div>
+            )}
         </div>
     );
 };

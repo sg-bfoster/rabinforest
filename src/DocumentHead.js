@@ -30,6 +30,13 @@ const PAGES = {
     canonical: `${SITE}${PLAYGROUND_IMAGERY}`,
     robots: 'index, follow',
   },
+  '/resume': {
+    title: 'Resume | Rabin Forest',
+    description:
+      "Brian Foster's current resume — senior frontend / UI engineer, Metro Atlanta. View inline or download as PDF.",
+    canonical: `${SITE}/resume`,
+    robots: 'index, follow',
+  },
   '/admin': {
     title: 'Admin | Rabin Forest',
     description: DEFAULT.description,

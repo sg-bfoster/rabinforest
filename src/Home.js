@@ -1,5 +1,3 @@
-import { faCircleQuestion } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import axios from 'axios';
 import React, { useState, useEffect, useRef } from 'react';
 import { openModal } from './features/modalSlice';
@@ -8,14 +6,17 @@ import { addLink } from './features/assistantSlice';
 import { API_ENDPOINTS } from './config/api';
 import { detectSitesInText } from './utils/siteDetector';
 import { LinkedText } from './utils/linkedText';
+import PixelForest from './components/PixelForest';
+import LinksRow from './components/LinksRow';
 
 // Generate a unique conversation ID
 const generateConversationId = () => {
     return 'conv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 };
 
-const Home = (isDesktop) => {
+const Home = () => {
     const [prompt, setPrompt] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const [conversationId, setConversationId] = useState(() => {
         // Get or create conversation ID from localStorage
         const storedId = localStorage.getItem('conversationId');
@@ -32,25 +33,15 @@ const Home = (isDesktop) => {
         return storedMessages ? JSON.parse(storedMessages) : [];
     });
     const messagesEndRef = useRef(null);
-    const messagesContainerRef = useRef(null);
     const dispatch = useDispatch();
 
     const fetchResponse = async (prompt, history, conversationId) => {
-        const { data } = await axios.post(API_ENDPOINTS.GEMINI_ASSISTANT, { 
-            prompt: prompt, 
+        const { data } = await axios.post(API_ENDPOINTS.GEMINI_ASSISTANT, {
+            prompt: prompt,
             history: history,
             conversationId: conversationId
         });
         return JSON.parse(data.response);
-    };
-
-    const handleOpenModal = () => {
-        dispatch(
-            openModal({
-                title: '',
-                type: 'assistant',
-            })
-        );
     };
 
     const handleThumbnailClick = (site) => {
@@ -73,11 +64,11 @@ const Home = (isDesktop) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!prompt.trim()) return;
+        if (!prompt.trim() || isLoading) return;
 
         // Store the prompt value before clearing
         const currentPrompt = prompt.trim();
-        
+
         // Clear the input immediately
         setPrompt('');
 
@@ -85,17 +76,27 @@ const Home = (isDesktop) => {
         const userMessage = { role: 'user', parts: [{ text: currentPrompt }] };
         const newMessages = [...messages, userMessage]; // Create new array for immutability
         setMessages(newMessages); // Update state
+        setIsLoading(true);
 
-        const response = await fetchResponse(currentPrompt, messages, conversationId);
-        const mockResponse = { role: 'model', parts: [{ text: response.text }] };
+        try {
+            const response = await fetchResponse(currentPrompt, messages, conversationId);
+            const mockResponse = { role: 'model', parts: [{ text: response.text }] };
 
-        if (response.links && response.links.length > 0) {
-            response.links.forEach((link) => {
-                dispatch(addLink({ 'url': link, 'text': link }));
-            });
+            if (response.links && response.links.length > 0) {
+                response.links.forEach((link) => {
+                    dispatch(addLink({ 'url': link, 'text': link }));
+                });
+            }
+            setMessages([...newMessages, mockResponse]);
+        } catch (error) {
+            console.error('Assistant request failed:', error);
+            setMessages([
+                ...newMessages,
+                { role: 'model', parts: [{ text: 'Something went wrong reaching the assistant. Please try again.' }] },
+            ]);
+        } finally {
+            setIsLoading(false);
         }
-        const updatedMessages = [...newMessages, mockResponse]; // Create new array for immutability
-        setMessages(updatedMessages); // Update state
     };
 
     // Function to handle resetting the chat
@@ -108,42 +109,15 @@ const Home = (isDesktop) => {
         setMessages([]);
     };
 
-    // Adjust conversation height
-    const adjustConversationHeight = () => {
-        const headerHeight = document.querySelector('.navbar').offsetHeight;
-        const footerHeight = document.querySelector('.footer').offsetHeight;
-        const headerRow = document.querySelector('.header-row').offsetHeight;
-        const headerH1 = document.querySelector('.playground-h1').offsetHeight;
-        const inputArea = document.querySelector('.chat-input-area');
-        const textareaHeight = inputArea.querySelector('textarea').offsetHeight;
-        const inputHeight = inputArea.offsetHeight + (textareaHeight - 20); // Adjust for the new textarea height
-
-        const availableHeight = window.innerHeight - headerHeight - headerRow - headerH1 - inputHeight - footerHeight;
-        if (messagesContainerRef.current) {
-            messagesContainerRef.current.style.height = `${availableHeight - 35.5}px`;
-        }
-    };
-
     useEffect(() => {
-        window.addEventListener('resize', adjustConversationHeight);
-        adjustConversationHeight();
-
-        return () => {
-            window.removeEventListener('resize', adjustConversationHeight);
-        };
-    }, []);
-
-
-    useEffect(() => {
-        // Scroll to bottom when messages change
-        if (messagesContainerRef.current) {
-            messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        // Scroll to the latest message when messages change
+        if (messages.length > 0) {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }
 
         // Save messages to local storage whenever they change
         localStorage.setItem('assistantMessages', JSON.stringify(messages));
     }, [messages]);
-    const playgroundRef = useRef(null);
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -152,88 +126,81 @@ const Home = (isDesktop) => {
         }
     };
 
-    const autoResize = (e) => {
-        const textarea = e.target;
-        textarea.style.height = 'auto';
-        textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`; // Max height of 150px
-    };
-
     return (
-        <div className={`Playground ${isDesktop ? 'open' : ''}`}>
-            <div className="playground-content" ref={playgroundRef}>
-                <h1 className='playground-h1'>Home</h1>
-                <div className="ai-chat-container">
-                    <div className="header-row">
-                        <h2 className="ai-chat-header">Gemini AI Personal Assistant</h2>
-                        <FontAwesomeIcon
-                            icon={faCircleQuestion}
-                            className="playground-help-icon"
-                            onClick={() => handleOpenModal()}
-                            title="Gemini AI Personal Assistant"
-                        />
-                    </div>
-                    <div className="chat-messages" ref={messagesContainerRef}>
-                        {messages.map((msg, index) => {
-                            const isAssistantMessage = msg.role === 'model';
-                            const messageText = msg.parts[0].text;
-                            const detectedSites = isAssistantMessage ? detectSitesInText(messageText) : [];
-
-                            return (
-                                <div key={index} className={`message-wrapper ${msg.role === 'user' ? "user-message-wrapper" : "assistant-message-wrapper"}`}>
-                                    <div className={`message-bubble ${msg.role === 'user' ? "assistant-b" : "assistant-a"}`}>
-                                        <span style={{ whiteSpace: 'pre-wrap' }}>
-                                            {isAssistantMessage ? <LinkedText text={messageText} /> : messageText}
-                                        </span>
-                                        {detectedSites.length > 0 && (
-                                            <div className="site-thumbnails-container">
-                                                {detectedSites.map((site) => (
-                                                    <div
-                                                        key={site.key}
-                                                        className="site-thumbnail"
-                                                        onClick={() => handleThumbnailClick(site)}
-                                                        title={`Click to view ${site.displayName} screenshot`}
-                                                    >
-                                                        <img
-                                                            src={site.screenshotPath}
-                                                            alt={`${site.displayName} thumbnail`}
-                                                            className="site-thumbnail-image"
-                                                        />
-                                                        <span className="site-thumbnail-label">{site.displayName}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                        <div ref={messagesEndRef} />
-                    </div>
-                    <div className="chat-input-area">
-                        <form className="chat-buttons" onSubmit={handleSubmit}>
-                            <textarea
-                                style={{ minWidth: '1%', resize: 'vertical' }}
-                                placeholder="Ex: What skills does Brian have? Is Brian available for hire?"
-                                value={prompt}
-                                onChange={(e) => setPrompt(e.target.value)}
-                                onKeyDown={handleKeyDown}
-                                onInput={autoResize}
-                                rows="3"
-                            />
-                            <div className="button-container">
-                                <button type="submit">Ask</button>
-                                <button
-                                    className="reset-chat"
-                                    type="button"
-                                    onClick={handleResetChat}
-                                >
-                                    Reset
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+        <div>
+            <div className="forest-strip">
+                <PixelForest />
             </div>
+            <p className="intro-line">
+                A virtual neural forest, grown from Brian Foster's work. Ask about his skills,
+                projects, or availability.
+            </p>
+            {messages.length > 0 && (
+                <div className="conversation">
+                    {messages.map((msg, index) => {
+                        const isAssistantMessage = msg.role === 'model';
+                        const messageText = msg.parts[0].text;
+                        const detectedSites = isAssistantMessage ? detectSitesInText(messageText) : [];
+
+                        if (!isAssistantMessage) {
+                            return (
+                                <div key={index} className="msg-user">{messageText}</div>
+                            );
+                        }
+
+                        return (
+                            <div key={index} className="msg-assistant">
+                                <span className="msg-text">
+                                    <LinkedText text={messageText} />
+                                </span>
+                                {detectedSites.length > 0 && (
+                                    <div className="site-thumbnails-container">
+                                        {detectedSites.map((site) => (
+                                            <button
+                                                key={site.key}
+                                                type="button"
+                                                className="site-thumbnail"
+                                                onClick={() => handleThumbnailClick(site)}
+                                                title={`Click to view ${site.displayName} screenshot`}
+                                            >
+                                                <img
+                                                    src={site.screenshotPath}
+                                                    alt={`${site.displayName} thumbnail`}
+                                                    className="site-thumbnail-image"
+                                                />
+                                                <span className="site-thumbnail-label">{site.displayName}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                    <div ref={messagesEndRef} />
+                </div>
+            )}
+            <form onSubmit={handleSubmit}>
+                <div className="chat-input-row">
+                    <textarea
+                        className="input"
+                        rows="2"
+                        placeholder="Ask about skills, projects, or availability…"
+                        aria-label="Your question"
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                    />
+                    <button type="submit" className="btn btn-primary" disabled={isLoading}>
+                        {isLoading ? <span className="spinner" /> : 'Ask'}
+                    </button>
+                    {messages.length > 0 && (
+                        <button type="button" className="btn btn-ghost" onClick={handleResetChat}>
+                            Reset
+                        </button>
+                    )}
+                </div>
+            </form>
+            <LinksRow />
         </div>
     );
 }
