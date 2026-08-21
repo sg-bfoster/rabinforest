@@ -50,6 +50,7 @@ export const API_ENDPOINTS = {
   ASSISTANT: `${API_BASE_URL}/ai/assistant`,
   GEMINI_ASSISTANT: `${API_BASE_URL}/ai/gemini-assistant`,
   AI_CHAT: `${API_BASE_URL}/ai/ai-chat`,
+  FACT_CHECK: `${API_BASE_URL}/ai/fact-check`,
   GENERATE_IMAGE_RF: `${API_BASE_URL}/ai/generate-image-rf`,
   GENERATE_IMAGE_RF_IMAGEN: `${API_BASE_URL}/ai/generate-image-rf-imagen`,
   ASSISTANT_BFOSTER: `${API_BASE_URL}/ai/assistant-bfoster`,

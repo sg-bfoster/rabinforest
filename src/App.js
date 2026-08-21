@@ -7,6 +7,7 @@ import Playground from './Playground';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import AIChatBots from './AI-Chat-Bots';
 import AiImageryForm from './Dalle-3';
+import FactCheck from './FactCheck';
 import DocumentHead from './DocumentHead';
 import { PLAYGROUND_CHAT_BOTS } from './playgroundRoutes';
 import Modal from './Modal';
@@ -49,6 +50,7 @@ const AppContent = () => {
             <Route index element={<Navigate to={PLAYGROUND_CHAT_BOTS} replace />} />
             <Route path="ai-chat-bots" element={<AIChatBots />} />
             <Route path="ai-imagery" element={<AiImageryForm />} />
+            <Route path="fact-check" element={<FactCheck />} />
           </Route>
           <Route path="/resume" element={<Resume />} />
           <Route path="/admin" element={<Admin />} />

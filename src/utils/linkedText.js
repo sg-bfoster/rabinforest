@@ -15,6 +15,33 @@ const hrefFromAttrs = (attrs) => {
   }
 };
 
+const BARE_URL_RE = /https?:\/\/[^\s<>()"']+/g;
+
+/** Split a plain-text chunk into text/link chunks around bare URLs. */
+const linkifyBareUrls = (value) => {
+  const chunks = [];
+  let lastIndex = 0;
+  const re = new RegExp(BARE_URL_RE.source, 'g');
+  let match;
+
+  while ((match = re.exec(value)) !== null) {
+    // Trailing punctuation belongs to the sentence, not the URL.
+    let url = match[0].replace(/[.,;:!?]+$/, '');
+    if (!url) continue;
+    if (match.index > lastIndex) {
+      chunks.push({ type: 'text', value: value.slice(lastIndex, match.index) });
+    }
+    chunks.push({ type: 'link', href: url, value: url });
+    lastIndex = match.index + url.length;
+  }
+
+  if (lastIndex < value.length) {
+    chunks.push({ type: 'text', value: value.slice(lastIndex) });
+  }
+
+  return chunks;
+};
+
 export const splitLinkedText = (text) => {
   if (!text || typeof text !== 'string') return [];
 
@@ -25,7 +52,7 @@ export const splitLinkedText = (text) => {
 
   while ((match = re.exec(text)) !== null) {
     if (match.index > lastIndex) {
-      chunks.push({ type: 'text', value: text.slice(lastIndex, match.index) });
+      chunks.push(...linkifyBareUrls(text.slice(lastIndex, match.index)));
     }
     const href = hrefFromAttrs(match[1]);
     if (href) {
@@ -37,7 +64,7 @@ export const splitLinkedText = (text) => {
   }
 
   if (lastIndex < text.length) {
-    chunks.push({ type: 'text', value: text.slice(lastIndex) });
+    chunks.push(...linkifyBareUrls(text.slice(lastIndex)));
   }
 
   return chunks;

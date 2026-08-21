@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { PLAYGROUND_CHAT_BOTS, PLAYGROUND_IMAGERY } from '../playgroundRoutes';
+import { PLAYGROUND_CHAT_BOTS, PLAYGROUND_IMAGERY, PLAYGROUND_FACT_CHECK } from '../playgroundRoutes';
 
 export const PixelTreeLogo = ({ size = 22 }) => (
   <svg viewBox="0 0 32 32" style={{ width: size, height: size, display: 'block' }} aria-hidden="true">
@@ -46,6 +46,9 @@ const Header = () => (
         </NavLink>
         <NavLink to={PLAYGROUND_IMAGERY} className={navClass}>
           Imagery
+        </NavLink>
+        <NavLink to={PLAYGROUND_FACT_CHECK} className={navClass}>
+          Fact Check
         </NavLink>
         <NavLink to="/resume" className={navClass}>
           Resume

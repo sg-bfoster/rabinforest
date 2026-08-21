@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { pathForView, PLAYGROUND_CHAT_BOTS, PLAYGROUND_IMAGERY } from './playgroundRoutes';
+import { pathForView, PLAYGROUND_CHAT_BOTS, PLAYGROUND_IMAGERY, PLAYGROUND_FACT_CHECK } from './playgroundRoutes';
 
 const SITE = 'https://www.rabinforest.com';
 
@@ -28,6 +28,13 @@ const PAGES = {
     description:
       "Generate images with OpenAI GPT Image and Google Gemini Image side by side. A playground tool on Rabin Forest, Brian Foster's portfolio.",
     canonical: `${SITE}${PLAYGROUND_IMAGERY}`,
+    robots: 'index, follow',
+  },
+  [PLAYGROUND_FACT_CHECK]: {
+    title: 'Fact Check | Rabin Forest',
+    description:
+      'Paste a claim and a source — a judge model rules whether the source supports it. Powered by stilltrue, on Rabin Forest.',
+    canonical: `${SITE}${PLAYGROUND_FACT_CHECK}`,
     robots: 'index, follow',
   },
   '/resume': {
