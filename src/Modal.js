@@ -161,7 +161,7 @@ const Modal = () => {
                 return (
                     <div>
                         <h2>AI Chat Bots</h2>
-                        <p>This page allows two ChatGPT chat bots to discuss the topic you provide.</p>
+                        <p>This page has Google Gemini and OpenAI ChatGPT discuss the topic you provide.</p>
                         <button className="btn btn-secondary" onClick={handleClose}>Dismiss</button>
                     </div>
                 );

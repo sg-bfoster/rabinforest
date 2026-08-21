@@ -19,7 +19,7 @@ const PAGES = {
   [PLAYGROUND_CHAT_BOTS]: {
     title: 'AI Chat Bots | Rabin Forest',
     description:
-      "Watch two AI assistants converse on a topic you pick. A playground experiment on Rabin Forest, Brian Foster's portfolio.",
+      "Watch Google Gemini and OpenAI ChatGPT talk out a topic you pick. A playground experiment on Rabin Forest, Brian Foster's portfolio.",
     canonical: `${SITE}${PLAYGROUND_CHAT_BOTS}`,
     robots: 'index, follow',
   },

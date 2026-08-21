@@ -8,6 +8,9 @@ const AIChatBots = () => {
     const conLength = 8;
     const messagesEndRef = useRef(null);
 
+    // Bot A (left) is Gemini — the site's house model; Bot B (right) is OpenAI.
+    const ENGINES = ["gemini", "openai"];
+
     let assistantAHistory = [];
     let assistantBHistory = [];
 
@@ -23,7 +26,7 @@ const AIChatBots = () => {
         setIsActive(false);
     };
 
-    const fetchResponse = async (history, ending) => {
+    const fetchResponse = async (history, ending, engine) => {
         const conversation = [
             ...history,
             {
@@ -33,7 +36,7 @@ const AIChatBots = () => {
                     : "Be curious. Respond as a human. Answer with 30 words or fewer. Ask a follow-up question.",
             },
         ];
-        const { data } = await axios.post(API_ENDPOINTS.AI_CHAT, { messages: conversation });
+        const { data } = await axios.post(API_ENDPOINTS.AI_CHAT, { messages: conversation, engine });
         return data.response;
     };
 
@@ -65,7 +68,7 @@ const AIChatBots = () => {
 
                 const history = assistantIndex === 0 ? assistantAHistory : assistantBHistory;
 
-                const response = await fetchResponse(history, i >= conLength - 2);
+                const response = await fetchResponse(history, i >= conLength - 2, ENGINES[assistantIndex]);
 
                 if (assistantIndex === 0) {
                     assistantAHistory.push({ role: "assistant", content: response });
@@ -114,7 +117,7 @@ const AIChatBots = () => {
         <div>
             <h2 className="screen-h2">Two bots, one topic.</h2>
             <p className="screen-sub">
-                Give ChatGPT a subject and two assistants talk it out — eight turns, then they wrap up.
+                Give a subject and Gemini and OpenAI talk it out — eight turns, then they wrap up.
             </p>
             <div className="screen-actions">
                 <button className="btn btn-primary" onClick={startDiscussion} disabled={isActive}>
@@ -129,12 +132,12 @@ const AIChatBots = () => {
                     {messages.map((msg, idx) =>
                         msg.assistant === "AssistantA" ? (
                             <div key={idx} className="msg-assistant msg-labeled">
-                                <span className="bot-label">Bot A</span>
+                                <span className="bot-label">Gemini</span>
                                 <p className="msg-text" style={{ margin: 0 }}>{msg.message}</p>
                             </div>
                         ) : (
                             <div key={idx} className="msg-labeled-right">
-                                <span className="bot-label">Bot B</span>
+                                <span className="bot-label">OpenAI</span>
                                 <div className="msg-user">{msg.message}</div>
                             </div>
                         )
