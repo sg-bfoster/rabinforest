@@ -449,7 +449,7 @@ const SITE_CONFIG = {
       '/screenshots/stilltrue3.png',
     ],
     summary:
-      'Your tests check your code — stilltrue checks your facts. An open-source npm package + CLI that makes AI-in-the-loop apps falsifiable: scheduled drift checks of curated facts against live sources, judge-model verification of answers, and golden regression evals. Runs in production validating the facts behind AskGwinnett.',
+      'Your tests check your code — stilltrue checks your facts. An open-source npm package + CLI that makes AI-in-the-loop apps falsifiable: scheduled drift checks of curated facts against live sources, plus a staged verify pipeline for AI answers (bring your own judge — any provider, or none). Runs in production validating the facts behind AskGwinnett.',
     screenshotPath: '/screenshots/stilltrue1.png',
     url: 'https://github.com/sg-bfoster/stilltrue',
     docs: [

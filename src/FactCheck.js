@@ -232,10 +232,10 @@ const FactCheck = () => {
             <StilltrueFlow />
           </div>
           <figcaption>
-            The dashed boundary is what ships on npm: the drift engine (deterministic), the verify
-            pipeline (empty stage slots), and the golden regression-eval harness. The one red box —
-            the Gemini judge — lives in the host app and is plugged into a slot only for jobs that
-            need reading comprehension.
+            The dashed boundary is what ships on npm: the drift engine (deterministic) and the verify
+            pipeline (empty stage slots). Golden regression evals are deliberately left to promptfoo
+            or your own harness. The one red box — the Gemini judge — lives in the host app and is
+            plugged into a slot only for jobs that need reading comprehension.
           </figcaption>
         </figure>
       </div>

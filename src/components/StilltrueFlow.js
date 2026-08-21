@@ -7,7 +7,7 @@ const StilltrueFlow = () => (
   <svg
     viewBox="0 0 760 690"
     role="img"
-    aria-label="Flowchart: the stilltrue package contains a deterministic drift lane, a verify pipeline with an empty stage slot, and a golden regression-eval lane. The Gemini judge model sits outside the package, in the host app, and is plugged into that slot. The GitHub Actions drift run never touches the judge."
+    aria-label="Flowchart: the stilltrue package contains a deterministic drift lane, and a verify pipeline with an empty stage slot; golden regression evals are deliberately delegated to promptfoo or the app's own harness. The Gemini judge model sits outside the package, in the host app, and is plugged into that slot. The GitHub Actions drift run never touches the judge."
   >
     <defs>
       <marker id="st-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -19,7 +19,7 @@ const StilltrueFlow = () => (
     </defs>
 
     {/* package boundary */}
-    <rect x="166" y="40" width="404" height="500" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="7 5" />
+    <rect x="166" y="40" width="404" height="390" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="7 5" />
     <text x="178" y="64" fontSize="12" fontWeight="700" letterSpacing="1.5" fill="currentColor">THE STILLTRUE PACKAGE</text>
     <text x="178" y="80" fontSize="11" fill="var(--color-neutral-600)">no AI inside — harness, pipeline, report</text>
 
@@ -91,14 +91,13 @@ const StilltrueFlow = () => (
     <text x="178" y="399" fontSize="11" fill="var(--color-neutral-600)">order, short-circuit on failure, and the</text>
     <text x="178" y="414" fontSize="11" fill="var(--color-neutral-600)">generate → verify → retry loop.</text>
 
-    <line x1="178" y1="436" x2="558" y2="436" stroke="var(--color-neutral-300)" strokeWidth="1" />
-
-    {/* golden lane */}
-    <text x="178" y="462" fontSize="11" fontWeight="700" letterSpacing="1.5" fill="currentColor">GOLDEN · REGRESSION EVALS</text>
-    <text x="178" y="482" fontSize="11" fill="var(--color-neutral-600)">fixed question → answer cases re-run</text>
-    <text x="178" y="497" fontSize="11" fill="var(--color-neutral-600)">through the real pipeline on every code</text>
-    <text x="178" y="512" fontSize="11" fill="var(--color-neutral-600)">change; every fixed bug becomes a case.</text>
-    <text x="178" y="527" fontSize="11" fill="var(--color-neutral-600)">Deterministic assertions — no AI.</text>
+    {/* golden: deliberately NOT in the package — delegated (docs/GOLDEN.md) */}
+    <text x="178" y="462" fontSize="11" fontWeight="700" letterSpacing="1.5" fill="currentColor">GOLDEN · DELIBERATELY NOT SHIPPED</text>
+    <text x="178" y="482" fontSize="11" fill="var(--color-neutral-600)">regression evals are delegated: promptfoo,</text>
+    <text x="178" y="497" fontSize="11" fill="var(--color-neutral-600)">or your own harness (AskGwinnett: ~117</text>
+    <text x="178" y="512" fontSize="11" fill="var(--color-neutral-600)">cases; every fixed bug becomes a case).</text>
+    <text x="178" y="527" fontSize="11" fill="var(--color-neutral-600)">promptfoo tests prompts —</text>
+    <text x="178" y="542" fontSize="11" fill="var(--color-neutral-600)">stilltrue tests facts.</text>
 
     {/* the judge, outside the boundary */}
     <rect x="230" y="614" width="300" height="64" fill="none" stroke="var(--color-accent)" strokeWidth="2" />
