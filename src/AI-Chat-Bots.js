@@ -133,7 +133,10 @@ const AIChatBots = () => {
                                 <p className="msg-text" style={{ margin: 0 }}>{msg.message}</p>
                             </div>
                         ) : (
-                            <div key={idx} className="msg-user">{msg.message}</div>
+                            <div key={idx} className="msg-labeled-right">
+                                <span className="bot-label">Bot B</span>
+                                <div className="msg-user">{msg.message}</div>
+                            </div>
                         )
                     )}
                     <div ref={messagesEndRef} />

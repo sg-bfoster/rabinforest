@@ -118,6 +118,14 @@ a:hover { color: var(--color-accent-600); }
 
 /* Bot labels (Chat Bots screen) */
 .msg-assistant.msg-labeled { gap: var(--space-1); }
+.msg-labeled-right {
+  align-self: flex-end;
+  max-width: 75%;
+  display: grid;
+  gap: var(--space-1);
+  justify-items: end;
+}
+.msg-labeled-right .msg-user { align-self: auto; max-width: none; }
 .bot-label {
   font-size: 11px;
   letter-spacing: 0.14em;
