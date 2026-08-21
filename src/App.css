@@ -25,7 +25,13 @@ a:hover { color: var(--color-accent-600); }
 }
 
 /* ── header ────────────────────────────────────────────────────────────── */
-.site-header { border-bottom: 2px solid var(--color-divider); }
+.site-header {
+  border-bottom: 2px solid var(--color-divider);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--color-bg);
+}
 .site-header-inner {
   max-width: 760px;
   margin: 0 auto;
@@ -69,7 +75,13 @@ a:hover { color: var(--color-accent-600); }
 }
 
 /* ── footer ────────────────────────────────────────────────────────────── */
-.site-footer { border-top: 2px solid var(--color-divider); }
+.site-footer {
+  border-top: 2px solid var(--color-divider);
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  background: var(--color-bg);
+}
 .site-footer-inner {
   max-width: 760px;
   margin: 0 auto;
