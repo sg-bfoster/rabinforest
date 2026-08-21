@@ -439,6 +439,40 @@ const SITE_CONFIG = {
       /\baskgwinnett\b/gi,
     ],
   },
+  stilltrue: {
+    key: 'stilltrue',
+    displayName: 'stilltrue',
+    category: 'portfolio',
+    screenshotPaths: [
+      '/screenshots/stilltrue1.png',
+      '/screenshots/stilltrue2.png',
+      '/screenshots/stilltrue3.png',
+    ],
+    summary:
+      'Your tests check your code — stilltrue checks your facts. An open-source npm package + CLI that makes AI-in-the-loop apps falsifiable: scheduled drift checks of curated facts against live sources, judge-model verification of answers, and golden regression evals. Runs in production validating the facts behind AskGwinnett.',
+    screenshotPath: '/screenshots/stilltrue1.png',
+    url: 'https://github.com/sg-bfoster/stilltrue',
+    docs: [
+      {
+        label: 'npm package',
+        url: 'https://www.npmjs.com/package/stilltrue',
+      },
+    ],
+    patterns: [
+      // Deliberately no "still true" (two words) — that phrase occurs in normal prose.
+      /\bstilltrue\b/gi,
+      /github\.com\/sg-bfoster\/stilltrue/gi,
+      /npmjs\.com\/package\/stilltrue/gi,
+    ],
+    // An explicit "stilltrue" mention is a strong identifier — outranks projects
+    // that merely co-occur in the answer (portfolio cap keeps only 2).
+    minScore: 5,
+    scoreRules: [
+      { pattern: /\bstilltrue\b/gi, score: 5 },
+      { pattern: /github\.com\/sg-bfoster\/stilltrue/gi, score: 5 },
+      { pattern: /npmjs\.com\/package\/stilltrue/gi, score: 5 },
+    ],
+  },
   callmata: {
     key: 'callmata',
     displayName: 'Callmata',
