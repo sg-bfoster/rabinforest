@@ -187,26 +187,93 @@ a:hover { color: var(--color-accent-600); }
 }
 .chat-input-row .input { flex: 1; }
 
-/* Links row */
-.links-row {
+/* Floating links panel — collects links on the right as the session builds */
+.links-panel {
+  position: fixed;
+  top: 88px;
+  right: var(--space-4);
+  width: 220px;
+  max-height: calc(100vh - 160px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--color-bg);
+  border: 1px solid var(--color-neutral-300);
+  box-shadow: var(--shadow-sm);
+  z-index: 20;
+}
+.links-panel-header {
   display: flex;
   align-items: baseline;
-  gap: var(--space-3);
-  margin-top: var(--space-6);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-neutral-300);
-  font-size: 13px;
-  flex-wrap: wrap;
+  justify-content: space-between;
 }
-.links-row a { text-decoration: none; }
-.links-row-label {
+.links-panel-label {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   font-size: 11px;
   color: var(--color-neutral-500);
 }
-.links-row-clear { font-size: 12px; }
+.links-panel-close {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--color-text);
+  padding: 0 var(--space-1);
+}
+.links-panel-close:hover { color: var(--color-accent-600); }
+.links-panel-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  overflow-y: auto;
+  font-size: 13px;
+}
+.links-panel-list a {
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: none;
+}
+.links-panel-clear {
+  font-size: 12px;
+  align-self: flex-start;
+}
+.links-panel-toggle {
+  display: none;
+  position: fixed;
+  bottom: 56px;
+  right: var(--space-4);
+  z-index: 20;
+  background: var(--color-bg);
+  border: 1px solid var(--color-neutral-300);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-2) var(--space-3);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--color-text);
+}
+.links-panel-toggle:hover { border-color: var(--color-accent); }
 .link-expired { color: var(--color-neutral-400); }
+
+/* Narrow viewports: the right gutter can't fit the panel — collapse it to a
+   floating toggle that opens the panel above it. */
+@media (max-width: 1259px) {
+  .links-panel { display: none; }
+  .links-panel.open {
+    display: flex;
+    top: auto;
+    bottom: 100px;
+    max-height: min(420px, calc(100vh - 200px));
+  }
+  .links-panel-close { display: block; }
+  .links-panel-toggle { display: block; }
+}
 
 /* ── playground screens ────────────────────────────────────────────────── */
 .screen-h2 {

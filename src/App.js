@@ -1,6 +1,7 @@
 import './App.css';
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
+import LinksPanel from './components/LinksPanel';
 import Footer from './Footer';
 import Playground from './Playground';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
@@ -54,6 +55,7 @@ const AppContent = () => {
         </Routes>
       </main>
       <Footer />
+      <LinksPanel />
       <Modal />
     </div>
   );

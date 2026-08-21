@@ -7,7 +7,6 @@ import { API_ENDPOINTS } from './config/api';
 import { detectSitesInText } from './utils/siteDetector';
 import { LinkedText } from './utils/linkedText';
 import PixelForest from './components/PixelForest';
-import LinksRow from './components/LinksRow';
 
 // Generate a unique conversation ID
 const generateConversationId = () => {
@@ -200,7 +199,6 @@ const Home = () => {
                     )}
                 </div>
             </form>
-            <LinksRow />
         </div>
     );
 }
