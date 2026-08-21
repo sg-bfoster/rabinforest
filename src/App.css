@@ -101,6 +101,13 @@ a:hover { color: var(--color-accent-600); }
   line-height: 1.5;
   max-width: 46ch;
 }
+.intro-sub {
+  margin: var(--space-3) 0 0;
+  font-size: 14px;
+  line-height: 1.55;
+  max-width: 58ch;
+  color: var(--color-neutral-700);
+}
 
 .conversation {
   display: flex;

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { openModal } from './features/modalSlice';
 import { useDispatch } from 'react-redux';
 import { addLink } from './features/assistantSlice';
@@ -133,6 +134,12 @@ const Home = () => {
             <p className="intro-line">
                 A virtual neural forest, grown from Brian Foster's work. Ask about his skills,
                 projects, or availability.
+            </p>
+            <p className="intro-sub">
+                Rabin Forest is the AI-powered portfolio of Brian Foster, a senior frontend / UI
+                engineer in Metro Atlanta. Built for recruiters and hiring teams: ask the
+                assistant anything you'd ask him, try the playground pages, or grab the{' '}
+                <Link to="/resume">resume</Link>.
             </p>
             {messages.length > 0 && (
                 <div className="conversation">
