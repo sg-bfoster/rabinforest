@@ -5,6 +5,7 @@ import { API_ENDPOINTS } from './config/api';
 const AIChatBots = () => {
     const [messages, setMessages] = useState([]); // State for messages
     const [isActive, setIsActive] = useState(false);
+    const [topic, setTopic] = useState('');
     const conLength = 8;
     const messagesEndRef = useRef(null);
 
@@ -40,14 +41,12 @@ const AIChatBots = () => {
         return data.response;
     };
 
-    const startDiscussion = async () => {
-        const topic = prompt("Please enter a topic to start the conversation:");
-        if (!topic || !topic.trim()) {
-            alert("A topic is required to start the conversation.");
-            return;
-        }
+    const startDiscussion = async (e) => {
+        e.preventDefault();
+        const subject = topic.trim();
+        if (!subject || isActive) return;
 
-        resetConversation(topic.trim());
+        resetConversation(subject);
         setIsActive(true);
 
         const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -55,10 +54,10 @@ const AIChatBots = () => {
         const assistants = ["AssistantA", "AssistantB"];
         let currentAssistant = 1; // Start with AssistantB
 
-        assistantAHistory.push({ role: "user", content: topic.trim() });
-        assistantBHistory.push({ role: "user", content: topic.trim() });
+        assistantAHistory.push({ role: "user", content: subject });
+        assistantBHistory.push({ role: "user", content: subject });
 
-        setMessages([{ assistant: assistants[0], message: topic.trim() }]);
+        setMessages([{ assistant: assistants[0], message: subject }]);
         scrollToBottom();
         await delay(1000);
 
@@ -119,14 +118,25 @@ const AIChatBots = () => {
             <p className="screen-sub">
                 Give a subject and Gemini and OpenAI talk it out — eight turns, then they wrap up.
             </p>
-            <div className="screen-actions">
-                <button className="btn btn-primary" onClick={startDiscussion} disabled={isActive}>
-                    {isActive ? "Conversation active…" : "Start a new conversation"}
-                </button>
-                <button className="btn btn-ghost" onClick={() => resetConversation("")} disabled={isActive}>
-                    Clear
-                </button>
-            </div>
+            <form onSubmit={startDiscussion}>
+                <div className="chat-input-row">
+                    <input
+                        className="input"
+                        type="text"
+                        value={topic}
+                        onChange={(e) => setTopic(e.target.value)}
+                        placeholder="Topic to discuss…"
+                        aria-label="Conversation topic"
+                        disabled={isActive}
+                    />
+                    <button type="submit" className="btn btn-primary" disabled={isActive || !topic.trim()}>
+                        {isActive ? "Conversation active…" : "Start"}
+                    </button>
+                    <button type="button" className="btn btn-ghost" onClick={() => resetConversation("")} disabled={isActive}>
+                        Clear
+                    </button>
+                </div>
+            </form>
             {messages.length > 0 && (
                 <div className="conversation">
                     {messages.map((msg, idx) =>

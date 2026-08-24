@@ -14,6 +14,7 @@ const InputArea = ({
   <div className={`input-container ${isPanelOpen ? 'open' : ''}`}>
     {error && <div className="error">There was an error. Try again.</div>}
     <textarea
+      className="input"
       value={inputText}
       onChange={(e) => setInputText(e.target.value)}
       onKeyDown={handleKeyDown}
