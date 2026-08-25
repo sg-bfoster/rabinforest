@@ -146,6 +146,17 @@ a:hover { color: var(--color-accent-600); }
 }
 .msg-labeled-right .msg-user { align-self: auto; max-width: none; }
 /* RabinAI (home box) sits centered between the two cloud models */
+/* Assistant page: which engine answers, stated plainly */
+.intro-note {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-neutral-700, #555);
+  border-left: 2px solid var(--color-accent-700);
+  padding-left: var(--space-3);
+  margin-top: var(--space-4);
+  max-width: 60ch;
+}
+
 .msg-labeled-center {
   align-self: center;
   max-width: 80%;

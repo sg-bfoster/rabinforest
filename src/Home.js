@@ -73,7 +73,14 @@ const Home = () => {
                     text += evt.delta;
                     onDelta?.(text);
                 }
-                if (evt.done) links = evt.links || [];
+                if (evt.done) {
+                    links = evt.links || [];
+                    // The server sends the complete text on done; trust it over
+                    // the accumulated deltas, which can lag the final fragment.
+                    if (typeof evt.text === 'string' && evt.text.length >= text.length) {
+                        text = evt.text;
+                    }
+                }
             }
         }
         return { text, links };
@@ -179,6 +186,11 @@ const Home = () => {
                 engineer in Metro Atlanta. Built for recruiters and hiring teams: ask the
                 assistant anything you'd ask him, try the playground pages, or grab the{' '}
                 <Link to="/resume">resume</Link>.
+            </p>
+            <p className="intro-note">
+                Answers come from <strong>RabinAI</strong> — a Qwen3-30B model Brian runs on a mini
+                PC at his house — and fall back to Google Gemini automatically when it's offline or
+                busy. Same answers either way; he built the routing.
             </p>
             {messages.length > 0 && (
                 <div className="conversation">
