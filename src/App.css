@@ -146,6 +146,20 @@ a:hover { color: var(--color-accent-600); }
 }
 .msg-labeled-right .msg-user { align-self: auto; max-width: none; }
 /* RabinAI (home box) sits centered between the two cloud models */
+/* Per-answer engine tag */
+.engine-tag {
+  display: inline-block;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border: 1px solid currentColor;
+  color: var(--color-neutral-600, #777);
+  margin-bottom: var(--space-1);
+  cursor: help;
+}
+.engine-tag.engine-rabinai { color: var(--color-accent-700); }
+
 /* Assistant page: which engine answers, stated plainly */
 .intro-note {
   font-size: 13px;

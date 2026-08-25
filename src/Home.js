@@ -42,16 +42,20 @@ const Home = () => {
      * onDelta simply never fires in the non-streaming case.
      */
     const fetchResponse = async (prompt, history, conversationId, onDelta) => {
+        // Strip UI-only fields (engine, streaming) before sending history back:
+        // Gemini rejects unknown keys inside contents[] with a 400.
+        const apiHistory = (history || []).map((m) => ({ role: m.role, parts: m.parts }));
+
         const res = await fetch(API_ENDPOINTS.GEMINI_ASSISTANT, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt, history, conversationId, stream: true }),
+            body: JSON.stringify({ prompt, history: apiHistory, conversationId, stream: true }),
         });
         if (!res.ok) throw new Error(`Assistant request failed (${res.status})`);
 
         if (!res.headers.get('content-type')?.includes('text/event-stream')) {
             const data = await res.json();
-            return JSON.parse(data.response);
+            return { ...JSON.parse(data.response), engine: data.engine || 'gemini' };
         }
 
         const reader = res.body.getReader();
@@ -59,6 +63,7 @@ const Home = () => {
         let buf = '';
         let text = '';
         let links = [];
+        let engine = 'rabinai';
         while (true) {
             const { done, value } = await reader.read();
             if (done) break;
@@ -75,6 +80,7 @@ const Home = () => {
                 }
                 if (evt.done) {
                     links = evt.links || [];
+                    if (evt.engine) engine = evt.engine;
                     // The server sends the complete text on done; trust it over
                     // the accumulated deltas, which can lag the final fragment.
                     if (typeof evt.text === 'string' && evt.text.length >= text.length) {
@@ -83,7 +89,7 @@ const Home = () => {
                 }
             }
         }
-        return { text, links };
+        return { text, links, engine };
     };
 
     const handleThumbnailClick = (site) => {
@@ -114,6 +120,8 @@ const Home = () => {
         // Clear the input immediately
         setPrompt('');
 
+        stickToBottom.current = true; // asking implies wanting to see the answer
+
         // Add user's message to the chat
         const userMessage = { role: 'user', parts: [{ text: currentPrompt }] };
         const newMessages = [...messages, userMessage]; // Create new array for immutability
@@ -126,7 +134,11 @@ const Home = () => {
                 setMessages([...newMessages, { role: 'model', parts: [{ text: sofar }], streaming: true }]);
 
             const response = await fetchResponse(currentPrompt, messages, conversationId, onDelta);
-            const mockResponse = { role: 'model', parts: [{ text: response.text }] };
+            const mockResponse = {
+                role: 'model',
+                parts: [{ text: response.text }],
+                engine: response.engine,
+            };
 
             if (response.links && response.links.length > 0) {
                 response.links.forEach((link) => {
@@ -155,15 +167,36 @@ const Home = () => {
         setMessages([]);
     };
 
+    // Stick to the bottom while an answer streams in, but stop fighting the
+    // user the moment they scroll up to re-read something.
+    const stickToBottom = useRef(true);
+
     useEffect(() => {
-        // Scroll to the latest message when messages change
-        if (messages.length > 0) {
-            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        const onScroll = () => {
+            const doc = document.documentElement;
+            stickToBottom.current =
+                doc.scrollHeight - (window.scrollY + window.innerHeight) < 160;
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => window.removeEventListener('scroll', onScroll);
+    }, []);
+
+    useEffect(() => {
+        // Scroll the PAGE to the bottom rather than aligning the end-of-list
+        // marker: that marker sits above the input form, so scrolling it into
+        // view pushes the form off-screen and can even scroll upward.
+        if (messages.length > 0 && stickToBottom.current) {
+            window.scrollTo({
+                top: document.documentElement.scrollHeight,
+                // Smooth animation can't keep up with streaming deltas and ends
+                // up trailing the text, so jump instantly while a reply lands.
+                behavior: isLoading ? 'auto' : 'smooth',
+            });
         }
 
         // Save messages to local storage whenever they change
         localStorage.setItem('assistantMessages', JSON.stringify(messages));
-    }, [messages]);
+    }, [messages, isLoading]);
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -205,8 +238,25 @@ const Home = () => {
                             );
                         }
 
+                        const engineLabel =
+                            msg.engine === 'gemini' ? 'Gemini'
+                            : msg.engine === 'rabinai' ? 'RabinAI'
+                            : null;
+
                         return (
                             <div key={index} className="msg-assistant">
+                                {engineLabel && (
+                                    <span
+                                        className={`engine-tag engine-${msg.engine}`}
+                                        title={
+                                            msg.engine === 'rabinai'
+                                                ? "Answered by Brian's home inference box"
+                                                : 'Answered by Google Gemini (RabinAI was offline or busy)'
+                                        }
+                                    >
+                                        {engineLabel}
+                                    </span>
+                                )}
                                 <span className="msg-text">
                                     <LinkedText text={messageText} />
                                 </span>
