@@ -229,8 +229,20 @@ const Home = () => {
                 <div className="conversation">
                     {messages.map((msg, index) => {
                         const isAssistantMessage = msg.role === 'model';
-                        const messageText = msg.parts[0].text;
-                        const detectedSites = isAssistantMessage ? detectSitesInText(messageText) : [];
+                        const isStreaming = !!msg.streaming;
+                        const rawText = msg.parts[0].text;
+
+                        // While an answer streams, the text is partial: a trailing
+                        // "<a href='..." would render as literal markup, so trim any
+                        // half-written tag until the closing bracket arrives.
+                        const messageText = isStreaming ? rawText.replace(/<[^>]*$/, '') : rawText;
+
+                        // Site thumbnails are computed from the finished answer only.
+                        // Running detection on every delta remounts the <img> tags
+                        // repeatedly, aborting their loads mid-flight and leaving
+                        // broken-image icons behind.
+                        const detectedSites =
+                            isAssistantMessage && !isStreaming ? detectSitesInText(messageText) : [];
 
                         if (!isAssistantMessage) {
                             return (

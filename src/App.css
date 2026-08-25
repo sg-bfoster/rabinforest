@@ -218,7 +218,6 @@ a:hover { color: var(--color-accent-600); }
   object-fit: cover;
   object-position: top;
   display: block;
-  filter: grayscale(1) contrast(1.08);
 }
 .site-thumbnail-label {
   display: block;
@@ -681,7 +680,6 @@ a:hover { color: var(--color-accent-600); }
 .modal-body .modal-screenshot {
   width: 100%;
   border: 1px solid var(--color-neutral-300);
-  filter: grayscale(1) contrast(1.08);
 }
 .modal-gallery-controls {
   display: flex;
