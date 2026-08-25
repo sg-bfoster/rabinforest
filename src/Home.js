@@ -222,7 +222,7 @@ const Home = () => {
             </p>
             <p className="intro-note">
                 Answers come from <strong>RabinAI</strong> — a Qwen3-30B model Brian runs on a mini
-                PC at his house — and fall back to Google Gemini automatically when it's offline or
+                PC in his basement — and fall back to Google Gemini automatically when it's offline or
                 busy. Same answers either way; he built the routing.
             </p>
             {messages.length > 0 && (
