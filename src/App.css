@@ -145,6 +145,23 @@ a:hover { color: var(--color-accent-600); }
   justify-items: end;
 }
 .msg-labeled-right .msg-user { align-self: auto; max-width: none; }
+/* RabinAI (home box) sits centered between the two cloud models */
+.msg-labeled-center {
+  align-self: center;
+  max-width: 80%;
+  display: grid;
+  gap: var(--space-1);
+  justify-items: center;
+  text-align: center;
+}
+.msg-local {
+  background: var(--color-neutral-100);
+  border: 1px dashed var(--color-accent-700);
+  padding: var(--space-3) var(--space-4);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
 .bot-label {
   font-size: 11px;
   letter-spacing: 0.14em;

@@ -2,28 +2,35 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { API_ENDPOINTS } from './config/api';
 
+/**
+ * Three bots, one topic. Gemini and OpenAI are cloud models; RabinAI is the
+ * home inference box, which is part-time by design — when it's off the server
+ * answers 503 { asleep: true } and it sits that turn out rather than breaking
+ * the conversation.
+ */
+const BOTS = [
+    { id: 'AssistantA', label: 'Gemini', engine: 'gemini', side: 'left' },
+    { id: 'AssistantB', label: 'OpenAI', engine: 'openai', side: 'right' },
+    { id: 'AssistantC', label: 'RabinAI', engine: 'rabinai', side: 'center' },
+];
+
 const AIChatBots = () => {
-    const [messages, setMessages] = useState([]); // State for messages
+    const [messages, setMessages] = useState([]);
     const [isActive, setIsActive] = useState(false);
     const [topic, setTopic] = useState('');
-    const conLength = 8;
+    const conLength = 9; // multiple of 3 so every bot gets equal turns
     const messagesEndRef = useRef(null);
 
-    // Bot A (left) is Gemini — the site's house model; Bot B (right) is OpenAI.
-    const ENGINES = ["gemini", "openai"];
-
-    let assistantAHistory = [];
-    let assistantBHistory = [];
+    // One history per bot: its own lines are "assistant", everyone else's are
+    // "user", which is how each model sees itself as a participant.
+    const histories = useRef(BOTS.map(() => []));
 
     const resetConversation = (newSubject) => {
-        setMessages([]); // Clear only the state, NOT localStorage
+        setMessages([]);
         localStorage.removeItem("messages");
-        assistantAHistory = newSubject
-            ? [{ role: "user", content: newSubject }]
-            : [];
-        assistantBHistory = newSubject
-            ? [{ role: "assistant", content: newSubject }]
-            : [];
+        histories.current = BOTS.map(() =>
+            newSubject ? [{ role: "user", content: newSubject }] : []
+        );
         setIsActive(false);
     };
 
@@ -37,8 +44,14 @@ const AIChatBots = () => {
                     : "Be curious. Respond as a human. Answer with 30 words or fewer. Ask a follow-up question.",
             },
         ];
-        const { data } = await axios.post(API_ENDPOINTS.AI_CHAT, { messages: conversation, engine });
-        return data.response;
+        try {
+            const { data } = await axios.post(API_ENDPOINTS.AI_CHAT, { messages: conversation, engine });
+            return data.response;
+        } catch (error) {
+            // The box being off is expected, not exceptional.
+            if (error.response?.status === 503 && error.response?.data?.asleep) return null;
+            throw error;
+        }
     };
 
     const startDiscussion = async (e) => {
@@ -50,39 +63,37 @@ const AIChatBots = () => {
         setIsActive(true);
 
         const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+        histories.current.forEach((h) => h.push({ role: "user", content: subject }));
 
-        const assistants = ["AssistantA", "AssistantB"];
-        let currentAssistant = 1; // Start with AssistantB
-
-        assistantAHistory.push({ role: "user", content: subject });
-        assistantBHistory.push({ role: "user", content: subject });
-
-        setMessages([{ assistant: assistants[0], message: subject }]);
+        setMessages([{ assistant: BOTS[0].id, message: subject, isTopic: true }]);
         scrollToBottom();
         await delay(1000);
 
         try {
             for (let i = 0; i < conLength; i++) {
-                const assistantIndex = currentAssistant; // Capture current value of `currentAssistant`
+                const turn = i % BOTS.length;
+                const bot = BOTS[turn];
+                const response = await fetchResponse(
+                    histories.current[turn],
+                    i >= conLength - BOTS.length,
+                    bot.engine,
+                );
 
-                const history = assistantIndex === 0 ? assistantAHistory : assistantBHistory;
-
-                const response = await fetchResponse(history, i >= conLength - 2, ENGINES[assistantIndex]);
-
-                if (assistantIndex === 0) {
-                    assistantAHistory.push({ role: "assistant", content: response });
-                    assistantBHistory.push({ role: "user", content: response });
-                } else {
-                    assistantBHistory.push({ role: "assistant", content: response });
-                    assistantAHistory.push({ role: "user", content: response });
+                if (response === null) {
+                    setMessages((prev) => [
+                        ...prev,
+                        { assistant: bot.id, message: `${bot.label} is asleep 🌲`, asleep: true },
+                    ]);
+                    scrollToBottom();
+                    await delay(400);
+                    continue;
                 }
 
-                setMessages((prev) => [
-                    ...prev,
-                    { assistant: assistants[assistantIndex], message: response },
-                ]);
+                histories.current.forEach((h, idx) =>
+                    h.push({ role: idx === turn ? "assistant" : "user", content: response })
+                );
 
-                currentAssistant = 1 - currentAssistant; // Toggle between 0 (A) and 1 (B)
+                setMessages((prev) => [...prev, { assistant: bot.id, message: response }]);
                 scrollToBottom();
                 await delay(1000);
             }
@@ -98,7 +109,6 @@ const AIChatBots = () => {
     };
 
     useEffect(() => {
-        // Load messages from localStorage on first mount
         const storedMessages = localStorage.getItem("messages");
         if (storedMessages) {
             setMessages(JSON.parse(storedMessages));
@@ -106,17 +116,19 @@ const AIChatBots = () => {
     }, []);
 
     useEffect(() => {
-        // Save messages to localStorage when messages state changes
         if (messages.length > 0) {
             localStorage.setItem("messages", JSON.stringify(messages));
         }
     }, [messages]);
 
+    const botFor = (id) => BOTS.find((b) => b.id === id) || BOTS[0];
+
     return (
         <div>
-            <h2 className="screen-h2">Two bots, one topic.</h2>
+            <h2 className="screen-h2">Three bots, one topic.</h2>
             <p className="screen-sub">
-                Give a subject and Gemini and OpenAI talk it out — eight turns, then they wrap up.
+                Give a subject and Gemini, OpenAI, and RabinAI — a model running on a
+                mini PC in my house — talk it out. Nine turns, then they wrap up.
             </p>
             <form onSubmit={startDiscussion}>
                 <div className="chat-input-row">
@@ -139,19 +151,25 @@ const AIChatBots = () => {
             </form>
             {messages.length > 0 && (
                 <div className="conversation">
-                    {messages.map((msg, idx) =>
-                        msg.assistant === "AssistantA" ? (
-                            <div key={idx} className="msg-assistant msg-labeled">
-                                <span className="bot-label">Gemini</span>
-                                <p className="msg-text" style={{ margin: 0 }}>{msg.message}</p>
+                    {messages.map((msg, idx) => {
+                        const bot = botFor(msg.assistant);
+                        const cls =
+                            bot.side === 'right' ? 'msg-labeled-right'
+                            : bot.side === 'center' ? 'msg-labeled-center'
+                            : 'msg-assistant msg-labeled';
+                        const bubble =
+                            bot.side === 'right' ? 'msg-user'
+                            : bot.side === 'center' ? 'msg-local'
+                            : 'msg-text';
+                        return (
+                            <div key={idx} className={cls}>
+                                <span className="bot-label">{msg.isTopic ? 'Topic' : bot.label}</span>
+                                <div className={bubble} style={msg.asleep ? { opacity: 0.6, fontStyle: 'italic' } : undefined}>
+                                    {msg.message}
+                                </div>
                             </div>
-                        ) : (
-                            <div key={idx} className="msg-labeled-right">
-                                <span className="bot-label">OpenAI</span>
-                                <div className="msg-user">{msg.message}</div>
-                            </div>
-                        )
-                    )}
+                        );
+                    })}
                     <div ref={messagesEndRef} />
                 </div>
             )}
