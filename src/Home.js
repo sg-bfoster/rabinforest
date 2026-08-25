@@ -35,13 +35,48 @@ const Home = () => {
     const messagesEndRef = useRef(null);
     const dispatch = useDispatch();
 
-    const fetchResponse = async (prompt, history, conversationId) => {
-        const { data } = await axios.post(API_ENDPOINTS.GEMINI_ASSISTANT, {
-            prompt: prompt,
-            history: history,
-            conversationId: conversationId
+    /**
+     * Ask the assistant, rendering the answer as it arrives when the server
+     * streams it. The server sends SSE only when the local model is serving;
+     * Gemini replies with a normal JSON body, so both shapes are handled and
+     * onDelta simply never fires in the non-streaming case.
+     */
+    const fetchResponse = async (prompt, history, conversationId, onDelta) => {
+        const res = await fetch(API_ENDPOINTS.GEMINI_ASSISTANT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt, history, conversationId, stream: true }),
         });
-        return JSON.parse(data.response);
+        if (!res.ok) throw new Error(`Assistant request failed (${res.status})`);
+
+        if (!res.headers.get('content-type')?.includes('text/event-stream')) {
+            const data = await res.json();
+            return JSON.parse(data.response);
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buf = '';
+        let text = '';
+        let links = [];
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buf += decoder.decode(value, { stream: true });
+            const lines = buf.split('\n');
+            buf = lines.pop();
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                let evt;
+                try { evt = JSON.parse(line.slice(6)); } catch { continue; }
+                if (evt.delta) {
+                    text += evt.delta;
+                    onDelta?.(text);
+                }
+                if (evt.done) links = evt.links || [];
+            }
+        }
+        return { text, links };
     };
 
     const handleThumbnailClick = (site) => {
@@ -79,7 +114,11 @@ const Home = () => {
         setIsLoading(true);
 
         try {
-            const response = await fetchResponse(currentPrompt, messages, conversationId);
+            // Render partial text in place as it streams in.
+            const onDelta = (sofar) =>
+                setMessages([...newMessages, { role: 'model', parts: [{ text: sofar }], streaming: true }]);
+
+            const response = await fetchResponse(currentPrompt, messages, conversationId, onDelta);
             const mockResponse = { role: 'model', parts: [{ text: response.text }] };
 
             if (response.links && response.links.length > 0) {
