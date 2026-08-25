@@ -150,8 +150,7 @@ a:hover { color: var(--color-accent-600); }
 .engine-tag {
   display: inline-block;
   font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
   padding: 1px 6px;
   border: 1px solid currentColor;
   color: var(--color-neutral-600, #777);
@@ -189,8 +188,7 @@ a:hover { color: var(--color-accent-600); }
 
 .bot-label {
   font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
   color: var(--color-accent-700);
 }
 
@@ -361,8 +359,7 @@ a:hover { color: var(--color-accent-600); }
 .engine-label {
   margin: 0 0 var(--space-2);
   font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
   color: var(--color-neutral-500);
 }
 .imagery-frame {
