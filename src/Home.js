@@ -171,6 +171,14 @@ const Home = () => {
     // user the moment they scroll up to re-read something.
     const stickToBottom = useRef(true);
 
+    // Nudge the assistant's prefix cache as soon as someone lands, so the box
+    // is usually warm by the time they finish reading and type a question.
+    // Fire-and-forget: failures are irrelevant since the answer path falls
+    // back to the cloud model on its own.
+    useEffect(() => {
+        fetch(API_ENDPOINTS.ASSISTANT_WARM, { method: 'POST' }).catch(() => {});
+    }, []);
+
     useEffect(() => {
         const onScroll = () => {
             const doc = document.documentElement;
