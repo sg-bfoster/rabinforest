@@ -44,7 +44,7 @@ const SITE_CONFIG = {
     key: 'findmeplaces',
     displayName: 'Find Me Places',
     screenshotPath: '/screenshots/findmeplaces-screenshot.png',
-    url: 'https://fmp.rabinforest.com',
+    url: null,
     patterns: [
       /find\s*me\s*places/gi,
       /fmp\.rabinforest\.com/gi,
