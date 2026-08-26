@@ -74,9 +74,10 @@ const Home = () => {
                 if (!line.startsWith('data: ')) continue;
                 let evt;
                 try { evt = JSON.parse(line.slice(6)); } catch { continue; }
+                if (evt.engine) engine = evt.engine;
                 if (evt.delta) {
                     text += evt.delta;
-                    onDelta?.(text);
+                    onDelta?.(text, engine);
                 }
                 if (evt.done) {
                     links = evt.links || [];
@@ -129,9 +130,11 @@ const Home = () => {
         setIsLoading(true);
 
         try {
-            // Render partial text in place as it streams in.
-            const onDelta = (sofar) =>
-                setMessages([...newMessages, { role: 'model', parts: [{ text: sofar }], streaming: true }]);
+            // Render partial text in place as it streams in. SSE only opens
+            // once RabinAI is actually answering, so the engine tag can show
+            // from the first token instead of waiting for the finished reply.
+            const onDelta = (sofar, engine) =>
+                setMessages([...newMessages, { role: 'model', parts: [{ text: sofar }], streaming: true, engine }]);
 
             const response = await fetchResponse(currentPrompt, messages, conversationId, onDelta);
             const mockResponse = {
