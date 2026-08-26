@@ -405,6 +405,16 @@ const SITE_CONFIG = {
         label: 'Architecture (technical)',
         url: `${API_BASE_URL}/docs/AskGWINnett-Architecture.pdf`,
       },
+      {
+        label: 'Code study guide',
+        url: `${API_BASE_URL}/docs/AskGWINnett-Code-Study-Guide.pdf`,
+      },
+      {
+        // Served with Content-Disposition: attachment — browsers can't
+        // render pptx inline, so this one downloads rather than opens.
+        label: 'Overview deck (PPTX)',
+        url: `${API_BASE_URL}/docs/AskGWINnett-Overview-v2.pptx`,
+      },
     ],
     patterns: [
       /askgwinnett\.com/gi,
@@ -502,6 +512,45 @@ const SITE_CONFIG = {
       /https?:\/\/.*callmata\.com/gi,
       /\bcall\s*mata\b/gi,
       /\bcallmata\b/gi,
+    ],
+  },
+  rabinai: {
+    key: 'rabinai',
+    displayName: 'RabinAI',
+    category: 'portfolio',
+    // No website — RabinAI is a server, not a site. The artwork is the
+    // title block of each architecture PDF, so the card reads as what it
+    // actually offers: documents.
+    screenshotPaths: [
+      '/screenshots/rabinai1.png',
+      '/screenshots/rabinai2.png',
+    ],
+    summary:
+      "Brian's self-hosted LLM inference server: a MINISFORUM AI X1 Pro-370 running Qwen3-30B-A3B under LM Studio, reached over a Cloudflare Tunnel. It answers this assistant first and falls back to Gemini automatically when the box is cold, busy, or offline — every reply is tagged with the engine that produced it.",
+    screenshotPath: '/screenshots/rabinai1.png',
+    url: null,
+    docs: [
+      {
+        label: 'Architecture (overview)',
+        url: `${API_BASE_URL}/docs/RabinAI-Architecture-non-technical.pdf`,
+      },
+      {
+        label: 'Architecture (technical)',
+        url: `${API_BASE_URL}/docs/RabinAI-Architecture.pdf`,
+      },
+    ],
+    patterns: [
+      // Both forms are anchored so neither can match inside "rabinforest".
+      /\brabinai\b/gi,
+      /\brabin\s+ai\b/gi,
+    ],
+    // Same reasoning as stilltrue: an explicit "RabinAI" is a strong
+    // identifier. Without the floor this card would surface on any answer
+    // that merely mentions Rabin Forest, which is most of them.
+    minScore: 5,
+    scoreRules: [
+      { pattern: /\brabinai\b/gi, score: 5 },
+      { pattern: /\brabin\s+ai\b/gi, score: 5 },
     ],
   },
 };
