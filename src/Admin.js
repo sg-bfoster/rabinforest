@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { API_ENDPOINTS, ADMIN_KEY_STORAGE, getAdminHeaders, clearAdminSession } from './config/api';
 import axios from 'axios';
 import { useDispatch } from 'react-redux';
-import { openModal } from './features/modalSlice';
+import { openModal, closeModal } from './features/modalSlice';
 
 const Admin = () => {
     const [content, setContent] = useState('');
@@ -22,6 +22,8 @@ const Admin = () => {
     const [conversationLogs, setConversationLogs] = useState([]);
     const [logsLoading, setLogsLoading] = useState(false);
     const [logsError, setLogsError] = useState(null);
+    const [deletingAll, setDeletingAll] = useState(false);
+    const [deleteAllMessage, setDeleteAllMessage] = useState(null);
     const dispatch = useDispatch();
 
     const rejectAdminSession = useCallback((message) => {
@@ -170,6 +172,44 @@ const Admin = () => {
         }
     };
 
+    const handleDeleteAllLogs = async () => {
+        const visibleCount = conversationLogs.length;
+        const confirmed = window.confirm(
+            visibleCount >= 100
+                ? `Delete all conversation logs? This cannot be undone.\n\n${visibleCount} logs are listed here; any additional logs not shown will also be deleted.`
+                : `Delete all ${visibleCount} conversation log${visibleCount === 1 ? '' : 's'}? This cannot be undone.`,
+        );
+        if (!confirmed) return;
+
+        try {
+            setDeletingAll(true);
+            setLogsError(null);
+            setDeleteAllMessage(null);
+            const response = await axios.delete(API_ENDPOINTS.CONVERSATION_LOGS, {
+                headers: getAdminHeaders(),
+            });
+            dispatch(closeModal());
+            setConversationLogs([]);
+            const deleted = typeof response.data?.deleted === 'number' ? response.data.deleted : 0;
+            setDeleteAllMessage(`Deleted ${deleted} conversation log${deleted === 1 ? '' : 's'}.`);
+            setTimeout(() => setDeleteAllMessage(null), 4000);
+        } catch (err) {
+            console.error('Error deleting all conversation logs:', err);
+            const status = err.response?.status;
+            if (status === 401 || status === 503) {
+                rejectAdminSession(
+                    status === 503
+                        ? 'Admin key is not configured on the server.'
+                        : 'API rejected admin key.',
+                );
+                return;
+            }
+            setLogsError('Failed to delete conversation logs');
+        } finally {
+            setDeletingAll(false);
+        }
+    };
+
     const handleLogClick = (log) => {
         dispatch(
             openModal({
@@ -272,11 +312,23 @@ const Admin = () => {
                 <>
                     {logsLoading && <p className="admin-status">Loading conversation logs…</p>}
                     {logsError && <p className="error-message">Error: {logsError}</p>}
+                    {deleteAllMessage && <p className="admin-status ok">{deleteAllMessage}</p>}
                     {!logsLoading && !logsError && (
                         conversationLogs.length === 0 ? (
                             <p className="admin-status">No conversation logs found.</p>
                         ) : (
-                            <div className="admin-log-list">
+                            <>
+                                <div className="admin-log-toolbar">
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary"
+                                        onClick={handleDeleteAllLogs}
+                                        disabled={deletingAll}
+                                    >
+                                        {deletingAll ? 'Deleting…' : 'Delete all'}
+                                    </button>
+                                </div>
+                                <div className="admin-log-list">
                                 {conversationLogs.map((log) => (
                                     <button
                                         key={log.id}
@@ -296,7 +348,8 @@ const Admin = () => {
                                         </span>
                                     </button>
                                 ))}
-                            </div>
+                                </div>
+                            </>
                         )
                     )}
                 </>
