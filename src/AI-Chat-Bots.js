@@ -19,7 +19,6 @@ const AIChatBots = () => {
     const [isActive, setIsActive] = useState(false);
     const [topic, setTopic] = useState('');
     const conLength = 9; // multiple of 3 so every bot gets equal turns
-    const messagesEndRef = useRef(null);
 
     // One history per bot: its own lines are "assistant", everyone else's are
     // "user", which is how each model sees itself as a participant.
@@ -66,7 +65,6 @@ const AIChatBots = () => {
         histories.current.forEach((h) => h.push({ role: "user", content: subject }));
 
         setMessages([{ assistant: BOTS[0].id, message: subject, isTopic: true }]);
-        scrollToBottom();
         await delay(1000);
 
         try {
@@ -84,7 +82,6 @@ const AIChatBots = () => {
                         ...prev,
                         { assistant: bot.id, message: `${bot.label} is asleep 🌲`, asleep: true },
                     ]);
-                    scrollToBottom();
                     await delay(400);
                     continue;
                 }
@@ -94,7 +91,6 @@ const AIChatBots = () => {
                 );
 
                 setMessages((prev) => [...prev, { assistant: bot.id, message: response }]);
-                scrollToBottom();
                 await delay(1000);
             }
         } catch (error) {
@@ -102,10 +98,6 @@ const AIChatBots = () => {
         } finally {
             setIsActive(false);
         }
-    };
-
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
     useEffect(() => {
@@ -119,6 +111,18 @@ const AIChatBots = () => {
         if (messages.length > 0) {
             localStorage.setItem("messages", JSON.stringify(messages));
         }
+    }, [messages]);
+
+    // After React commits the new bubble (and its height), scroll the page.
+    // Calling this next to setMessages aimed at the old document height, so
+    // the last message sat below the fold. Instant jump: a sticky footer
+    // plus smooth animation undershoots the same way.
+    useEffect(() => {
+        if (messages.length === 0) return;
+        const id = requestAnimationFrame(() => {
+            window.scrollTo({ top: document.documentElement.scrollHeight });
+        });
+        return () => cancelAnimationFrame(id);
     }, [messages]);
 
     const botFor = (id) => BOTS.find((b) => b.id === id) || BOTS[0];
@@ -170,7 +174,6 @@ const AIChatBots = () => {
                             </div>
                         );
                     })}
-                    <div ref={messagesEndRef} />
                 </div>
             )}
         </div>
