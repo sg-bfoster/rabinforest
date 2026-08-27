@@ -181,6 +181,9 @@ const Home = () => {
     // rather than a bookkeeping exercise across N components.
     const audioRef = useRef(null);
     const audioUrlRef = useRef(null);
+    // Bumped on every stop/start. An in-flight chunk fetch checks it before
+    // playing, so audio from a cancelled answer can never jump the queue.
+    const speechRunRef = useRef(0);
     const [speakingIndex, setSpeakingIndex] = useState(null);
     const [loadingSpeechIndex, setLoadingSpeechIndex] = useState(null);
 
@@ -193,7 +196,37 @@ const Home = () => {
         return (el.textContent || '').replace(/\s+/g, ' ').trim();
     };
 
+    /**
+     * Split an answer into speakable chunks on sentence boundaries.
+     *
+     * The whole point is time-to-first-audio. Synthesising a full answer took
+     * ~9s measured end to end; one sentence takes a fraction of that, and the
+     * rest is fetched while the reader is already listening. Chunks are capped
+     * so a single runaway sentence cannot recreate the original wait.
+     */
+    const CHUNK_TARGET_CHARS = 220;
+
+    const chunkForSpeech = (text) => {
+        // Split AFTER terminal punctuation, keeping it attached — a chunk that
+        // ends mid-clause is audible as a wrong pause.
+        const sentences = text.match(/[^.!?]+[.!?]+["')\]]*\s*|[^.!?]+$/g) || [text];
+        const chunks = [];
+        let current = '';
+        for (const sentence of sentences) {
+            if (current && (current + sentence).length > CHUNK_TARGET_CHARS) {
+                chunks.push(current.trim());
+                current = sentence;
+            } else {
+                current += sentence;
+            }
+        }
+        if (current.trim()) chunks.push(current.trim());
+        return chunks.filter(Boolean);
+    };
+
     const stopSpeaking = () => {
+        // Invalidate anything still in flight before touching the element.
+        speechRunRef.current += 1;
         // Pause but KEEP the element: it carries the browser's permission to
         // play (see unlockAudio), and throwing it away would mean asking for
         // that permission again at a moment when we no longer have a gesture.
@@ -216,7 +249,8 @@ const Home = () => {
      * long answer, for a real user, having worked fine on a short one in
      * testing. Playing a silent clip inside the handler marks this element as
      * user-activated once; every later play() on the SAME element is allowed,
-     * however long the fetch took.
+     * however long the fetch took. Chunking shortens that gap but does not
+     * remove it, so this stays.
      */
     const SILENT_WAV =
         'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQAAAAA=';
@@ -227,6 +261,34 @@ const Home = () => {
         audioRef.current.play().catch(() => {});
         return audioRef.current;
     };
+
+    /** One chunk of speech as a blob URL, or null if the run was cancelled. */
+    const fetchSpeech = async (chunk, run) => {
+        const res = await fetch(API_ENDPOINTS.READ_ALOUD, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            // The server rejects anything longer, so trim here rather than
+            // trading a spoken answer for a 400.
+            body: JSON.stringify({ prompt: chunk.slice(0, 4096) }),
+        });
+        if (!res.ok) throw new Error(`read aloud failed: ${res.status}`);
+        if (speechRunRef.current !== run) return null;
+        return URL.createObjectURL(await res.blob());
+    };
+
+    /** Play one blob URL to completion on the shared element. */
+    const playUrl = (audio, url) =>
+        new Promise((resolve, reject) => {
+            audioUrlRef.current = url;
+            audio.src = url;
+            audio.onended = resolve;
+            audio.onerror = () => reject(new Error('audio decode failed'));
+            // Never await play(): its promise can sit pending indefinitely when
+            // the browser defers playback, which shows up as a button stuck
+            // mid-load with a successful 200 behind it. onended drives us
+            // forward instead; a genuine rejection still surfaces here.
+            audio.play().catch(reject);
+        });
 
     const handleReadAloud = async (index, html) => {
         // Second click on the message that is talking = stop.
@@ -241,37 +303,43 @@ const Home = () => {
 
         // Must happen before the first await, or the gesture is already gone.
         const audio = unlockAudio();
+        const run = speechRunRef.current;
+        const chunks = chunkForSpeech(text);
 
         setLoadingSpeechIndex(index);
         try {
-            const res = await fetch(API_ENDPOINTS.READ_ALOUD, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                // The server rejects anything longer, so trim here rather than
-                // trading a spoken answer for a 400.
-                body: JSON.stringify({ prompt: text.slice(0, 4096) }),
-            });
-            if (!res.ok) throw new Error(`read aloud failed: ${res.status}`);
+            // Pipeline: the next chunk is synthesised while the current one
+            // plays, so the reader waits only for the FIRST one. Kick off chunk
+            // 0 and then always stay one request ahead.
+            let pending = fetchSpeech(chunks[0], run);
 
-            const url = URL.createObjectURL(await res.blob());
-            audioUrlRef.current = url;
-            audio.src = url; // same element, permission intact
-            // Drive state from the element's own events, and DO NOT await
-            // play(). Its promise can sit pending indefinitely when the browser
-            // defers playback, which shows up as a button stuck mid-load with a
-            // successful 200 behind it. onplay reports when audio truly began.
-            audio.onplay = () => setSpeakingIndex(index);
-            audio.onended = stopSpeaking;
-            audio.onerror = stopSpeaking;
-            audio.play().catch((err) => {
-                console.error('read aloud: playback rejected', err);
-                stopSpeaking();
-            });
+            for (let i = 0; i < chunks.length; i += 1) {
+                const url = await pending;
+                if (speechRunRef.current !== run) return; // stopped mid-flight
+                if (!url) return;
+
+                // Start the NEXT synthesis before playing this one — that
+                // overlap is the entire speed-up.
+                pending =
+                    i + 1 < chunks.length
+                        ? fetchSpeech(chunks[i + 1], run)
+                        : Promise.resolve(null);
+
+                if (i === 0) {
+                    setLoadingSpeechIndex(null);
+                    setSpeakingIndex(index);
+                }
+                await playUrl(audio, url);
+                URL.revokeObjectURL(url);
+                if (audioUrlRef.current === url) audioUrlRef.current = null;
+                if (speechRunRef.current !== run) return;
+            }
+            setSpeakingIndex(null);
         } catch (err) {
-            console.error(err);
-            stopSpeaking();
+            console.error('read aloud:', err);
+            if (speechRunRef.current === run) stopSpeaking();
         } finally {
-            setLoadingSpeechIndex(null);
+            setLoadingSpeechIndex((current) => (current === index ? null : current));
         }
     };
 
