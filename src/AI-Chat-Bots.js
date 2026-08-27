@@ -62,6 +62,10 @@ const AIChatBots = () => {
         histories.current = BOTS.map(() =>
             newSubject ? [{ role: "user", content: newSubject }] : []
         );
+        // Clearing (no new subject) should also empty the input — it's the
+        // only visible state when there's no transcript, and leaving it made
+        // the Clear button appear to do nothing.
+        if (!newSubject) setTopic("");
         setIsActive(false);
     };
 
