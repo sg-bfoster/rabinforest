@@ -40,7 +40,7 @@ const AIChatBots = () => {
                 role: "system",
                 content: ending
                     ? "Give your closing thought on the discussion: state where you landed and the strongest point another speaker made, in 40-60 words. No goodbyes, no well-wishes, no thanking anyone — just your final take."
-                    : "You are one voice in a panel discussion. Take a clear position and back it with a concrete example or a specific line of reasoning, in 60-100 words. Push back when you disagree — polite agreement is boring. End with a question only if it genuinely moves the discussion somewhere new; statements are fine.",
+                    : "You are one voice in a panel discussion. Take a clear position and back it with a concrete example or a specific line of reasoning, in 40-80 words. Push back when you disagree — polite agreement is boring. End with a question only if it genuinely moves the discussion somewhere new; statements are fine.",
             },
         ];
         try {
