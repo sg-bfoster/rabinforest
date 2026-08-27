@@ -55,7 +55,21 @@ const Home = () => {
 
         if (!res.headers.get('content-type')?.includes('text/event-stream')) {
             const data = await res.json();
-            return { ...JSON.parse(data.response), engine: data.engine || 'gemini' };
+            const engine = data.engine || 'gemini';
+            // Only the box's JSON shape is grammar-enforced at the sampler;
+            // Gemini's is merely requested, so a body that isn't valid JSON is
+            // possible on exactly this path. An unguarded JSON.parse here threw
+            // and showed "Something went wrong reaching the assistant" to a
+            // visitor whose question the server had in fact answered — 200,
+            // 21.5s, real content. Fall back to treating it as plain text.
+            try {
+                const parsed = JSON.parse(data.response);
+                return { text: parsed.text ?? '', links: parsed.links ?? [], engine };
+            } catch {
+                const raw = typeof data.response === 'string' ? data.response.trim() : '';
+                if (!raw) throw new Error('Assistant returned an unusable response');
+                return { text: raw, links: [], engine };
+            }
         }
 
         const reader = res.body.getReader();
