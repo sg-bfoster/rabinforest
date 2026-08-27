@@ -50,7 +50,7 @@ const AIChatBots = () => {
     const [topic, setTopic] = useState('');
     // Mixed defaults on purpose, so a first visit shows the dropdowns matter.
     const [tones, setTones] = useState(['argumentative', 'agreeable', 'skeptical']);
-    const conLength = 12; // multiple of 3 so every bot gets equal turns — 3 substantive rounds + 1 closing round
+    const conLength = 9; // multiple of 3 so every bot gets equal turns — 2 substantive rounds + 1 closing round. 12 was tried; the growing history compounds RabinAI's prefill each turn, and 9 keeps the late rounds well clear of the deadline instead of brushing it.
 
     // One history per bot: its own lines are "assistant", everyone else's are
     // "user", which is how each model sees itself as a participant.
@@ -205,7 +205,7 @@ const AIChatBots = () => {
             <h2 className="screen-h2">Three bots, one topic.</h2>
             <p className="screen-sub">
                 Give a subject and Gemini, OpenAI, and RabinAI — a model running on a
-                mini PC in my basement — talk it out. Twelve turns, then they wrap up.
+                mini PC in my basement — talk it out. Nine turns, then they wrap up.
             </p>
             <form onSubmit={startDiscussion}>
                 <div className="chat-input-row">
