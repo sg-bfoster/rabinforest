@@ -14,10 +14,42 @@ const BOTS = [
     { id: 'AssistantC', label: 'RabinAI', engine: 'rabinai', side: 'center' },
 ];
 
+// One line of steering each — the tone slot in the panel prompt. Proven by the
+// original hard-coded "polite agreement is boring", which reliably produced
+// pushback from all three engines.
+const TONES = {
+    argumentative: {
+        label: 'Argumentative',
+        prompt: 'Take strong positions and push back hard on the other speakers — polite agreement is boring. Concede nothing without a fight.',
+    },
+    agreeable: {
+        label: 'Agreeable',
+        prompt: "Look for common ground: build on the other speakers' points, extend their examples, and say where you agree before adding nuance.",
+    },
+    passive: {
+        label: 'Passive',
+        prompt: 'Be hesitant and mild. Hedge your claims, defer to the stronger voices, and phrase opinions as tentative suggestions.',
+    },
+    skeptical: {
+        label: 'Skeptical',
+        prompt: 'Question everything. Ask for evidence, poke holes in confident claims, and take nothing at face value.',
+    },
+    enthusiastic: {
+        label: 'Enthusiastic',
+        prompt: 'Be energised and optimistic. Find the exciting angle in every point and run with it.',
+    },
+    deadpan: {
+        label: 'Deadpan',
+        prompt: 'Dry wit: flat, understated delivery, with the occasional cutting one-liner.',
+    },
+};
+
 const AIChatBots = () => {
     const [messages, setMessages] = useState([]);
     const [isActive, setIsActive] = useState(false);
     const [topic, setTopic] = useState('');
+    // Mixed defaults on purpose, so a first visit shows the dropdowns matter.
+    const [tones, setTones] = useState(['argumentative', 'agreeable', 'skeptical']);
     const conLength = 12; // multiple of 3 so every bot gets equal turns — 3 substantive rounds + 1 closing round
 
     // One history per bot: its own lines are "assistant", everyone else's are
@@ -33,14 +65,14 @@ const AIChatBots = () => {
         setIsActive(false);
     };
 
-    const fetchResponse = async (history, ending, engine) => {
+    const fetchResponse = async (history, ending, engine, tonePrompt) => {
         const conversation = [
             ...history,
             {
                 role: "system",
                 content: ending
-                    ? "This is the final round — wrap up the discussion. State where you landed and the strongest point another speaker made, in 40-60 words, then close with ONE short sign-off sentence. No drawn-out goodbyes and no thanking the other speakers by turn."
-                    : "You are one voice in a panel discussion. Take a clear position and back it with a concrete example or a specific line of reasoning, in 40-80 words. Push back when you disagree — polite agreement is boring. End with a question only if it genuinely moves the discussion somewhere new; statements are fine.",
+                    ? `This is the final round — wrap up the discussion in the same tone you've used throughout. ${tonePrompt} State where you landed and the strongest point another speaker made, in 40-60 words, then close with ONE short sign-off sentence. No drawn-out goodbyes and no thanking the other speakers by turn.`
+                    : `You are one voice in a panel discussion. ${tonePrompt} Back your points with a concrete example or a specific line of reasoning, in 40-80 words. End with a question only if it genuinely moves the discussion somewhere new; statements are fine.`,
             },
         ];
         try {
@@ -102,6 +134,7 @@ const AIChatBots = () => {
                     histories.current[turn],
                     i >= conLength - BOTS.length,
                     bot.engine,
+                    TONES[tones[turn]].prompt,
                 );
 
                 if (response === null) {
@@ -182,6 +215,26 @@ const AIChatBots = () => {
                     <button type="button" className="btn btn-ghost" onClick={() => resetConversation("")} disabled={isActive}>
                         Clear
                     </button>
+                </div>
+                <div className="tone-row">
+                    {BOTS.map((bot, idx) => (
+                        <label key={bot.id} className="tone-pick">
+                            <span className="tone-pick-label">{bot.label}</span>
+                            <select
+                                className="input tone-select"
+                                value={tones[idx]}
+                                disabled={isActive}
+                                aria-label={`${bot.label} tone`}
+                                onChange={(e) =>
+                                    setTones((prev) => prev.map((t, i) => (i === idx ? e.target.value : t)))
+                                }
+                            >
+                                {Object.entries(TONES).map(([key, t]) => (
+                                    <option key={key} value={key}>{t.label}</option>
+                                ))}
+                            </select>
+                        </label>
+                    ))}
                 </div>
             </form>
             {messages.length > 0 && (

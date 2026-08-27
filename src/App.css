@@ -728,3 +728,24 @@ a:hover { color: var(--color-accent-600); }
 @keyframes stream-blink {
   50% { opacity: 0; }
 }
+
+/* Chat Bots: per-engine tone pickers under the topic input */
+.tone-row {
+  display: flex;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+  flex-wrap: wrap;
+}
+.tone-pick {
+  display: grid;
+  gap: var(--space-1);
+  flex: 1 1 140px;
+}
+.tone-pick-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-neutral-600);
+}
+.tone-select {
+  padding: var(--space-2) var(--space-3);
+}
