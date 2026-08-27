@@ -53,6 +53,33 @@ const AIChatBots = () => {
         }
     };
 
+    // Reveal a reply word-by-word so it reads like the bot is typing. Purely
+    // visual — the full text has already arrived; this is presentation, not
+    // transport. Real SSE here would mean three engines' worth of streaming
+    // paths for a page where only the effect matters (the assistant page is
+    // where genuine streaming earns its complexity, and even there it owns
+    // the H12 story). Word-chunked so mid-word flicker never shows; ~18ms per
+    // word puts a 75-word panel reply at ~1.4s, about reading speed.
+    const revealMessage = (botId, fullText) =>
+        new Promise((resolve) => {
+            const words = fullText.split(/(\s+)/); // keep whitespace tokens
+            setMessages((prev) => [...prev, { assistant: botId, message: "", streaming: true }]);
+            let idx = 0;
+            const tick = () => {
+                idx = Math.min(idx + 2, words.length); // two tokens ≈ one word + space
+                const text = words.slice(0, idx).join("");
+                const done = idx >= words.length;
+                setMessages((prev) => {
+                    const next = prev.slice(0, -1);
+                    next.push({ assistant: botId, message: text, streaming: !done });
+                    return next;
+                });
+                if (done) resolve();
+                else setTimeout(tick, 18);
+            };
+            tick();
+        });
+
     const startDiscussion = async (e) => {
         e.preventDefault();
         const subject = topic.trim();
@@ -90,8 +117,8 @@ const AIChatBots = () => {
                     h.push({ role: idx === turn ? "assistant" : "user", content: response })
                 );
 
-                setMessages((prev) => [...prev, { assistant: bot.id, message: response }]);
-                await delay(1000);
+                await revealMessage(bot.id, response);
+                await delay(400);
             }
         } catch (error) {
             console.error("Error during discussion:", error);
@@ -108,7 +135,9 @@ const AIChatBots = () => {
     }, []);
 
     useEffect(() => {
-        if (messages.length > 0) {
+        // Skip persistence while a bubble is mid-reveal: the typewriter updates
+        // every ~18ms, and serialising the transcript on each tick is pure waste.
+        if (messages.length > 0 && !messages.some((m) => m.streaming)) {
             localStorage.setItem("messages", JSON.stringify(messages));
         }
     }, [messages]);
@@ -123,7 +152,9 @@ const AIChatBots = () => {
             window.scrollTo({ top: document.documentElement.scrollHeight });
         });
         return () => cancelAnimationFrame(id);
-    }, [messages]);
+        // isActive: the New-topic button renders when the run ends — after the
+        // last message's scroll has already fired — so scroll once more then.
+    }, [messages, isActive]);
 
     const botFor = (id) => BOTS.find((b) => b.id === id) || BOTS[0];
 
@@ -170,6 +201,7 @@ const AIChatBots = () => {
                                 <span className="bot-label">{msg.isTopic ? 'Topic' : bot.label}</span>
                                 <div className={bubble} style={msg.asleep ? { opacity: 0.6, fontStyle: 'italic' } : undefined}>
                                     {msg.message}
+                                    {msg.streaming && <span className="stream-cursor">▍</span>}
                                 </div>
                             </div>
                         );

@@ -714,3 +714,14 @@ a:hover { color: var(--color-accent-600); }
   .msg-assistant { max-width: 90%; }
   .imagery-grid { grid-template-columns: 1fr; }
 }
+
+/* Chat Bots: blinking caret on a bubble that is still "typing" */
+.stream-cursor {
+  display: inline-block;
+  margin-left: 2px;
+  animation: stream-blink 0.8s steps(1) infinite;
+  opacity: 0.7;
+}
+@keyframes stream-blink {
+  50% { opacity: 0; }
+}
