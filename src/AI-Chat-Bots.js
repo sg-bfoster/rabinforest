@@ -71,8 +71,8 @@ const AIChatBots = () => {
             {
                 role: "system",
                 content: ending
-                    ? `This is the final round — wrap up the discussion in the same tone you've used throughout. ${tonePrompt} State where you landed and the strongest point another speaker made, in 40-60 words, then close with ONE short sign-off sentence. No drawn-out goodbyes and no thanking the other speakers by turn.`
-                    : `You are one voice in a panel discussion. ${tonePrompt} Back your points with a concrete example or a specific line of reasoning, in 40-80 words. End with a question only if it genuinely moves the discussion somewhere new; statements are fine.`,
+                    ? `This is the final round — wrap up the discussion in the same tone you've used throughout. ${tonePrompt} State where you landed and the strongest point another speaker made, in 25-45 words, then close with ONE short sign-off sentence. No drawn-out goodbyes and no thanking the other speakers by turn.`
+                    : `You are one voice in a panel discussion. ${tonePrompt} Back your points with a concrete example or a specific line of reasoning, in 25-50 words. Make one point well, not three points thinly. End with a question only if it genuinely moves the discussion somewhere new; statements are fine.`,
             },
         ];
         try {
