@@ -179,6 +179,9 @@ a:hover { color: var(--color-accent-600); }
   text-align: center;
 }
 .msg-local {
+  /* The wrapper centers the box and its label; the prose inside reads
+     left-justified like the other bubbles. */
+  text-align: left;
   background: var(--color-neutral-100);
   border: 1px dashed var(--color-accent-700);
   padding: var(--space-3) var(--space-4);

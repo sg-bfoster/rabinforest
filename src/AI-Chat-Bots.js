@@ -58,8 +58,8 @@ const AIChatBots = () => {
     // transport. Real SSE here would mean three engines' worth of streaming
     // paths for a page where only the effect matters (the assistant page is
     // where genuine streaming earns its complexity, and even there it owns
-    // the H12 story). Word-chunked so mid-word flicker never shows; ~18ms per
-    // word puts a 75-word panel reply at ~1.4s, about reading speed.
+    // the H12 story). Word-chunked so mid-word flicker never shows; ~26ms per
+    // word puts a 75-word panel reply at ~2s, a touch under reading speed.
     const revealMessage = (botId, fullText) =>
         new Promise((resolve) => {
             const words = fullText.split(/(\s+)/); // keep whitespace tokens
@@ -75,7 +75,7 @@ const AIChatBots = () => {
                     return next;
                 });
                 if (done) resolve();
-                else setTimeout(tick, 18);
+                else setTimeout(tick, 26);
             };
             tick();
         });
