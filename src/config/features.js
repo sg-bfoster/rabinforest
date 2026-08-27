@@ -23,4 +23,16 @@ export const FEATURES = {
    * what you will test against when turning this on.
    */
   readAloud: false,
+
+  /**
+   * Chat Bots: let the visitor choose which model fills the local seat.
+   *
+   * OFF until gpt-oss-20b is actually downloaded on the box. The server
+   * allowlist already resolves the key safely, but offering a choice that
+   * always 503s is worse than offering no choice — the box answering "asleep"
+   * for one option and not the other reads as a broken site, not a toggle.
+   *
+   * Flip to true once /v1/models on the box lists both.
+   */
+  localModelToggle: false,
 };

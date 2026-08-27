@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { API_ENDPOINTS } from './config/api';
+import { FEATURES } from './config/features';
 
 /**
  * Three bots, one topic. Gemini and OpenAI are cloud models; RabinAI is the
@@ -13,6 +14,19 @@ const BOTS = [
     { id: 'AssistantB', label: 'OpenAI', engine: 'openai', side: 'right' },
     { id: 'AssistantC', label: 'RabinAI', engine: 'rabinai', side: 'center' },
 ];
+
+// Which model occupies the local seat. Keys ONLY — the server owns the mapping
+// to real model ids (RABINAI_MODELS in ai.js), because letting a browser name a
+// model would be asking the box to load whatever a visitor typed.
+//
+// A toggle rather than a fourth bot on purpose: Chat Bots runs strictly
+// sequentially, so a fourth speaker would add ~33% to every round, undoing the
+// turn/token tuning. Swapping the local seat shows the same thing — the box
+// runs more than one model — at no cost to conversation length.
+const LOCAL_MODELS = {
+    qwen3: { label: 'Qwen3-30B' },
+    gptoss: { label: 'gpt-oss-20b' },
+};
 
 // One line of steering each — the tone slot in the panel prompt. Proven by the
 // original hard-coded "polite agreement is boring", which reliably produced
@@ -50,6 +64,7 @@ const AIChatBots = () => {
     const [topic, setTopic] = useState('');
     // Mixed defaults on purpose, so a first visit shows the dropdowns matter.
     const [tones, setTones] = useState(['argumentative', 'agreeable', 'skeptical']);
+    const [localModel, setLocalModel] = useState('qwen3');
     const conLength = 9; // multiple of 3 so every bot gets equal turns — 2 substantive rounds + 1 closing round. 12 was tried; the growing history compounds RabinAI's prefill each turn, and 9 keeps the late rounds well clear of the deadline instead of brushing it.
 
     // One history per bot: its own lines are "assistant", everyone else's are
@@ -80,7 +95,12 @@ const AIChatBots = () => {
             },
         ];
         try {
-            const { data } = await axios.post(API_ENDPOINTS.AI_CHAT, { messages: conversation, engine });
+            const { data } = await axios.post(API_ENDPOINTS.AI_CHAT, {
+                messages: conversation,
+                engine,
+                // Ignored by the cloud engines; the server resolves the key.
+                ...(engine === 'rabinai' ? { localModel } : {}),
+            });
             return data.response;
         } catch (error) {
             // The box being off is expected, not exceptional.
@@ -249,6 +269,24 @@ const AIChatBots = () => {
                         </label>
                     ))}
                 </div>
+                {FEATURES.localModelToggle && (
+                    <div className="tone-row">
+                        <label className="tone-pick">
+                            <span className="tone-pick-label">RabinAI model</span>
+                            <select
+                                className="input tone-select"
+                                value={localModel}
+                                disabled={isActive}
+                                aria-label="Which model runs on the local box"
+                                onChange={(e) => setLocalModel(e.target.value)}
+                            >
+                                {Object.entries(LOCAL_MODELS).map(([key, m]) => (
+                                    <option key={key} value={key}>{m.label}</option>
+                                ))}
+                            </select>
+                        </label>
+                    </div>
+                )}
             </form>
             {messages.length > 0 && (
                 <div className="conversation">
