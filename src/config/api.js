@@ -47,7 +47,6 @@ if (import.meta.env.DEV) {
 }
 
 export const API_ENDPOINTS = {
-  ASSISTANT: `${API_BASE_URL}/ai/assistant`,
   GEMINI_ASSISTANT: `${API_BASE_URL}/ai/gemini-assistant`,
   ASSISTANT_WARM: `${API_BASE_URL}/ai/assistant/warm`,
   AI_CHAT: `${API_BASE_URL}/ai/ai-chat`,

@@ -182,7 +182,16 @@ const AIChatBots = () => {
     useEffect(() => {
         if (messages.length === 0) return;
         const id = requestAnimationFrame(() => {
-            window.scrollTo({ top: document.documentElement.scrollHeight });
+            // Follow the conversation only if the reader is already near the
+            // bottom. The reveal updates state every ~26ms, so an unconditional
+            // scroll here meant anyone who scrolled up to re-read got yanked
+            // back down for the entire life of every typing bubble.
+            const nearBottom =
+                window.innerHeight + window.scrollY >=
+                document.documentElement.scrollHeight - 240;
+            if (nearBottom) {
+                window.scrollTo({ top: document.documentElement.scrollHeight });
+            }
         });
         return () => cancelAnimationFrame(id);
         // isActive: the New-topic button renders when the run ends — after the
