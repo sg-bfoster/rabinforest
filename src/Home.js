@@ -5,6 +5,7 @@ import { openModal } from './features/modalSlice';
 import { useDispatch } from 'react-redux';
 import { addLink } from './features/assistantSlice';
 import { API_ENDPOINTS } from './config/api';
+import { FEATURES } from './config/features';
 import { detectSitesInText } from './utils/siteDetector';
 import { LinkedText } from './utils/linkedText';
 import PixelForest from './components/PixelForest';
@@ -291,6 +292,9 @@ const Home = () => {
         });
 
     const handleReadAloud = async (index, html) => {
+        // Belt and braces: the button is not rendered when the flag is off, but
+        // the handler is the thing that spends money, so it checks too.
+        if (!FEATURES.readAloud) return;
         // Second click on the message that is talking = stop.
         if (speakingIndex === index) {
             stopSpeaking();
@@ -465,7 +469,7 @@ const Home = () => {
                                         {engineLabel}
                                     </span>
                                 )}
-                                {!isStreaming && messageText.trim() && (
+                                {FEATURES.readAloud && !isStreaming && messageText.trim() && (
                                     <button
                                         type="button"
                                         className="read-aloud-btn"
