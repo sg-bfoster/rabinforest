@@ -18,7 +18,7 @@ const AIChatBots = () => {
     const [messages, setMessages] = useState([]);
     const [isActive, setIsActive] = useState(false);
     const [topic, setTopic] = useState('');
-    const conLength = 9; // multiple of 3 so every bot gets equal turns
+    const conLength = 12; // multiple of 3 so every bot gets equal turns — 3 substantive rounds + 1 closing round
 
     // One history per bot: its own lines are "assistant", everyone else's are
     // "user", which is how each model sees itself as a participant.
@@ -39,7 +39,7 @@ const AIChatBots = () => {
             {
                 role: "system",
                 content: ending
-                    ? "Give your closing thought on the discussion: state where you landed and the strongest point another speaker made, in 40-60 words. No goodbyes, no well-wishes, no thanking anyone — just your final take."
+                    ? "This is the final round — wrap up the discussion. State where you landed and the strongest point another speaker made, in 40-60 words, then close with ONE short sign-off sentence. No drawn-out goodbyes and no thanking the other speakers by turn."
                     : "You are one voice in a panel discussion. Take a clear position and back it with a concrete example or a specific line of reasoning, in 40-80 words. Push back when you disagree — polite agreement is boring. End with a question only if it genuinely moves the discussion somewhere new; statements are fine.",
             },
         ];
@@ -132,7 +132,7 @@ const AIChatBots = () => {
             <h2 className="screen-h2">Three bots, one topic.</h2>
             <p className="screen-sub">
                 Give a subject and Gemini, OpenAI, and RabinAI — a model running on a
-                mini PC in my basement — talk it out. Nine turns, then they wrap up.
+                mini PC in my basement — talk it out. Twelve turns, then they wrap up.
             </p>
             <form onSubmit={startDiscussion}>
                 <div className="chat-input-row">
@@ -174,6 +174,20 @@ const AIChatBots = () => {
                             </div>
                         );
                     })}
+                    {!isActive && messages.length > 1 && (
+                        <div className="chat-input-row" style={{ justifyContent: 'center', marginTop: '1.5rem' }}>
+                            <button
+                                type="button"
+                                className="btn btn-primary"
+                                onClick={() => {
+                                    resetConversation("");
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                            >
+                                New topic
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
         </div>
