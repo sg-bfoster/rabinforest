@@ -331,7 +331,7 @@ a:hover { color: var(--color-accent-600); }
 .link-expired { color: var(--color-neutral-400); }
 
 /* Narrow viewports: the right gutter can't fit the panel — collapse it to a
-   floating toggle that opens the panel above it. */
+   floating toggle that opens the panel. */
 @media (max-width: 1259px) {
   .links-panel { display: none; }
   .links-panel.open {
@@ -736,6 +736,17 @@ a:hover { color: var(--color-accent-600); }
   .msg-user { max-width: 90%; }
   .msg-assistant { max-width: 90%; }
   .imagery-grid { grid-template-columns: 1fr; }
+  /* Nav wrapping leaves the brand row's top-right empty — put the toggle there
+     and open the panel downward so it doesn't cover the chat. */
+  .links-panel-toggle {
+    top: var(--space-4);
+    bottom: auto;
+  }
+  .links-panel.open {
+    top: calc(var(--space-4) + 44px);
+    bottom: auto;
+    max-height: min(420px, calc(100vh - 96px));
+  }
 }
 
 /* Chat Bots: blinking caret on a bubble that is still "typing" */

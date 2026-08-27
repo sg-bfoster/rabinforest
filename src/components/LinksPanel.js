@@ -11,7 +11,8 @@ import {
 
 // Floating panel on the right that collects links as the conversation builds.
 // On narrow viewports it collapses to a "Links · n" toggle so it never
-// overlaps the content column.
+// overlaps the content column. On mobile the toggle sits in the header's
+// top-right; the open panel drops below it.
 const LinksPanel = () => {
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
