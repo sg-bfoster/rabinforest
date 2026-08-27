@@ -175,6 +175,109 @@ const Home = () => {
     };
 
     // Function to handle resetting the chat
+    // ── Read aloud ─────────────────────────────────────────────────────
+    // One <audio> for the whole page, not one per message: starting a second
+    // answer must stop the first, and a shared element makes that automatic
+    // rather than a bookkeeping exercise across N components.
+    const audioRef = useRef(null);
+    const audioUrlRef = useRef(null);
+    const [speakingIndex, setSpeakingIndex] = useState(null);
+    const [loadingSpeechIndex, setLoadingSpeechIndex] = useState(null);
+
+    // Answers carry anchor markup (LinkedText renders it), and a speech engine
+    // would happily read "a href equals https colon" out loud. Strip to the
+    // words a person would actually say.
+    const spokenTextFor = (html) => {
+        const el = document.createElement('div');
+        el.innerHTML = html;
+        return (el.textContent || '').replace(/\s+/g, ' ').trim();
+    };
+
+    const stopSpeaking = () => {
+        // Pause but KEEP the element: it carries the browser's permission to
+        // play (see unlockAudio), and throwing it away would mean asking for
+        // that permission again at a moment when we no longer have a gesture.
+        if (audioRef.current) audioRef.current.pause();
+        if (audioUrlRef.current) {
+            // Blob URLs leak until revoked; a long chat would pin every clip.
+            URL.revokeObjectURL(audioUrlRef.current);
+            audioUrlRef.current = null;
+        }
+        setSpeakingIndex(null);
+    };
+
+    /**
+     * Claim playback permission SYNCHRONOUSLY, while the click is still the
+     * browser's idea of a user gesture.
+     *
+     * Chrome grants transient activation for only a few seconds. Speech for a
+     * full answer takes ~9s to synthesise, so by the time the audio arrives the
+     * original click has expired and play() fails with NotAllowedError — on a
+     * long answer, for a real user, having worked fine on a short one in
+     * testing. Playing a silent clip inside the handler marks this element as
+     * user-activated once; every later play() on the SAME element is allowed,
+     * however long the fetch took.
+     */
+    const SILENT_WAV =
+        'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQAAAAA=';
+
+    const unlockAudio = () => {
+        if (!audioRef.current) audioRef.current = new Audio(SILENT_WAV);
+        // Rejection is fine and expected on browsers that need no unlocking.
+        audioRef.current.play().catch(() => {});
+        return audioRef.current;
+    };
+
+    const handleReadAloud = async (index, html) => {
+        // Second click on the message that is talking = stop.
+        if (speakingIndex === index) {
+            stopSpeaking();
+            return;
+        }
+        stopSpeaking();
+
+        const text = spokenTextFor(html);
+        if (!text) return;
+
+        // Must happen before the first await, or the gesture is already gone.
+        const audio = unlockAudio();
+
+        setLoadingSpeechIndex(index);
+        try {
+            const res = await fetch(API_ENDPOINTS.READ_ALOUD, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                // The server rejects anything longer, so trim here rather than
+                // trading a spoken answer for a 400.
+                body: JSON.stringify({ prompt: text.slice(0, 4096) }),
+            });
+            if (!res.ok) throw new Error(`read aloud failed: ${res.status}`);
+
+            const url = URL.createObjectURL(await res.blob());
+            audioUrlRef.current = url;
+            audio.src = url; // same element, permission intact
+            // Drive state from the element's own events, and DO NOT await
+            // play(). Its promise can sit pending indefinitely when the browser
+            // defers playback, which shows up as a button stuck mid-load with a
+            // successful 200 behind it. onplay reports when audio truly began.
+            audio.onplay = () => setSpeakingIndex(index);
+            audio.onended = stopSpeaking;
+            audio.onerror = stopSpeaking;
+            audio.play().catch((err) => {
+                console.error('read aloud: playback rejected', err);
+                stopSpeaking();
+            });
+        } catch (err) {
+            console.error(err);
+            stopSpeaking();
+        } finally {
+            setLoadingSpeechIndex(null);
+        }
+    };
+
+    // Leaving the page mid-sentence should not keep talking.
+    useEffect(() => stopSpeaking, []);
+
     const handleResetChat = () => {
         localStorage.removeItem('assistantMessages');
         // Generate a new conversation ID for the new session
@@ -293,6 +396,22 @@ const Home = () => {
                                     >
                                         {engineLabel}
                                     </span>
+                                )}
+                                {!isStreaming && messageText.trim() && (
+                                    <button
+                                        type="button"
+                                        className="read-aloud-btn"
+                                        onClick={() => handleReadAloud(index, messageText)}
+                                        disabled={loadingSpeechIndex === index}
+                                        aria-label={
+                                            speakingIndex === index ? 'Stop reading' : 'Read this answer aloud'
+                                        }
+                                        title={
+                                            speakingIndex === index ? 'Stop reading' : 'Read this answer aloud'
+                                        }
+                                    >
+                                        {loadingSpeechIndex === index ? '…' : speakingIndex === index ? '◼' : '🔊'}
+                                    </button>
                                 )}
                                 <span className="msg-text">
                                     <LinkedText text={messageText} />

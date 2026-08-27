@@ -159,6 +159,26 @@ a:hover { color: var(--color-accent-600); }
 }
 .engine-tag.engine-rabinai { color: var(--color-accent-700); }
 
+/* Read-aloud control. .msg-assistant is a grid with justify-items:start, so
+   this sits on its own row above the text rather than inline with it — which
+   also keeps it clear of the engine tag when both are present. */
+.read-aloud-btn {
+  background: none;
+  border: 1px solid var(--color-neutral-400, #bbb);
+  color: var(--color-neutral-600, #777);
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+.read-aloud-btn:hover:not(:disabled),
+.read-aloud-btn:focus-visible {
+  color: var(--color-accent-700);
+  border-color: var(--color-accent-700);
+}
+.read-aloud-btn:disabled { cursor: progress; opacity: 0.6; }
+
 /* Assistant page: which engine answers, stated plainly */
 .intro-note {
   font-size: 13px;

@@ -56,6 +56,7 @@ export const API_ENDPOINTS = {
   ASSISTANT_BFOSTER: `${API_BASE_URL}/ai/assistant-bfoster`,
   ASSISTANT_BFOSTER_SAVE: `${API_BASE_URL}/ai/assistant-bfoster`,
   ADMIN_VERIFY: `${API_BASE_URL}/ai/admin/verify`,
+  READ_ALOUD: `${API_BASE_URL}/ai/readaloud`,
   CONVERSATION_LOGS: `${API_BASE_URL}/ai/conversation-logs`,
   DELETE_CONVERSATION: (conversationId) =>
     `${API_BASE_URL}/ai/conversation-logs/${conversationId}`,
