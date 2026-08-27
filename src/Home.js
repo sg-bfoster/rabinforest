@@ -1,6 +1,5 @@
 import axios from 'axios';
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
 import { openModal } from './features/modalSlice';
 import { useDispatch } from 'react-redux';
 import { addLink } from './features/assistantSlice';
@@ -411,19 +410,13 @@ const Home = () => {
                 <PixelForest />
             </div>
             <p className="intro-line">
-                A virtual neural forest, grown from Brian Foster's work. Ask about his skills,
-                projects, or availability.
+                A virtual neural forest, grown from Brian Foster's work.
             </p>
             <p className="intro-sub">
-                Rabin Forest is the AI-powered portfolio of Brian Foster, a senior frontend / UI
-                engineer in Metro Atlanta. Built for recruiters and hiring teams: ask the
-                assistant anything you'd ask him, try the playground pages, or grab the{' '}
-                <Link to="/resume">resume</Link>.
+                Senior frontend / UI engineer in Metro Atlanta.
             </p>
             <p className="intro-note">
-                Answers come from <strong>RabinAI</strong> — a Qwen3-30B model Brian runs on a mini
-                PC in his basement — and fall back to Google Gemini automatically when it's offline or
-                busy. Same answers either way; he built the routing.
+                Answers from <strong>RabinAI</strong>, with Gemini as backup.
             </p>
             {messages.length > 0 && (
                 <div className="conversation">
