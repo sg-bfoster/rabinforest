@@ -1,8 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import imageService from './services/imageServiceProvider';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addLink } from './features/assistantSlice';
-import { downloadImage, fileExtensionFromDataUrl, openImageInNewTab, revokeBlobUrl } from './utils/imageUrl';
+import { storeImageLink } from './utils/imageLinkStore';
+import {
+  downloadImage,
+  fileExtensionFromDataUrl,
+  isDataImageUrl,
+  openImageInNewTab,
+  resolveImageLinkUrl,
+  revokeBlobUrl,
+  toDisplayUrl,
+} from './utils/imageUrl';
 
 const ENGINE_LABELS = {
   openai: 'OpenAI',
@@ -13,6 +22,65 @@ const ENGINE_FULL_NAMES = {
   openai: 'OpenAI GPT Image',
   imagen: 'Google Gemini Image',
 };
+
+const ENGINE_LINK_SUFFIX = {
+  openai: ' (OpenAI)',
+  imagen: ' (Gemini)',
+};
+
+const LAST_IMAGERY_KEY = 'rf-imagery-last';
+
+function wrapDataUrl(dataUrl) {
+  return isDataImageUrl(dataUrl) ? { dataUrl, url: toDisplayUrl(dataUrl) } : null;
+}
+
+function lastPairFromStorage() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(LAST_IMAGERY_KEY) || 'null');
+    if (!parsed) return { openai: null, imagen: null };
+    return {
+      openai: wrapDataUrl(parsed.openai),
+      imagen: wrapDataUrl(parsed.imagen),
+    };
+  } catch {
+    return { openai: null, imagen: null };
+  }
+}
+
+function persistLastImagery(pair) {
+  try {
+    localStorage.setItem(LAST_IMAGERY_KEY, JSON.stringify({
+      openai: pair.openai?.dataUrl || null,
+      imagen: pair.imagen?.dataUrl || null,
+    }));
+  } catch {
+    // Quota — sessionStorage via storeImageLink still covers this tab.
+  }
+}
+
+/** Newest cached image for an engine, from the links panel store (newest first). */
+function lastCachedEngineImage(links, engine) {
+  const suffix = ENGINE_LINK_SUFFIX[engine];
+  if (!suffix || !Array.isArray(links)) return null;
+  for (const link of links) {
+    if (!link?.isImage) continue;
+    const text = typeof link.text === 'string' ? link.text : '';
+    if (!text.endsWith(suffix)) continue;
+    const dataUrl = resolveImageLinkUrl(link);
+    if (!isDataImageUrl(dataUrl)) continue;
+    return wrapDataUrl(dataUrl);
+  }
+  return null;
+}
+
+function initialImagery(links) {
+  const fromLinks = {
+    openai: lastCachedEngineImage(links, 'openai'),
+    imagen: lastCachedEngineImage(links, 'imagen'),
+  };
+  if (fromLinks.openai || fromLinks.imagen) return fromLinks;
+  return lastPairFromStorage();
+}
 
 const SegControl = ({ label, name, value, options, onChange, disabled }) => (
   <div className="field">
@@ -73,14 +141,16 @@ const ComparisonPanel = ({ engine, aspect, image, error, isGenerating, onViewIma
 
 const AiImageryForm = () => {
   const dispatch = useDispatch();
+  const persistentLinks = useSelector((state) => state.assistant.persistentLinks);
   const [prompt, setPrompt] = useState('');
   const [aspect, setAspect] = useState('square');
   const [quality, setQuality] = useState('standard');
   const [style, setStyle] = useState('natural');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [images, setImages] = useState({ openai: null, imagen: null });
+  const [images, setImages] = useState(() => initialImagery(persistentLinks));
   const [errors, setErrors] = useState({ openai: null, imagen: null, global: null });
   const resultsRef = useRef(null);
+  const skipScrollRef = useRef(true);
 
   const revokeCurrentImages = () => {
     Object.values(images).forEach((img) => {
@@ -112,6 +182,7 @@ const AiImageryForm = () => {
       });
 
       setImages({ openai, imagen });
+      persistLastImagery({ openai, imagen });
       setErrors({
         openai: engineErrors.openai ? 'OpenAI generation failed.' : null,
         imagen: engineErrors.imagen ? 'Gemini image generation failed.' : null,
@@ -119,10 +190,22 @@ const AiImageryForm = () => {
       });
 
       if (openai?.dataUrl) {
-        dispatch(addLink({ url: openai.dataUrl, dataUrl: openai.dataUrl, text: `${prompt} (OpenAI)`, isImage: true }));
+        const imageId = storeImageLink(openai.dataUrl);
+        dispatch(addLink({
+          url: `#image:${imageId}`,
+          imageId,
+          text: `${prompt} (OpenAI)`,
+          isImage: true,
+        }));
       }
       if (imagen?.dataUrl) {
-        dispatch(addLink({ url: imagen.dataUrl, dataUrl: imagen.dataUrl, text: `${prompt} (Gemini)`, isImage: true }));
+        const imageId = storeImageLink(imagen.dataUrl);
+        dispatch(addLink({
+          url: `#image:${imageId}`,
+          imageId,
+          text: `${prompt} (Gemini)`,
+          isImage: true,
+        }));
       }
     } catch {
       setErrors({ openai: null, imagen: null, global: 'Error generating images. Please try again.' });
@@ -145,6 +228,10 @@ const AiImageryForm = () => {
   );
 
   useEffect(() => {
+    if (skipScrollRef.current) {
+      skipScrollRef.current = false;
+      return;
+    }
     if ((images.openai || images.imagen || errors.global) && resultsRef.current) {
       setTimeout(() => {
         resultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });

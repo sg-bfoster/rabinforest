@@ -56,6 +56,7 @@ const assistantSlice = createSlice({
     clearLinks(state) {
       state.persistentLinks = [];
       localStorage.removeItem('persistentLinks');
+      localStorage.removeItem('rf-imagery-last');
       state.newLinks = [];
     }
   },
