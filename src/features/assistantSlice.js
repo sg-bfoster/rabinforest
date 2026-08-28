@@ -53,14 +53,33 @@ const assistantSlice = createSlice({
         // Quota exceeded (large images) — links still live in Redux for this session
       }
     },
+    clearImageryCache(state) {
+      const updated = state.persistentLinks.filter((link) => {
+        const text = typeof link?.text === 'string' ? link.text : '';
+        return !(link?.isImage && (text.endsWith(' (OpenAI)') || text.endsWith(' (Gemini)')));
+      });
+      state.persistentLinks = updated;
+      state.newLinks = [];
+      localStorage.removeItem('rf-imagery-last');
+      try {
+        const storable = updated.map((link) =>
+          link.isImage
+            ? { url: link.url, text: link.text, isImage: true, imageId: link.imageId }
+            : link
+        );
+        localStorage.setItem('persistentLinks', JSON.stringify(storable));
+      } catch {
+        // Quota — Redux is already cleared of imagery links
+      }
+    },
     clearLinks(state) {
       state.persistentLinks = [];
       localStorage.removeItem('persistentLinks');
       localStorage.removeItem('rf-imagery-last');
       state.newLinks = [];
-    }
+    },
   },
 });
 
-export const { resetAssistantState, addLink ,clearLinks } = assistantSlice.actions;
+export const { resetAssistantState, addLink, clearLinks, clearImageryCache } = assistantSlice.actions;
 export default assistantSlice.reducer;

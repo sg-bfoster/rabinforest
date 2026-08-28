@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import imageService from './services/imageServiceProvider';
 import { useDispatch, useSelector } from 'react-redux';
-import { addLink } from './features/assistantSlice';
+import { addLink, clearImageryCache } from './features/assistantSlice';
 import { storeImageLink } from './utils/imageLinkStore';
 import {
   downloadImage,
@@ -214,6 +214,14 @@ const AiImageryForm = () => {
     }
   };
 
+  const handleClear = () => {
+    revokeCurrentImages();
+    setImages({ openai: null, imagen: null });
+    setErrors({ openai: null, imagen: null, global: null });
+    setPrompt('');
+    dispatch(clearImageryCache());
+  };
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -295,6 +303,14 @@ const AiImageryForm = () => {
           <span className="spacer" />
           <button type="submit" className="btn btn-primary" disabled={isGenerating}>
             {isGenerating ? <span className="spinner" /> : 'Generate'}
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={handleClear}
+            disabled={isGenerating || (!images.openai && !images.imagen && !prompt.trim())}
+          >
+            Clear
           </button>
         </div>
       </form>
