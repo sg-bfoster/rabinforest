@@ -24,8 +24,8 @@ const BOTS = [
 // turn/token tuning. Swapping the local seat shows the same thing — the box
 // runs more than one model — at no cost to conversation length.
 const LOCAL_MODELS = {
-    qwen3: { label: 'Qwen3-30B' },
-    gptoss: { label: 'gpt-oss-20b' },
+    primary: { label: 'Primary' },
+    alt: { label: 'Alternate' },
 };
 
 // One line of steering each — the tone slot in the panel prompt. Proven by the
@@ -64,7 +64,7 @@ const AIChatBots = () => {
     const [topic, setTopic] = useState('');
     // Mixed defaults on purpose, so a first visit shows the dropdowns matter.
     const [tones, setTones] = useState(['argumentative', 'agreeable', 'skeptical']);
-    const [localModel, setLocalModel] = useState('qwen3');
+    const [localModel, setLocalModel] = useState('primary');
     const conLength = 9; // multiple of 3 so every bot gets equal turns — 2 substantive rounds + 1 closing round. 12 was tried; the growing history compounds RabinAI's prefill each turn, and 9 keeps the late rounds well clear of the deadline instead of brushing it.
 
     // One history per bot: its own lines are "assistant", everyone else's are
