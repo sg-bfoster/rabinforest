@@ -621,7 +621,7 @@ export const detectSitesInText = (text) => {
           .filter((n) => n !== -1);
         firstMatchPos = indices.length > 0 ? Math.min(...indices) : -1;
       }
-      score = hasMatch ? 1 : 0;
+      score = hasMatch ? 5 : 0;
     }
 
     if (hasMatch) {
@@ -650,9 +650,9 @@ export const detectSitesInText = (text) => {
   const portfolioAll = detectedSites.filter((s) => s.category === 'portfolio');
   const strongPortfolioCount = portfolioAll.filter((s) => (s._score || 0) >= 5).length;
 
-  // Default cap is 2. If the assistant explicitly names 3+ portfolio projects in one message,
-  // allow up to 3 so we don't hide a project the assistant just mentioned.
-  const portfolioCap = strongPortfolioCount >= 3 ? 3 : 2;
+  // Keep at least 2. If the assistant names several portfolio projects, show
+  // them (up to 4) instead of silently dropping the ones that matched later.
+  const portfolioCap = Math.min(Math.max(strongPortfolioCount, 2), 4);
 
   const portfolio = portfolioAll
     .sort((a, b) => {
