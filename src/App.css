@@ -868,11 +868,11 @@ a:hover { color: var(--color-accent-600); }
   font-weight: 600;
 }
 .imagery-result {
-  margin: var(--space-5) 0 0;
+  margin: var(--space-6) 0 0; /* clear air between the console box and the image */
 }
 .imagery-result img {
   display: block;
-  max-width: min(100%, 640px);
+  width: 100%; /* span the content column, same as the prose above it */
   border: 1px solid var(--color-neutral-300);
 }
 .imagery-result figcaption {
