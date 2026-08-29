@@ -25,6 +25,20 @@ const RabinAIImagery = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const consoleRef = useRef(null);
 
+  // "save it" deserves a name that says what the picture is. First few
+  // words of the prompt, kebab-cased, plus the seed so two runs of the
+  // same prompt don't collide in the Downloads folder.
+  const downloadName = () => {
+    const slug = prompt
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .split(/\s+/)
+      .slice(0, 6)
+      .join('-');
+    return `rabinai-${slug || 'image'}${meta?.seed ? `-${meta.seed}` : ''}.png`;
+  };
+
   const pushFrame = (line) => {
     setFrames((prev) => [...prev, line]);
     // Keep the newest line visible as the console grows.
@@ -146,7 +160,7 @@ const RabinAIImagery = () => {
           <img src={image} alt={prompt} />
           <figcaption>
             {(meta.ms / 1000).toFixed(1)}s on the box · seed {meta.seed} ·{' '}
-            <a href={image} download="rabinai-imagery.png">save it</a> — this
+            <a href={image} download={downloadName()}>save it</a> — this
             page won't remember it.
           </figcaption>
         </figure>
