@@ -1,6 +1,6 @@
 import { FEATURES } from '../config/features';
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { PLAYGROUND_CHAT_BOTS, PLAYGROUND_IMAGERY, PLAYGROUND_FACT_CHECK, PLAYGROUND_RABINAI_IMAGERY } from '../playgroundRoutes';
 
 export const PixelTreeLogo = ({ size = 22 }) => (
@@ -31,37 +31,63 @@ export const PixelTreeLogo = ({ size = 22 }) => (
 
 const navClass = ({ isActive }) => `site-nav-link${isActive ? ' active' : ''}`;
 
-const Header = () => (
-  <header className="site-header">
-    <div className="site-header-inner">
-      <NavLink to="/" className="brand">
-        <PixelTreeLogo />
-        Rabin Forest
-      </NavLink>
-      <nav className="site-nav">
-        <NavLink to="/" end className={navClass}>
-          Assistant
+const Header = () => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
+
+  return (
+    <header className="site-header">
+      <div className="site-header-inner">
+        <button
+          type="button"
+          className={`nav-toggle${menuOpen ? ' open' : ''}`}
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={menuOpen}
+          aria-controls="site-nav"
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          <span className="nav-toggle-bars" aria-hidden="true" />
+        </button>
+        <NavLink to="/" className="brand">
+          <PixelTreeLogo />
+          Rabin Forest
         </NavLink>
-        <NavLink to={PLAYGROUND_CHAT_BOTS} className={navClass}>
-          Chat Bots
-        </NavLink>
-        <NavLink to={PLAYGROUND_IMAGERY} className={navClass}>
-          Imagery
-        </NavLink>
-        <NavLink to={PLAYGROUND_FACT_CHECK} className={navClass}>
-          Fact Check
-        </NavLink>
-        {FEATURES.rabinaiImagery && (
-          <NavLink to={PLAYGROUND_RABINAI_IMAGERY} className={navClass}>
-            RabinAI Draws
+        <nav
+          id="site-nav"
+          className={`site-nav${menuOpen ? ' open' : ''}`}
+          aria-label="Site"
+          onClick={(e) => {
+            if (e.target.closest('a')) setMenuOpen(false);
+          }}
+        >
+          <NavLink to="/" end className={navClass}>
+            Assistant
           </NavLink>
-        )}
-        <NavLink to="/resume" className={navClass}>
-          Resume
-        </NavLink>
-      </nav>
-    </div>
-  </header>
-);
+          <NavLink to={PLAYGROUND_CHAT_BOTS} className={navClass}>
+            Chat Bots
+          </NavLink>
+          <NavLink to={PLAYGROUND_IMAGERY} className={navClass}>
+            Imagery Compare
+          </NavLink>
+          {FEATURES.rabinaiImagery && (
+            <NavLink to={PLAYGROUND_RABINAI_IMAGERY} className={navClass}>
+              RabinAI Images
+            </NavLink>
+          )}
+          <NavLink to={PLAYGROUND_FACT_CHECK} className={navClass}>
+            Fact Check
+          </NavLink>
+          <NavLink to="/resume" className={navClass}>
+            Resume
+          </NavLink>
+        </nav>
+      </div>
+    </header>
+  );
+};
 
 export default Header;
