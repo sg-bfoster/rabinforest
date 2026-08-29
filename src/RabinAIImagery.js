@@ -1,5 +1,8 @@
 import React, { useRef, useState } from 'react';
 import API_BASE_URL from './config/api';
+import { useDispatch } from 'react-redux';
+import { addLink } from './features/assistantSlice';
+import { storeImageLink } from './utils/imageLinkStore';
 
 /**
  * RabinAI Imagery — the box draws your prompt, and you watch it work.
@@ -17,6 +20,7 @@ import API_BASE_URL from './config/api';
 const IDLE_HINT = 'a lighthouse on a rocky coast at dusk, warm lamplight';
 
 const RabinAIImagery = () => {
+  const dispatch = useDispatch();
   const [prompt, setPrompt] = useState('');
   const [phase, setPhase] = useState('idle'); // idle | running | done | error
   const [frames, setFrames] = useState([]);
@@ -95,6 +99,16 @@ const RabinAIImagery = () => {
             setImage(d.image);
             setMeta({ ms: d.ms, seed: d.seed });
             setPhase('done');
+            // Same pattern the Imagery Compare page uses: the image goes into
+            // the links panel via the image-link store (quota-safe; the slice
+            // already dedupes and survives localStorage overflow).
+            const imageId = storeImageLink(d.image);
+            dispatch(addLink({
+              url: `#image:${imageId}`,
+              imageId,
+              text: `${p} (RabinAI)`,
+              isImage: true,
+            }));
           } else if (event === 'error') {
             throw new Error(d.message || 'The machine could not finish this one.');
           }
@@ -115,7 +129,7 @@ const RabinAIImagery = () => {
       <h2 className="screen-h2">Drawn in the basement.</h2>
       <p className="screen-sub">
         Type a prompt and RabinAI — the mini PC that answers this site's
-        assistant — paints it live. What you're watching in the console is
+        assistant — creates it live. What you're watching in the console is
         the actual machine working, step by step, over an encrypted tunnel
         into the house. About half a minute per image. Nothing is saved:
         the picture exists in this tab and nowhere else.
