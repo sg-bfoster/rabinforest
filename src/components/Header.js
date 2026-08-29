@@ -1,6 +1,7 @@
+import { FEATURES } from '../config/features';
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { PLAYGROUND_CHAT_BOTS, PLAYGROUND_IMAGERY, PLAYGROUND_FACT_CHECK } from '../playgroundRoutes';
+import { PLAYGROUND_CHAT_BOTS, PLAYGROUND_IMAGERY, PLAYGROUND_FACT_CHECK, PLAYGROUND_RABINAI_IMAGERY } from '../playgroundRoutes';
 
 export const PixelTreeLogo = ({ size = 22 }) => (
   <svg viewBox="0 0 32 32" style={{ width: size, height: size, display: 'block' }} aria-hidden="true">
@@ -50,6 +51,11 @@ const Header = () => (
         <NavLink to={PLAYGROUND_FACT_CHECK} className={navClass}>
           Fact Check
         </NavLink>
+        {FEATURES.rabinaiImagery && (
+          <NavLink to={PLAYGROUND_RABINAI_IMAGERY} className={navClass}>
+            RabinAI Draws
+          </NavLink>
+        )}
         <NavLink to="/resume" className={navClass}>
           Resume
         </NavLink>

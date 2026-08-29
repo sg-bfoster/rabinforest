@@ -35,4 +35,17 @@ export const FEATURES = {
    * Flip to true once /v1/models on the box lists both.
    */
   localModelToggle: false,
+
+  /**
+   * RabinAI Imagery: the box draws a visitor's prompt live, step by step
+   * (POST /ai/imagery/generate, SSE).
+   *
+   * ON in local dev (`npm run dev`) so the page can be designed and
+   * exercised against a local backend without deploying; OFF in every
+   * build, so production cannot show it even if this ships early. Stage 4
+   * replaces this with `true` after the bad-prompt pass — see
+   * bfoster-services/docs/RABINAI_IMAGERY_PLAN.md. The server has its own
+   * independent gate (RABINAI_IMAGERY=on) either way.
+   */
+  rabinaiImagery: import.meta.env.DEV === true,
 };

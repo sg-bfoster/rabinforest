@@ -1,6 +1,7 @@
 export const PLAYGROUND_CHAT_BOTS = '/playground/ai-chat-bots';
 export const PLAYGROUND_IMAGERY = '/playground/ai-imagery';
 export const PLAYGROUND_FACT_CHECK = '/playground/fact-check';
+export const PLAYGROUND_RABINAI_IMAGERY = '/playground/rabinai-imagery';
 
 export const VIEW_PATHS = {
   aichat: PLAYGROUND_CHAT_BOTS,

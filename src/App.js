@@ -10,6 +10,8 @@ import AiImageryForm from './Dalle-3';
 import FactCheck from './FactCheck';
 import DocumentHead from './DocumentHead';
 import { PLAYGROUND_CHAT_BOTS } from './playgroundRoutes';
+import { FEATURES } from './config/features';
+import RabinAIImagery from './RabinAIImagery';
 import Modal from './Modal';
 import Home from './Home';
 import Resume from './Resume';
@@ -51,6 +53,10 @@ const AppContent = () => {
             <Route path="ai-chat-bots" element={<AIChatBots />} />
             <Route path="ai-imagery" element={<AiImageryForm />} />
             <Route path="fact-check" element={<FactCheck />} />
+            <Route
+              path="rabinai-imagery"
+              element={FEATURES.rabinaiImagery ? <RabinAIImagery /> : <Navigate to={PLAYGROUND_CHAT_BOTS} replace />}
+            />
           </Route>
           <Route path="/resume" element={<Resume />} />
           <Route path="/admin" element={<Admin />} />
