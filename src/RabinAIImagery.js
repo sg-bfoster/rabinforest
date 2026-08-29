@@ -28,6 +28,7 @@ const RabinAIImagery = () => {
   const [meta, setMeta] = useState(null);     // { ms, seed }
   const [errorMsg, setErrorMsg] = useState('');
   const consoleRef = useRef(null);
+  const resultRef = useRef(null);
 
   // "save it" deserves a name that says what the picture is. First few
   // words of the prompt, kebab-cased, plus the seed so two runs of the
@@ -99,6 +100,12 @@ const RabinAIImagery = () => {
             setImage(d.image);
             setMeta({ ms: d.ms, seed: d.seed });
             setPhase('done');
+            // Bring the finished image into view once React has painted it.
+            // rAF alone aims at the pre-image layout (the AI-Chat-Bots page
+            // learned this the hard way); a paired rAF runs after commit.
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+              resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }));
             // Same pattern the Imagery Compare page uses: the image goes into
             // the links panel via the image-link store (quota-safe; the slice
             // already dedupes and survives localStorage overflow).
@@ -170,7 +177,7 @@ const RabinAIImagery = () => {
       )}
 
       {image && (
-        <figure className="imagery-result">
+        <figure className="imagery-result" ref={resultRef}>
           <img src={image} alt={prompt} />
           <figcaption>
             {(meta.ms / 1000).toFixed(1)}s on the box · seed {meta.seed} ·{' '}
