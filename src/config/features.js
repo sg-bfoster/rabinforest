@@ -47,5 +47,5 @@ export const FEATURES = {
    * bfoster-services/docs/RABINAI_IMAGERY_PLAN.md. The server has its own
    * independent gate (RABINAI_IMAGERY=on) either way.
    */
-  rabinaiImagery: true,
+  rabinaiImagery: import.meta.env.DEV === true,
 };
