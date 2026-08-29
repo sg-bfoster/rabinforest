@@ -538,6 +538,10 @@ const SITE_CONFIG = {
         label: 'Architecture (technical)',
         url: `${API_BASE_URL}/docs/RabinAI-Architecture.pdf`,
       },
+      {
+        label: 'App flow — how a prompt routes',
+        url: `${API_BASE_URL}/docs/RabinAI-App-Flow.pdf`,
+      },
     ],
     patterns: [
       // Both forms are anchored so neither can match inside "rabinforest".
