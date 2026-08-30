@@ -5,9 +5,14 @@ import { FEATURES } from './config/features';
 
 /**
  * Three bots, one topic. Gemini and OpenAI are cloud models; RabinAI is the
- * home inference box, which is part-time by design — when it's off the server
- * answers 503 { asleep: true } and it sits that turn out rather than breaking
- * the conversation.
+ * home inference box, which is part-time by design — when it's off the
+ * conversation keeps going and the box's turn is a sleeping mini-PC.
+ *
+ * The box being unreachable used to hang the whole panel: axios had no
+ * timeout, and only a JSON 503 { asleep: true } counted as a skip. Heroku
+ * H12s, tunnel timeouts, and network errors all throw instead — so Gemini
+ * and OpenAI never got their remaining turns. Any RabinAI miss is now
+ * asleep, and once it's down we stop asking for the rest of the run.
  */
 const BOTS = [
     { id: 'AssistantA', label: 'Gemini', engine: 'gemini', side: 'left' },
@@ -58,6 +63,38 @@ const TONES = {
     },
 };
 
+// A little longer than the box's 30s abort so a slow-but-awake reply still
+// lands; short enough that a connection that never closes cannot freeze the
+// panel. Subsequent RabinAI turns in the same run do not wait this out again.
+const RABINAI_CLIENT_MS = 32_000;
+
+/** Pixel mini-PC with floating zzz — same rect language as the header tree. */
+const SleepingServer = () => (
+    <svg
+        className="asleep-server-svg"
+        viewBox="0 0 80 52"
+        width="80"
+        height="52"
+        aria-hidden="true"
+    >
+        <g fill="currentColor">
+            <rect x="6" y="20" width="2" height="24" />
+            <rect x="42" y="20" width="2" height="24" />
+            <rect x="6" y="20" width="38" height="2" />
+            <rect x="6" y="42" width="38" height="2" />
+            <rect x="12" y="26" width="18" height="2" />
+            <rect x="12" y="30" width="18" height="2" />
+            <rect x="12" y="34" width="12" height="2" />
+            <rect x="34" y="28" width="4" height="2" className="asleep-led" />
+            <rect x="10" y="44" width="4" height="2" />
+            <rect x="36" y="44" width="4" height="2" />
+        </g>
+        <text className="asleep-z asleep-z1" x="50" y="24">z</text>
+        <text className="asleep-z asleep-z2" x="58" y="16">z</text>
+        <text className="asleep-z asleep-z3" x="68" y="8">z</text>
+    </svg>
+);
+
 const AIChatBots = () => {
     const [messages, setMessages] = useState([]);
     const [isActive, setIsActive] = useState(false);
@@ -70,6 +107,7 @@ const AIChatBots = () => {
     // One history per bot: its own lines are "assistant", everyone else's are
     // "user", which is how each model sees itself as a participant.
     const histories = useRef(BOTS.map(() => []));
+    const rabinAsleep = useRef(false);
 
     const resetConversation = (newSubject) => {
         setMessages([]);
@@ -77,6 +115,7 @@ const AIChatBots = () => {
         histories.current = BOTS.map(() =>
             newSubject ? [{ role: "user", content: newSubject }] : []
         );
+        rabinAsleep.current = false;
         // Clearing (no new subject) should also empty the input — it's the
         // only visible state when there's no transcript, and leaving it made
         // the Clear button appear to do nothing.
@@ -94,17 +133,29 @@ const AIChatBots = () => {
                     : `You are one voice in a panel discussion. ${tonePrompt} Back your points with a concrete example or a specific line of reasoning, in 25-50 words. Make one point well, not three points thinly. End with a question only if it genuinely moves the discussion somewhere new; statements are fine.`,
             },
         ];
+        if (engine === 'rabinai' && rabinAsleep.current) return null;
         try {
-            const { data } = await axios.post(API_ENDPOINTS.AI_CHAT, {
-                messages: conversation,
-                engine,
-                // Ignored by the cloud engines; the server resolves the key.
-                ...(engine === 'rabinai' ? { localModel } : {}),
-            });
-            return data.response;
+            const { data } = await axios.post(
+                API_ENDPOINTS.AI_CHAT,
+                {
+                    messages: conversation,
+                    engine,
+                    // Ignored by the cloud engines; the server resolves the key.
+                    ...(engine === 'rabinai' ? { localModel } : {}),
+                },
+                engine === 'rabinai' ? { timeout: RABINAI_CLIENT_MS } : undefined,
+            );
+            const text = data?.response;
+            if (engine === 'rabinai' && !text) {
+                rabinAsleep.current = true;
+                return null;
+            }
+            return text;
         } catch (error) {
-            // The box being off is expected, not exceptional.
-            if (error.response?.status === 503 && error.response?.data?.asleep) return null;
+            if (engine === 'rabinai') {
+                rabinAsleep.current = true;
+                return null;
+            }
             throw error;
         }
     };
@@ -303,9 +354,18 @@ const AIChatBots = () => {
                         return (
                             <div key={idx} className={cls}>
                                 <span className="bot-label">{msg.isTopic ? 'Topic' : bot.label}</span>
-                                <div className={bubble} style={msg.asleep ? { opacity: 0.6, fontStyle: 'italic' } : undefined}>
-                                    {msg.message}
-                                    {msg.streaming && <span className="stream-cursor">▍</span>}
+                                <div
+                                    className={msg.asleep ? `${bubble} asleep-bubble` : bubble}
+                                    {...(msg.asleep ? { role: 'img', 'aria-label': `${bot.label} is asleep` } : {})}
+                                >
+                                    {msg.asleep ? (
+                                        <SleepingServer />
+                                    ) : (
+                                        <>
+                                            {msg.message}
+                                            {msg.streaming && <span className="stream-cursor">▍</span>}
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         );

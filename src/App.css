@@ -240,6 +240,35 @@ a:hover { color: var(--color-accent-600); }
   line-height: 1.55;
   white-space: pre-wrap;
 }
+.asleep-bubble {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-2) var(--space-3);
+  opacity: 0.85;
+}
+.asleep-server-svg {
+  display: block;
+  color: var(--color-accent-700);
+}
+.asleep-led {
+  fill: var(--color-accent);
+  opacity: 0.45;
+}
+.asleep-z {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 700;
+  fill: var(--color-accent-700);
+}
+.asleep-z1 { font-size: 11px; animation: asleep-zz 2.4s ease-in-out infinite; }
+.asleep-z2 { font-size: 13px; animation: asleep-zz 2.4s ease-in-out 0.35s infinite; }
+.asleep-z3 { font-size: 16px; animation: asleep-zz 2.4s ease-in-out 0.7s infinite; }
+@keyframes asleep-zz {
+  0%, 100% { opacity: 0.45; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-4px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .asleep-z1, .asleep-z2, .asleep-z3 { animation: none; opacity: 0.7; }
+}
 
 .bot-label {
   font-size: 11px;
