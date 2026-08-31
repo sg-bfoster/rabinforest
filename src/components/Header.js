@@ -2,6 +2,7 @@ import { FEATURES } from '../config/features';
 import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { PLAYGROUND_CHAT_BOTS, PLAYGROUND_IMAGERY, PLAYGROUND_FACT_CHECK, PLAYGROUND_RABINAI_IMAGERY } from '../playgroundRoutes';
+import RabinAIStatus from './RabinAIStatus';
 
 export const PixelTreeLogo = ({ size = 22 }) => (
   <svg viewBox="0 0 32 32" style={{ width: size, height: size, display: 'block' }} aria-hidden="true">
@@ -68,10 +69,13 @@ const Header = () => {
         >
           <span className="nav-toggle-bars" aria-hidden="true" />
         </button>
-        <NavLink to="/" className="brand">
-          <PixelTreeLogo />
-          Rabin Forest
-        </NavLink>
+        <div className="brand-cluster">
+          <NavLink to="/" className="brand">
+            <PixelTreeLogo />
+            Rabin Forest
+          </NavLink>
+          {FEATURES.rabinaiStatus && <RabinAIStatus />}
+        </div>
         <nav
           id="site-nav"
           className={`site-nav${menuOpen ? ' open' : ''}`}

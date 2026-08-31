@@ -50,10 +50,10 @@ export const FEATURES = {
   rabinaiImagery: true,
 
   /**
-   * Ambient RabinAI status chip on the assistant page — polls the curated
+   * Ambient RabinAI status chip in the header — polls the curated
    * /ai/rabinai/status snapshot and shows what the home box is doing (warming,
-   * ready, asleep, drawing). Turns a Gemini-answered turn into "here's what the
-   * real machine is doing." See bfoster-services/docs/RABINAI_STATUS_PLAN.md.
+   * ready, asleep, drawing) on every page. Turns a Gemini-answered turn into
+   * "here's what the real machine is doing." See bfoster-services/docs/RABINAI_STATUS_PLAN.md.
    */
   rabinaiStatus: true,
 };

@@ -8,7 +8,6 @@ import { FEATURES } from './config/features';
 import { detectSitesInText } from './utils/siteDetector';
 import { LinkedText } from './utils/linkedText';
 import PixelForest from './components/PixelForest';
-import RabinAIStatus from './components/RabinAIStatus';
 
 // Generate a unique conversation ID
 const generateConversationId = () => {
@@ -419,7 +418,6 @@ const Home = () => {
             <p className="intro-note">
                 Answers from <strong>RabinAI</strong>, with Gemini as backup.
             </p>
-            {FEATURES.rabinaiStatus && <RabinAIStatus />}
             {messages.length > 0 && (
                 <div className="conversation">
                     {messages.map((msg, index) => {

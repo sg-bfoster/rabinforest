@@ -9,6 +9,11 @@
   --color-accent-2: #e15b47;
   --color-divider: color-mix(in srgb, #201e1d 40%, transparent);
 
+  /* Content column + header/footer. 760 was too tight once the RabinAI chip
+     sat beside the logo; 960 leaves room for the chip and the six nav links
+     without wrapping on a laptop. Intro copy still caps itself in ch. */
+  --page-max: 960px;
+
   /* Tonal ramps — generated in OKLCH on one shared lightness scale, so the
      same step of any role matches the others in visual value. */
   --color-neutral-100: #f8f4f4;
