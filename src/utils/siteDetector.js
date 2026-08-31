@@ -393,7 +393,7 @@ const SITE_CONFIG = {
       '/screenshots/askgwinnett2.png',
     ],
     summary:
-      'Plain-language answers about Gwinnett County, GA: property taxes, schools, parks, traffic, voting, and BOC & school board meetings — free, bilingual, and every answer links its source.',
+      'Plain-language answers about Gwinnett County, GA: property taxes, schools, parks, traffic, voting, and BOC & school board meetings — free, in English, Spanish, Korean, and Vietnamese, and every answer links its source.',
     screenshotPath: '/screenshots/askgwinnett1.png',
     url: 'https://www.askgwinnett.com',
     docs: [
