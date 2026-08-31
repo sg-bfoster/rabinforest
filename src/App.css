@@ -191,6 +191,46 @@ a:hover { color: var(--color-accent-600); }
 }
 .engine-tag.engine-rabinai { color: var(--color-accent-700); }
 
+/* RabinAI status chip — ambient readout of the home box's state (warming /
+   ready / asleep / drawing). Flat and small, in the engine-tag language. */
+.rabinai-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--color-neutral-600, #7d7979);
+  padding: 2px 8px;
+  border: 1px solid var(--color-neutral-300, #d7d3d3);
+  border-radius: 999px;
+  margin: var(--space-2, 8px) 0;
+  cursor: help;
+  user-select: none;
+}
+.rabinai-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-neutral-500, #9b9797);
+  flex: none;
+}
+.rabinai-status-ok .rabinai-status-dot { background: #2e9e5b; }
+.rabinai-status-warn .rabinai-status-dot {
+  background: var(--color-accent, #ec3013);
+  animation: rabinai-pulse 1.4s ease-in-out infinite;
+}
+.rabinai-status-off .rabinai-status-dot { background: var(--color-neutral-400, #bab6b6); }
+.rabinai-status-ok { border-color: color-mix(in srgb, #2e9e5b 45%, transparent); }
+.rabinai-status-warn { border-color: color-mix(in srgb, var(--color-accent, #ec3013) 40%, transparent); }
+
+@keyframes rabinai-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rabinai-status-warn .rabinai-status-dot { animation: none; }
+}
+
 /* Read-aloud control. .msg-assistant is a grid with justify-items:start, so
    this sits on its own row above the text rather than inline with it — which
    also keeps it clear of the engine tag when both are present. */
