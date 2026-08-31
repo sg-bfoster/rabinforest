@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearLinks } from '../features/assistantSlice';
 import { isSelfLink } from '../utils/linkUtils';
+import { isImageLinkRef, onImageLinksHydrated } from '../utils/imageLinkStore';
 import {
   isInlineImageUrl,
   isExpiredImageLink,
@@ -16,17 +17,13 @@ import {
 const LinksPanel = () => {
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
+  const [, setHydrated] = useState(0);
   const links = useSelector((state) => state.assistant.persistentLinks);
   const filteredLinks = Array.isArray(links) ? links.filter((l) => !isSelfLink(l?.url)) : [];
 
-  if (filteredLinks.length === 0) return null;
+  useEffect(() => onImageLinksHydrated(() => setHydrated((n) => n + 1)), []);
 
-  const handleLinkClick = (e, link) => {
-    if (link.isImage || isInlineImageUrl(link.url) || isInlineImageUrl(link.dataUrl)) {
-      e.preventDefault();
-      openImageInNewTab(resolveImageLinkUrl(link), link.text);
-    }
-  };
+  if (filteredLinks.length === 0) return null;
 
   return (
     <>
@@ -53,20 +50,42 @@ const LinksPanel = () => {
         <div className="links-panel-list">
           {filteredLinks.map((link, index) => {
             const imageUrl = resolveImageLinkUrl(link);
-            const isImageLink = link.isImage || isInlineImageUrl(imageUrl);
+            const isImageLink =
+              link.isImage || isImageLinkRef(link.url) || isInlineImageUrl(imageUrl);
             const expired = isImageLink && isExpiredImageLink(imageUrl);
+            const className = [
+              'links-panel-item',
+              expired ? 'link-expired' : '',
+            ].filter(Boolean).join(' ');
+            const label = `${link.text}${expired ? ' (expired)' : ''}`;
+            const title = expired
+              ? 'This link has expired — clear links or regenerate'
+              : undefined;
+
+            if (isImageLink) {
+              return (
+                <button
+                  key={index}
+                  type="button"
+                  className={className}
+                  title={title}
+                  onClick={() => openImageInNewTab(imageUrl, link.text)}
+                >
+                  {label}
+                </button>
+              );
+            }
+
             return (
               <a
                 key={index}
-                href={isImageLink ? '#' : link.url}
-                target={isImageLink ? undefined : '_blank'}
-                rel={isImageLink ? undefined : 'noopener noreferrer'}
-                onClick={(e) => handleLinkClick(e, link)}
-                className={expired ? 'link-expired' : undefined}
-                title={expired ? 'This link has expired — clear links or regenerate' : undefined}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={className}
+                title={title}
               >
-                {link.text}
-                {expired ? ' (expired)' : ''}
+                {label}
               </a>
             );
           })}

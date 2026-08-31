@@ -1,3 +1,5 @@
+import { getImageLinkData, imageIdFromRef, isImageLinkRef } from './imageLinkStore';
+
 export function isDataImageUrl(url) {
   return typeof url === 'string' && url.startsWith('data:image/');
 }
@@ -48,18 +50,24 @@ function escapeHtml(text) {
 }
 
 export function isExpiredImageLink(url) {
+  if (!url) return true;
+  // Unresolved #image: refs and dead blob: URLs are leftovers, not pictures.
+  if (isImageLinkRef(url) || url === '#') return true;
   return isBlobImageUrl(url);
 }
 
 /** Opens the image in a new browser tab (preview only — never triggers download). */
 export function openImageInNewTab(url, title = 'AI Imagery') {
-  if (!url) return;
-  if (isBlobImageUrl(url)) {
+  if (!url || isExpiredImageLink(url) || isBlobImageUrl(url)) {
     window.alert('This image link has expired. Clear old links or generate the image again.');
     return;
   }
   if (!isDataImageUrl(url)) {
-    window.open(url, '_blank', 'noopener,noreferrer');
+    if (/^https?:\/\//i.test(url)) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    window.alert('This image link has expired. Clear old links or generate the image again.');
     return;
   }
   const safeTitle = escapeHtml(title);
@@ -81,8 +89,6 @@ export function openImageInNewTab(url, title = 'AI Imagery') {
   window.open(pageUrl, '_blank', 'noopener,noreferrer');
   setTimeout(() => URL.revokeObjectURL(pageUrl), 60_000);
 }
-
-import { getImageLinkData, imageIdFromRef, isImageLinkRef } from './imageLinkStore';
 
 export function resolveImageLinkUrl(link) {
   if (!link) return null;
@@ -108,9 +114,8 @@ export function downloadImage(url, filename = 'generated-image.png') {
   const anchor = document.createElement('a');
   anchor.href = url;
   anchor.download = filename;
-  document.body.appendChild(anchor);
+  anchor.rel = 'noopener';
   anchor.click();
-  document.body.removeChild(anchor);
 }
 
 export function revokeBlobUrl(url) {

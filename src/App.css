@@ -412,13 +412,26 @@ a:hover { color: var(--color-accent-600); }
   overflow-y: auto;
   font-size: 13px;
 }
-.links-panel-list a {
+.links-panel-list a,
+.links-panel-list .links-panel-item {
   text-decoration: none;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: none;
 }
+.links-panel-list button.links-panel-item {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.links-panel-list button.links-panel-item:hover { color: var(--color-accent-600); }
 .links-panel-clear {
   font-size: 12px;
   align-self: flex-start;

@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { clearImageLinkStore } from '../utils/imageLinkStore';
 
 // The old fetchAssistantResponse thunk (POST /ai/assistant, the OpenAI
 // threads route) lived here. It was never dispatched — Home.js talks to
@@ -24,6 +25,7 @@ const assistantSlice = createSlice({
       state.error = null;
       localStorage.removeItem('conversation');
       localStorage.removeItem('threadId');
+      clearImageLinkStore();
     },
     addLink(state, action) {
       const newLink = action.payload;
@@ -77,6 +79,7 @@ const assistantSlice = createSlice({
       localStorage.removeItem('persistentLinks');
       localStorage.removeItem('rf-imagery-last');
       state.newLinks = [];
+      clearImageLinkStore();
     },
   },
 });
