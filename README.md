@@ -36,7 +36,8 @@ The application features a responsive design with a forest-themed UI, slide-out 
 
 - **Playground**
   - **AI Chat Bots** (`/playground/ai-chat-bots`): Conversation simulator with two AI assistants discussing topics
-  - **AI Imagery** (`/playground/ai-imagery`): Side-by-side image generation with OpenAI GPT Image and Google Gemini Image
+  - **RabinAI Images** (`/playground/rabinai-imagery`): Brian's home GPU draws a prompt live, step by step
+  - **Fact Check** (`/playground/fact-check`): Paste a claim and a source; a judge model rules whether the source supports it
   - Legacy `/playground?view=` URLs 301 to the path routes above
 
 - **Special Features**
@@ -239,7 +240,6 @@ Brian Foster - https://www.rabinforest.com
 
 - **bfoster-services**: Backend API service (https://github.com/sg-bfoster/bfoster-services)
 - **brianfoster.net**: Portfolio site showcasing React skills
-- **briantfoster.com**: Portfolio site showcasing Angular skills
 
 ## Acknowledgements
 

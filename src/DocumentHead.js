@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { pathForView, PLAYGROUND_CHAT_BOTS, PLAYGROUND_IMAGERY, PLAYGROUND_FACT_CHECK } from './playgroundRoutes';
+import { pathForView, PLAYGROUND_CHAT_BOTS, PLAYGROUND_IMAGERY, PLAYGROUND_FACT_CHECK, PLAYGROUND_RABINAI_IMAGERY } from './playgroundRoutes';
 
 const SITE = 'https://www.rabinforest.com';
 
@@ -24,10 +24,16 @@ const PAGES = {
     robots: 'index, follow',
   },
   [PLAYGROUND_IMAGERY]: {
-    title: 'AI Imagery | Rabin Forest',
-    description:
-      "Generate images with OpenAI GPT Image and Google Gemini Image side by side. A playground tool on Rabin Forest, Brian Foster's portfolio.",
+    title: 'Imagery Compare | Rabin Forest',
+    description: 'Unlisted playground. Not indexed.',
     canonical: `${SITE}${PLAYGROUND_IMAGERY}`,
+    robots: 'noindex, nofollow',
+  },
+  [PLAYGROUND_RABINAI_IMAGERY]: {
+    title: 'RabinAI Images | Rabin Forest',
+    description:
+      "Brian's home GPU draws your prompt live, step by step — self-hosted, no cloud fallback. A playground on Rabin Forest.",
+    canonical: `${SITE}${PLAYGROUND_RABINAI_IMAGERY}`,
     robots: 'index, follow',
   },
   [PLAYGROUND_FACT_CHECK]: {

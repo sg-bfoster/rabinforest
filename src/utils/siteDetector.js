@@ -28,18 +28,6 @@ const SITE_CONFIG = {
       /brian\s*foster\.net/gi,
     ],
   },
-  briantfoster_com: {
-    key: 'briantfoster_com',
-    displayName: 'briantfoster.com',
-    screenshotPath: '/screenshots/briantfoster-com-screenshot.png',
-    url: 'http://www.briantfoster.com',
-    patterns: [
-      /briantfoster\.com/gi,
-      /www\.briantfoster\.com/gi,
-      /https?:\/\/.*briantfoster\.com/gi,
-      /brian\s*t\s*foster\.com/gi,
-    ],
-  },
   findmeplaces: {
     key: 'findmeplaces',
     displayName: 'Find Me Places',

@@ -1,7 +1,7 @@
 import { FEATURES } from '../config/features';
 import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { PLAYGROUND_CHAT_BOTS, PLAYGROUND_IMAGERY, PLAYGROUND_FACT_CHECK, PLAYGROUND_RABINAI_IMAGERY } from '../playgroundRoutes';
+import { PLAYGROUND_CHAT_BOTS, PLAYGROUND_FACT_CHECK, PLAYGROUND_RABINAI_IMAGERY } from '../playgroundRoutes';
 import RabinAIStatus from './RabinAIStatus';
 
 export const PixelTreeLogo = ({ size = 22 }) => (
@@ -89,9 +89,6 @@ const Header = () => {
           </NavLink>
           <NavLink to={PLAYGROUND_CHAT_BOTS} className={navClass}>
             Chat Bots
-          </NavLink>
-          <NavLink to={PLAYGROUND_IMAGERY} className={navClass}>
-            Imagery Compare
           </NavLink>
           {FEATURES.rabinaiImagery && (
             <NavLink to={PLAYGROUND_RABINAI_IMAGERY} className={navClass}>

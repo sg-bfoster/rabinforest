@@ -106,7 +106,7 @@ const RabinAIImagery = () => {
             requestAnimationFrame(() => requestAnimationFrame(() => {
               resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }));
-            // Same pattern the Imagery Compare page uses: the image goes into
+            // Same pattern the unlisted compare page uses: the image goes into
             // the links panel via the image-link store (quota-safe; the slice
             // already dedupes and survives localStorage overflow).
             const imageId = storeImageLink(d.image);
