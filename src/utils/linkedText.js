@@ -17,6 +17,37 @@ const hrefFromAttrs = (attrs) => {
 
 const BARE_URL_RE = /https?:\/\/[^\s<>()"']+/g;
 
+/**
+ * `**this**` → a <strong>. Not a markdown renderer: the models emit this one
+ * construct (and nothing else we want to honour — lists, headings, and raw
+ * HTML would fight the chat layout). Unclosed markers stay visible, so a
+ * streaming reply does not flicker a half-bold word into existence.
+ */
+const BOLD_RE = /\*\*(.+?)\*\*/g;
+
+const renderFormatted = (value, keyPrefix) => {
+  if (!value) return value;
+  const nodes = [];
+  const re = new RegExp(BOLD_RE.source, 'g');
+  let lastIndex = 0;
+  let match;
+  let n = 0;
+  while ((match = re.exec(value)) !== null) {
+    if (match.index > lastIndex) {
+      nodes.push(value.slice(lastIndex, match.index));
+    }
+    nodes.push(
+      <strong key={`${keyPrefix}-b${n++}`}>{match[1]}</strong>,
+    );
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < value.length) {
+    nodes.push(value.slice(lastIndex));
+  }
+  if (nodes.length === 0) return value;
+  return nodes;
+};
+
 /** Split a plain-text chunk into text/link chunks around bare URLs. */
 const linkifyBareUrls = (value) => {
   const chunks = [];
@@ -77,10 +108,10 @@ export const LinkedText = ({ text }) => {
   return chunks.map((chunk, index) =>
     chunk.type === 'link' ? (
       <a key={index} href={chunk.href} target="_blank" rel="noopener noreferrer">
-        {chunk.value}
+        {renderFormatted(chunk.value, index)}
       </a>
     ) : (
-      chunk.value
+      <React.Fragment key={index}>{renderFormatted(chunk.value, index)}</React.Fragment>
     )
   );
 };

@@ -192,7 +192,7 @@ const Home = () => {
     // words a person would actually say.
     const spokenTextFor = (html) => {
         const el = document.createElement('div');
-        el.innerHTML = html;
+        el.innerHTML = html.replace(/\*\*(.+?)\*\*/g, '$1');
         return (el.textContent || '').replace(/\s+/g, ' ').trim();
     };
 

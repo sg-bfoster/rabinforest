@@ -173,6 +173,7 @@ a:hover { color: var(--color-accent-600); }
   line-height: 1.55;
 }
 .msg-assistant .msg-text { white-space: pre-wrap; }
+.msg-text strong { font-weight: 700; }
 
 /* Bot labels (Chat Bots screen) */
 .msg-assistant.msg-labeled { gap: var(--space-1); }
