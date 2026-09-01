@@ -409,14 +409,24 @@ const Home = () => {
             <div className="forest-strip">
                 <PixelForest />
             </div>
+            {/* Landing copy, direction B — see bfoster-services/docs/SITE_MESSAGING_PLAN.md.
+                Written for a recruiter, not an engineer. The previous version led with
+                "A virtual neural forest…", which never said what the page IS or what to
+                DO with it, and put two unexplained proper nouns above the fold
+                ("Answers from RabinAI, with Gemini as backup") — where "backup" also
+                implied something might be broken. The self-hosted story is the site's
+                best fact, so it is now STATED in plain words rather than only named;
+                "RabinAI" still appears throughout the rest of the site. */}
             <p className="intro-line">
-                A virtual neural forest, grown from Brian Foster's work.
+                A portfolio you can talk to.
             </p>
             <p className="intro-sub">
-                Senior frontend / UI engineer in Metro Atlanta.
+                Senior frontend / UI engineer in Metro Atlanta. Ask about his
+                experience, his projects, or whether he's available.
             </p>
             <p className="intro-note">
-                Answers from <strong>RabinAI</strong>, with Gemini as backup.
+                Answers come from an AI server Brian built and runs at home. When
+                it's busy, Google's Gemini fills in — so you always get an answer.
             </p>
             {messages.length > 0 && (
                 <div className="conversation">
