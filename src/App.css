@@ -135,13 +135,12 @@ a:hover { color: var(--color-accent-600); }
 /* ── assistant screen ──────────────────────────────────────────────────── */
 .forest-strip { padding-top: var(--space-6); }
 .intro-line {
-  /* This is the page h1 (semantics), not a display heading (design).
-     .intro-line never set a weight, so promoting the tag would inherit the
-     UA bold and change the look — pin it to keep the visual identical. */
-  font-weight: 400;
+  /* The assistant's page title. Type treatment is shared with .screen-h2 in
+     the page-title rule below, so the landing h1 and every playground h1 look
+     like the same element — which they now are semantically. Only layout
+     (spacing, measure) is specific to this screen. */
   margin: var(--space-6) 0 0;
-  font-size: 20px;
-  line-height: 1.5;
+  line-height: 1.25;
   max-width: 46ch;
 }
 .intro-sub {
@@ -473,12 +472,21 @@ a:hover { color: var(--color-accent-600); }
 }
 
 /* ── playground screens ────────────────────────────────────────────────── */
-.screen-h2 {
-  margin: var(--space-6) 0 var(--space-2);
+/* Page title — every screen's h1, including the assistant's.
+   The class is still called .screen-h2 for historical reasons: it named a tag,
+   and the tag became an h1 when the site's heading hierarchy was fixed
+   (no page had an h1 at all, and starting at h2 skipped a level). Renaming it
+   touches every page, so the shared rule below is the honest description of
+   what these are, and the rename is left for a deliberate pass. */
+.screen-h2,
+.intro-line {
   font-family: var(--font-heading);
   font-size: 26px;
   font-weight: 700;
   letter-spacing: -0.01em;
+}
+.screen-h2 {
+  margin: var(--space-6) 0 var(--space-2);
 }
 .screen-sub {
   margin: 0 0 var(--space-4);
