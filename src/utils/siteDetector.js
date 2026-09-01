@@ -159,12 +159,22 @@ const SITE_CONFIG = {
     displayName: 'REV Protection Plans',
     screenshotPath: '/screenshots/rev-screenshot.png',
     url: 'https://www.revprotectionplans.com',
+    summary:
+      'Consumer vehicle-protection platform Brian owns the frontend for at Safe-Guard — the live example of the fourteen automotive brand sites across the US and Canada.',
     patterns: [
       /rev\s*protection\s*plans/gi,
       /revprotectionplans\.com/gi,
       /www\.revprotectionplans\.com/gi,
       /https?:\/\/.*revprotectionplans\.com/gi,
       /rev\s*protection/gi,
+      // Answers describe this work as Safe-Guard / the brand platforms, not
+      // "REV", so those mentions have to resolve here too.
+      /\bsafe[\s-]*guard\b/gi,
+      /\bfourteen\s+automotive\s+brands\b/gi,
+      /\b14\s+automotive\s+brands\b/gi,
+      /vehicle\s+protection\s+platforms?/gi,
+      /vehicle\s+service\s+contracts?/gi,
+      /odometer\s+verif/gi,
     ],
   },
   porsche: {

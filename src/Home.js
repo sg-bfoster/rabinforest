@@ -406,6 +406,9 @@ const Home = () => {
 
     return (
         <div>
+            <h1 className="intro-line">
+                A portfolio you can talk to.
+            </h1>
             <div className="forest-strip">
                 <PixelForest />
             </div>
@@ -417,9 +420,9 @@ const Home = () => {
                 implied something might be broken. The self-hosted story is the site's
                 best fact, so it is now STATED in plain words rather than only named;
                 "RabinAI" still appears throughout the rest of the site. */}
-            <h1 className="intro-line">
-                A portfolio you can talk to.
-            </h1>
+            <h2 className="intro-line">
+                Brian Foster
+            </h2>
             <p className="intro-sub">
                 Senior frontend / UI engineer in Metro Atlanta. Ask about his
                 experience, his projects, or whether he's available.
