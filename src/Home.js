@@ -417,9 +417,9 @@ const Home = () => {
                 implied something might be broken. The self-hosted story is the site's
                 best fact, so it is now STATED in plain words rather than only named;
                 "RabinAI" still appears throughout the rest of the site. */}
-            <p className="intro-line">
+            <h1 className="intro-line">
                 A portfolio you can talk to.
-            </p>
+            </h1>
             <p className="intro-sub">
                 Senior frontend / UI engineer in Metro Atlanta. Ask about his
                 experience, his projects, or whether he's available.

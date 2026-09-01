@@ -133,7 +133,7 @@ const RabinAIImagery = () => {
 
   return (
     <div>
-      <h2 className="screen-h2">Drawn in the basement.</h2>
+      <h1 className="screen-h2">Drawn in the basement.</h1>
       <p className="screen-sub">
         Type a prompt and RabinAI — the mini PC that answers this site's
         assistant — creates it live. What you're watching in the console is

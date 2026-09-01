@@ -90,7 +90,7 @@ const FactCheck = () => {
 
   return (
     <div>
-      <h2 className="screen-h2">One claim, one source.</h2>
+      <h1 className="screen-h2">One claim, one source.</h1>
       <p className="screen-sub">
         AI answers sound confident whether or not their sources back them up. This page is the
         checkpoint that catches the difference: paste a claim and the source that supposedly
@@ -221,7 +221,7 @@ const FactCheck = () => {
       )}
 
       <div className="fact-check-how">
-        <h3 className="fact-check-how-title">How stilltrue works</h3>
+        <h2 className="fact-check-how-title">How stilltrue works</h2>
         <p className="fact-check-how-sub">
           The npm package ships no AI. Its scheduled drift checks are pure string matching; its
           verify pipeline is a row of slots — and this page is what happens when an app plugs a

@@ -239,7 +239,7 @@ const Admin = () => {
     if (!isAuthenticated) {
         return (
             <div>
-                <h2 className="screen-h2">Admin</h2>
+                <h1 className="screen-h2">Admin</h1>
                 <p className="screen-sub">Enter the admin key to manage assistant content and logs.</p>
                 <form onSubmit={handlePasswordSubmit} style={{ maxWidth: '360px' }}>
                     <div className="field">
@@ -268,7 +268,7 @@ const Admin = () => {
 
     return (
         <div>
-            <h2 className="screen-h2">Admin</h2>
+            <h1 className="screen-h2">Admin</h1>
             <div className="admin-tabs">
                 <button
                     className={`admin-tab${activeSection === 'content' ? ' active' : ''}`}

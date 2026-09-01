@@ -249,7 +249,7 @@ const AiImageryForm = () => {
 
   return (
     <div>
-      <h2 className="screen-h2">One prompt, two engines.</h2>
+      <h1 className="screen-h2">One prompt, two engines.</h1>
       <p className="screen-sub">
         The same prompt goes to OpenAI GPT Image and Google Gemini Image, side by side.
       </p>

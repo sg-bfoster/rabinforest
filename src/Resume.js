@@ -6,7 +6,7 @@ const RESUME_URL = `${API_BASE_URL}/resume`;
 
 const Resume = () => (
   <div>
-    <h2 className="screen-h2">Resume</h2>
+    <h1 className="screen-h2">Resume</h1>
     <p className="screen-sub">
       Brian Foster's current resume, generated fresh from the assistant's source content.
     </p>

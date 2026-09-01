@@ -277,7 +277,7 @@ const AIChatBots = () => {
 
     return (
         <div>
-            <h2 className="screen-h2">Three bots, one topic.</h2>
+            <h1 className="screen-h2">Three bots, one topic.</h1>
             <p className="screen-sub">
                 Give a subject and Gemini, OpenAI, and RabinAI — a model running on a
                 mini PC in my basement — talk it out. Nine turns, then they wrap up.
