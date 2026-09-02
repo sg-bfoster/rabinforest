@@ -329,7 +329,11 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
-  padding: 4px 0 14px;
+  /* Horizontal breathing room for the conversation, added HERE rather than on
+     --ask-pad: the composer's corner radius is derived from that token
+     (calc(--ask-radius - --ask-pad)), so raising it would visibly reshape the
+     input. This insets the messages only. */
+  padding: 6px 18px 18px;
   margin-bottom: 8px;
   /* border-bottom: 1px solid var(--hairline); */
 }
