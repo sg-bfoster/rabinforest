@@ -1,4 +1,42 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+
+/**
+ * Starter prompts, three drawn at random per page load.
+ *
+ * An empty text box is the hardest thing to hand a visitor — the assistant
+ * page solves it with popular questions and this page had nothing. Chosen to
+ * suit the model rather than to be clever: SDXL Lightning at 8 steps is
+ * strongest on concrete, well-lit scenes with one clear subject, and weakest
+ * on crowds, text and hands. All are safely inside the moderation policy, so a
+ * suggested prompt can never be the thing that gets refused.
+ */
+const IDEA_POOL = [
+  'a lighthouse in a storm',
+  'a fox asleep in autumn leaves',
+  'an abandoned greenhouse full of ferns',
+  'a neon ramen shop in the rain',
+  'a hot air balloon over the desert at dawn',
+  'a cabin under the northern lights',
+  'koi in a stone pond',
+  'a spiral staircase in an old library',
+  'a sailboat lost in fog',
+  'glowing mushrooms on a forest floor',
+  'an empty diner at 3am',
+  'a mountain lake under granite peaks',
+  'a bookshop cat asleep in the window',
+  'a rusted truck reclaimed by wildflowers',
+  'a tea house in a bamboo forest',
+];
+
+/** Fisher-Yates, same as the assistant page's question picker. */
+const pickIdeas = (pool, n) => {
+  const copy = pool.slice();
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy.slice(0, n);
+};
 import API_BASE_URL from './config/api';
 import { useDispatch } from 'react-redux';
 import { addLink } from './features/assistantSlice';
@@ -28,8 +66,26 @@ const RabinAIImagery = () => {
   const [image, setImage] = useState(null);
   const [meta, setMeta] = useState(null);     // { ms, seed }
   const [errorMsg, setErrorMsg] = useState('');
+  const [ideas] = useState(() => pickIdeas(IDEA_POOL, 3));
   const consoleRef = useRef(null);
   const resultRef = useRef(null);
+
+  // Bring the console into view when a render starts.
+  //
+  // The console is rendered only once phase leaves 'idle', so it does not exist
+  // at the moment the click handler sets the phase. Scheduling the scroll from
+  // the handler — even behind paired rAFs — raced the commit and silently did
+  // nothing. An effect keyed on phase is the guarantee: React has committed the
+  // element before this runs, so the ref is populated.
+  //
+  // Without it the console mounts below the fold and the visitor stares at an
+  // empty page for the ~30s the machine works, which is the whole point of the
+  // page. 'start' rather than 'center' so the first step frames are at the top
+  // of the viewport and the image has room to arrive beneath them.
+  useEffect(() => {
+    if (phase !== 'running') return;
+    consoleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [phase]);
 
   // "save it" deserves a name that says what the picture is. First few
   // words of the prompt, kebab-cased, plus the seed so two runs of the
@@ -54,26 +110,19 @@ const RabinAIImagery = () => {
     });
   };
 
-  const generate = async (e) => {
-    e.preventDefault();
-    const p = prompt.trim();
+  const generate = async (e, override) => {
+    e?.preventDefault();
+    // A chip passes its text directly: setPrompt is async, so reading the
+    // state here would submit the PREVIOUS prompt on the first click.
+    const p = (override ?? prompt).trim();
     if (!p || phase === 'running') return;
+    if (override) setPrompt(override);
 
     setPhase('running');
     setFrames([]);
     setImage(null);
     setMeta(null);
     setErrorMsg('');
-
-    // Bring the console into view. It is rendered only once phase leaves
-    // 'idle', so it does not exist yet at this line — the paired rAF waits for
-    // React to commit and paint, the same trick the finished image below uses
-    // (a single rAF aims at the pre-console layout). Without this the console
-    // mounts below the fold and the visitor watches an empty page for the ~30s
-    // the machine is working, which is precisely the part worth watching.
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      consoleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }));
 
     try {
       const res = await fetch(`${API_BASE_URL}/ai/imagery/generate`, {
@@ -168,6 +217,20 @@ const RabinAIImagery = () => {
           {phase === 'running' ? 'Painting…' : 'Generate'}
         </button>
       </form>
+      <div className="idea-chips">
+        <span className="idea-chips-label">Try one</span>
+        {ideas.map((idea) => (
+          <button
+            key={idea}
+            type="button"
+            className="idea-chip"
+            onClick={() => generate(null, idea)}
+            disabled={phase === 'running'}
+          >
+            {idea}
+          </button>
+        ))}
+      </div>
 
       {phase !== 'idle' && (
         <div className="imagery-console" ref={consoleRef} aria-live="polite">

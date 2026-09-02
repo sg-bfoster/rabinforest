@@ -664,6 +664,43 @@
    select in tokens.css. */
 .tone-select { padding: 10px 12px; border-radius: 10px; font-size: 16px; }
 
+/* Starter prompts on the imagery page. Deliberately NOT reusing .popular-row
+   from the assistant hero: that is light text on a dark field, and this sits on
+   the pale page body, so it would render white on white. Chips rather than
+   full-width rows because image prompts are short phrases — three of them read
+   as a palette to pick from, where stacked rows would read as a menu. */
+.idea-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 2px 0;
+}
+.idea-chips-label {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-right: 2px;
+}
+.idea-chip {
+  font: inherit;
+  font-size: 14px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 140ms ease, color 140ms ease;
+}
+.idea-chip:hover:not(:disabled),
+.idea-chip:focus-visible {
+  border-color: var(--action);
+  color: var(--action);
+}
+.idea-chip:disabled { opacity: 0.5; cursor: default; }
+
 .imagery-console {
   margin-top: 28px;
   background: var(--console);
