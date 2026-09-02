@@ -7,7 +7,7 @@ const SITE = 'https://www.rabinforest.com';
 const DEFAULT = {
   title: 'Rabin Forest | Brian Foster — Senior Frontend Developer',
   description:
-    "Rabin Forest is Brian Foster's AI-powered portfolio. Chat with a Gemini assistant about his frontend skills, experience, and projects — Metro Atlanta.",
+    "Ask an AI about Brian Foster, senior UI engineer in Metro Atlanta. It answers from a server he built and runs at home, with Google Gemini as backup.",
   robots: 'index, follow',
 };
 
@@ -19,7 +19,7 @@ const PAGES = {
   [PLAYGROUND_CHAT_BOTS]: {
     title: 'AI Chat Bots | Rabin Forest',
     description:
-      "Watch Google Gemini and OpenAI ChatGPT talk out a topic you pick. A playground experiment on Rabin Forest, Brian Foster's portfolio.",
+      "Watch Google Gemini, OpenAI ChatGPT and RabinAI — Brian's self-hosted model — talk out a topic you pick. A playground on Rabin Forest.",
     canonical: `${SITE}${PLAYGROUND_CHAT_BOTS}`,
     robots: 'index, follow',
   },
