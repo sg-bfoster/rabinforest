@@ -65,6 +65,16 @@ const RabinAIImagery = () => {
     setMeta(null);
     setErrorMsg('');
 
+    // Bring the console into view. It is rendered only once phase leaves
+    // 'idle', so it does not exist yet at this line — the paired rAF waits for
+    // React to commit and paint, the same trick the finished image below uses
+    // (a single rAF aims at the pre-console layout). Without this the console
+    // mounts below the fold and the visitor watches an empty page for the ~30s
+    // the machine is working, which is precisely the part worth watching.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      consoleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }));
+
     try {
       const res = await fetch(`${API_BASE_URL}/ai/imagery/generate`, {
         method: 'POST',
