@@ -436,8 +436,8 @@ const Home = () => {
             <Hero variant="assistant">
                 <h1 className="hero-h1">Ask me about Brian.</h1>
                 <p className="hero-sub">
-                    Senior UI engineer in Metro Atlanta. This model runs on hardware
-                    he owns and wired himself.
+                    Senior UI engineer in Metro Atlanta. RabinAI runs on hardware
+                    in his basement he configured himself.
                 </p>
                 <form onSubmit={handleSubmit} className="ask-form">
                     <div ref={askCardRef} className={`ask-card${messages.length > 0 ? ' ask-card--live' : ''}`}>
@@ -553,22 +553,26 @@ const Home = () => {
                         </div>
                     </div>
                 </form>
-                {messages.length === 0 && (
-                    <div className="popular-questions">
-                        <div className="eyebrow">Popular questions</div>
-                        {suggested.map((q) => (
-                            <button
-                                key={q}
-                                type="button"
-                                className="popular-row"
-                                onClick={() => handleSubmit(null, q)}
-                            >
-                                {q}
-                                <span aria-hidden="true">→</span>
-                            </button>
-                        ))}
-                    </div>
-                )}
+                {/* Always rendered, never gated on messages.length. Unmounting these
+                    the moment a question was submitted collapsed the page height and
+                    jerked the scroll position upward mid-answer. They are also still
+                    useful once a conversation is underway — a visitor who has read one
+                    answer is exactly who wants an easy second question. */}
+                <div className="popular-questions">
+                    <div className="eyebrow">Popular questions</div>
+                    {suggested.map((q) => (
+                        <button
+                            key={q}
+                            type="button"
+                            className="popular-row"
+                            onClick={() => handleSubmit(null, q)}
+                            disabled={isLoading}
+                        >
+                            {q}
+                            <span aria-hidden="true">→</span>
+                        </button>
+                    ))}
+                </div>
             </Hero>
             <ScreenBody width="assistant">
                 <section className="trust-band">
