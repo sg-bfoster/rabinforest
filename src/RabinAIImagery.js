@@ -84,8 +84,29 @@ const RabinAIImagery = () => {
   // of the viewport and the image has room to arrive beneath them.
   useEffect(() => {
     if (phase !== 'running') return;
+    // scrollIntoView can only scroll as far as the document allows. The console
+    // is the last thing on the page, so without extra room below it the browser
+    // scrolls to its maximum and the console's bottom ends up under the fixed
+    // footer — which is what every earlier attempt here was actually hitting,
+    // whatever value of `block` was used. The spacer rendered below while a
+    // render is running creates that room; with it, aligning the console's TOP
+    // just under the sticky header (scroll-margin-top) puts the whole 15rem box
+    // in view with the footer nowhere near it.
     consoleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [phase]);
+
+  // Keep the newest line visible INSIDE the console as it grows.
+  //
+  // This used to run from pushFrame behind a requestAnimationFrame, which
+  // fired before React had committed the new line — so it scrolled to the
+  // PREVIOUS scrollHeight and the newest frame sat just below the fold. The
+  // last line of a finished render ("image ready — …s on the box") was
+  // therefore always the one clipped, which is the line people most want.
+  // An effect on frames runs after commit, so scrollHeight is current.
+  useEffect(() => {
+    const el = consoleRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [frames]);
 
   // "save it" deserves a name that says what the picture is. First few
   // words of the prompt, kebab-cased, plus the seed so two runs of the
@@ -101,14 +122,7 @@ const RabinAIImagery = () => {
     return `rabinai-${slug || 'image'}${meta?.seed ? `-${meta.seed}` : ''}.png`;
   };
 
-  const pushFrame = (line) => {
-    setFrames((prev) => [...prev, line]);
-    // Keep the newest line visible as the console grows.
-    requestAnimationFrame(() => {
-      const el = consoleRef.current;
-      if (el) el.scrollTop = el.scrollHeight;
-    });
-  };
+  const pushFrame = (line) => setFrames((prev) => [...prev, line]);
 
   const generate = async (e, override) => {
     e?.preventDefault();
@@ -258,6 +272,15 @@ const RabinAIImagery = () => {
           </figcaption>
         </figure>
       )}
+
+      {/* Scroll room. The console is the last element on the page while a
+          render is in flight, and scrollIntoView cannot scroll further than the
+          document allows — so without this the browser hit its maximum scroll
+          and left the console's bottom under the fixed footer, no matter which
+          `block` value was used. This reserves enough height for the console to
+          reach the top of the viewport. Rendered only while running; once the
+          image arrives it supplies its own height and the spacer goes away. */}
+      {phase === 'running' && <div className="imagery-scroll-room" aria-hidden="true" />}
       </ScreenBody>
     </>
   );

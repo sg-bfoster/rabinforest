@@ -701,7 +701,16 @@
 }
 .idea-chip:disabled { opacity: 0.5; cursor: default; }
 
+/* Reserves scrollable height so the console can actually reach the top of the
+   viewport. Without it the console is the last element on the page and the
+   browser simply cannot scroll far enough, leaving it under the fixed footer. */
+.imagery-scroll-room { height: 60vh; }
+
 .imagery-console {
+  /* The footer is position:fixed, so it floats over the page. scroll-margin
+     keeps scrollIntoView from parking this (or the image below it) underneath
+     the footer bar. */
+  scroll-margin-top: 96px; /* clear the sticky header when scrolled into view */
   margin-top: 28px;
   background: var(--console);
   border-radius: 16px;
