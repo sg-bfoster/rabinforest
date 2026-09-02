@@ -73,8 +73,28 @@ const linkifyBareUrls = (value) => {
   return chunks;
 };
 
+/**
+ * Strip inline HTML the model should never have written.
+ *
+ * The assistant's answers are rendered as TEXT — this module finds URLs and
+ * builds real <a> elements itself, and nothing is passed through
+ * dangerouslySetInnerHTML. So any tag the model emits reaches the visitor as
+ * literal characters. Observed 2026-09-02: an answer displayed
+ * "<em>stilltrue</em>" on screen. The system prompt now forbids HTML, but a
+ * prompt rule only improves the odds — this is the guarantee. <a> is left
+ * alone because splitLinkedText below deliberately parses it.
+ *
+ * Deliberately an allowlist of inline tags rather than /<[^>]+>/g: a blanket
+ * strip would eat legitimate prose like "a < b" or a generic in "Array<T>".
+ */
+const STRAY_TAG_RE = /<\/?(?:em|strong|i|b|u|br|p|span|code|small|mark)\s*\/?>/gi;
+
+export const stripStrayHtml = (text) =>
+  (typeof text === 'string' ? text.replace(STRAY_TAG_RE, '') : text);
+
 export const splitLinkedText = (text) => {
   if (!text || typeof text !== 'string') return [];
+  text = stripStrayHtml(text);
 
   const chunks = [];
   let lastIndex = 0;
