@@ -26,6 +26,16 @@ const IDEA_POOL = [
   'a bookshop cat asleep in the window',
   'a rusted truck reclaimed by wildflowers',
   'a tea house in a bamboo forest',
+  // Deliberately brighter, closer and warmer than the set above, which had
+  // drifted entirely to moody wide shots at dusk. Three random picks from a
+  // monotone pool show one register three times and undersell the model;
+  // these give it somewhere to show high-key light, macro texture and colour.
+  'a bowl of ramen shot from directly above',
+  'a sunlit kitchen with lemons on the counter',
+  'a hummingbird at a red feeder',
+  'a stack of battered vintage suitcases',
+  'a close-up of dew on a spiderweb',
+  'a market stall piled with bright textiles',
 ];
 
 /** Fisher-Yates, same as the assistant page's question picker. */
@@ -66,7 +76,7 @@ const RabinAIImagery = () => {
   const [image, setImage] = useState(null);
   const [meta, setMeta] = useState(null);     // { ms, seed }
   const [errorMsg, setErrorMsg] = useState('');
-  const [ideas] = useState(() => pickIdeas(IDEA_POOL, 3));
+  const [ideas] = useState(() => pickIdeas(IDEA_POOL, 4));
   const consoleRef = useRef(null);
   const resultRef = useRef(null);
 
