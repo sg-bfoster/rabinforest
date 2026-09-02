@@ -11,18 +11,36 @@ import { Hero, ScreenBody } from './components/Hero';
 import { NavLink } from 'react-router-dom';
 import { PLAYGROUND_FACT_CHECK } from './playgroundRoutes';
 
+// Three are drawn at random per load, so this pool is the site's shop window:
+// whatever is in here is what a visitor is most likely to ask first.
+//
+// The first group deliberately points at the knowledge base's strongest
+// material — the three major pieces of work, the scope/ownership framing, and
+// the honest "why he would leave" answer. Those sections are the ones written
+// to survive a reference check, and before this they only surfaced if a
+// visitor happened to think of the question themselves.
+//
+// 'Where is he based?' was removed: the hero sub-line already says Metro
+// Atlanta, so it spent a slot re-answering something on screen.
 const QUESTION_POOL = [
+    // the strong material
+    'Give me an example of something he owned end to end',
+    'Tell me about the odometer project',
+    'What kind of role is he looking for?',
+    'Why would he leave his current job?',
+    'What is he like to work with?',
+    // projects
     'What has Brian built recently?',
-    "What's his frontend stack?",
     'Tell me about AskGWINnett',
     "What's stilltrue?",
     'Tell me about Callmata',
     "What's RabinAI?",
-    'Is he available for work?',
-    'Where is he based?',
-    'Does he work in Angular or React?',
     'Tell me about Lost Corridors',
     "What's Tellspinners?",
+    // skills and hiring
+    "What's his frontend stack?",
+    'Does he work in Angular or React?',
+    'Is he available for work?',
     'How do I contact him?',
 ];
 
