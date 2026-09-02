@@ -12,6 +12,7 @@ import {
   revokeBlobUrl,
   toDisplayUrl,
 } from './utils/imageUrl';
+import { Hero, ScreenBody } from './components/Hero';
 
 const ENGINE_LABELS = {
   openai: 'OpenAI',
@@ -248,11 +249,14 @@ const AiImageryForm = () => {
   }, [images, errors.global]);
 
   return (
-    <div>
-      <h1 className="screen-h2">One prompt, two engines.</h1>
-      <p className="screen-sub">
-        The same prompt goes to OpenAI GPT Image and Google Gemini Image, side by side.
-      </p>
+    <>
+      <Hero>
+        <h1 className="hero-h1">One prompt, two engines.</h1>
+        <p className="hero-sub hero-sub--page">
+          The same prompt goes to OpenAI GPT Image and Google Gemini Image, side by side.
+        </p>
+      </Hero>
+      <ScreenBody width="playground">
       <form onSubmit={handleSubmit} className="imagery-form">
         <textarea
           className="input"
@@ -335,7 +339,8 @@ const AiImageryForm = () => {
         />
       </div>
       {errors.global && <p className="error-message">{errors.global}</p>}
-    </div>
+      </ScreenBody>
+    </>
   );
 };
 

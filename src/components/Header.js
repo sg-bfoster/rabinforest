@@ -1,32 +1,20 @@
-import { FEATURES } from '../config/features';
 import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { FEATURES } from '../config/features';
 import { PLAYGROUND_CHAT_BOTS, PLAYGROUND_FACT_CHECK, PLAYGROUND_RABINAI_IMAGERY } from '../playgroundRoutes';
 import RabinAIStatus from './RabinAIStatus';
 
-export const PixelTreeLogo = ({ size = 22 }) => (
-  <svg viewBox="0 0 32 32" style={{ width: size, height: size, display: 'block' }} aria-hidden="true">
-    <g style={{ fill: 'var(--color-text)' }}>
-      <rect x="14.4" y="2.4" width="3.2" height="3.2" />
-      <rect x="10.4" y="6.4" width="3.2" height="3.2" />
-      <rect x="18.4" y="6.4" width="3.2" height="3.2" />
-      <rect x="6.4" y="10.4" width="3.2" height="3.2" />
-      <rect x="10.4" y="10.4" width="3.2" height="3.2" />
-      <rect x="18.4" y="10.4" width="3.2" height="3.2" />
-      <rect x="22.4" y="10.4" width="3.2" height="3.2" />
-      <rect x="2.4" y="14.4" width="3.2" height="3.2" />
-      <rect x="6.4" y="14.4" width="3.2" height="3.2" />
-      <rect x="10.4" y="14.4" width="3.2" height="3.2" />
-      <rect x="18.4" y="14.4" width="3.2" height="3.2" />
-      <rect x="22.4" y="14.4" width="3.2" height="3.2" />
-      <rect x="26.4" y="14.4" width="3.2" height="3.2" />
-      <rect x="14.4" y="18.4" width="3.2" height="3.2" />
-      <rect x="14.4" y="22.4" width="3.2" height="3.2" />
-      <rect x="2.4" y="26.4" width="27.2" height="2.4" />
-    </g>
-    <rect x="14.4" y="6.4" width="3.2" height="3.2" style={{ fill: 'var(--color-accent)' }} />
-    <rect x="14.4" y="10.4" width="3.2" height="3.2" style={{ fill: 'var(--color-accent)' }} />
-    <rect x="14.4" y="14.4" width="3.2" height="3.2" style={{ fill: 'var(--color-accent)' }} />
+export const SynapseLogo = ({ size = 24 }) => (
+  <svg viewBox="0 0 28 28" style={{ width: size, height: size, display: 'block' }} aria-hidden="true">
+    <line x1="14" y1="24" x2="14" y2="13" stroke="rgba(207,226,242,0.55)" strokeWidth="1.2" />
+    <line x1="14" y1="13" x2="6" y2="7" stroke="rgba(207,226,242,0.55)" strokeWidth="1.2" />
+    <line x1="14" y1="13" x2="22" y2="7" stroke="rgba(207,226,242,0.55)" strokeWidth="1.2" />
+    <line x1="14" y1="17" x2="21" y2="15" stroke="rgba(207,226,242,0.55)" strokeWidth="1.2" />
+    <circle cx="14" cy="13" r="2.4" fill="#cfe2f2" />
+    <circle cx="6" cy="7" r="1.8" fill="#cfe2f2" />
+    <circle cx="22" cy="7" r="1.8" fill="#cfe2f2" />
+    <circle cx="21" cy="15" r="1.5" fill="#ec3013" />
+    <circle cx="14" cy="24" r="1.5" fill="rgba(207,226,242,0.7)" />
   </svg>
 );
 
@@ -71,7 +59,7 @@ const Header = () => {
         </button>
         <div className="brand-cluster">
           <NavLink to="/" className="brand">
-            <PixelTreeLogo />
+            <SynapseLogo />
             Rabin Forest
           </NavLink>
           {FEATURES.rabinaiStatus && <RabinAIStatus />}

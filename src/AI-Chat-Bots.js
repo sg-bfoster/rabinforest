@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { API_ENDPOINTS } from './config/api';
 import { FEATURES } from './config/features';
+import { Hero, ScreenBody } from './components/Hero';
 
 /**
  * Three bots, one topic. Gemini and OpenAI are cloud models; RabinAI is the
@@ -265,7 +266,9 @@ const AIChatBots = () => {
                 window.innerHeight + window.scrollY >=
                 document.documentElement.scrollHeight - 240;
             if (nearBottom) {
-                window.scrollTo({ top: document.documentElement.scrollHeight });
+                document.querySelector('.conversation')?.lastElementChild?.scrollIntoView({
+                    block: 'end',
+                });
             }
         });
         return () => cancelAnimationFrame(id);
@@ -276,13 +279,16 @@ const AIChatBots = () => {
     const botFor = (id) => BOTS.find((b) => b.id === id) || BOTS[0];
 
     return (
-        <div>
-            <h1 className="screen-h2">Three bots, one topic.</h1>
-            <p className="screen-sub">
-                Give a subject and Gemini, OpenAI, and RabinAI — a model running on a
-                mini PC in my basement — talk it out. Nine turns, then they wrap up.
-            </p>
-            <form onSubmit={startDiscussion}>
+        <>
+            <Hero>
+                <h1 className="hero-h1">Three bots, one topic.</h1>
+                <p className="hero-sub hero-sub--page">
+                    Give a subject and Gemini, OpenAI, and RabinAI — the model running on a
+                    mini PC in Brian's basement — talk it out. Nine turns, then they wrap up.<br />&nbsp;
+                </p>
+            </Hero>
+            <ScreenBody width="playground">
+            <form onSubmit={startDiscussion} className="panel">
                 <div className="chat-input-row">
                     <input
                         className="input"
@@ -303,7 +309,7 @@ const AIChatBots = () => {
                 <div className="tone-row">
                     {BOTS.map((bot, idx) => (
                         <label key={bot.id} className="tone-pick">
-                            <span className="tone-pick-label">{bot.label}</span>
+                            <span className="tone-pick-label">{bot.label} tone</span>
                             <select
                                 className="input tone-select"
                                 value={tones[idx]}
@@ -351,9 +357,14 @@ const AIChatBots = () => {
                             bot.side === 'right' ? 'msg-user'
                             : bot.side === 'center' ? 'msg-local'
                             : 'msg-text';
+                        const label = msg.isTopic
+                            ? 'Topic'
+                            : bot.side === 'center'
+                                ? 'RabinAI · local'
+                                : bot.label;
                         return (
                             <div key={idx} className={cls}>
-                                <span className="bot-label">{msg.isTopic ? 'Topic' : bot.label}</span>
+                                <span className="bot-label">{label}</span>
                                 <div
                                     className={msg.asleep ? `${bubble} asleep-bubble` : bubble}
                                     {...(msg.asleep ? { role: 'img', 'aria-label': `${bot.label} is asleep` } : {})}
@@ -386,7 +397,8 @@ const AIChatBots = () => {
                     )}
                 </div>
             )}
-        </div>
+            </ScreenBody>
+        </>
     );
 };
 

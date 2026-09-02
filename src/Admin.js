@@ -3,6 +3,7 @@ import { API_ENDPOINTS, ADMIN_KEY_STORAGE, getAdminHeaders, clearAdminSession } 
 import axios from 'axios';
 import { useDispatch } from 'react-redux';
 import { openModal, closeModal } from './features/modalSlice';
+import { Hero, ScreenBody } from './components/Hero';
 
 const Admin = () => {
     const [content, setContent] = useState('');
@@ -238,9 +239,12 @@ const Admin = () => {
 
     if (!isAuthenticated) {
         return (
-            <div>
-                <h1 className="screen-h2">Admin</h1>
-                <p className="screen-sub">Enter the admin key to manage assistant content and logs.</p>
+            <>
+                <Hero>
+                    <h1 className="hero-h1">Admin</h1>
+                    <p className="hero-sub hero-sub--page">Enter the admin key to manage assistant content and logs.</p>
+                </Hero>
+                <ScreenBody width="page">
                 <form onSubmit={handlePasswordSubmit} style={{ maxWidth: '360px' }}>
                     <div className="field">
                         <label htmlFor="admin-key">Admin key</label>
@@ -262,13 +266,17 @@ const Admin = () => {
                         {loginBusy ? 'Checking…' : 'Login'}
                     </button>
                 </form>
-            </div>
+                </ScreenBody>
+            </>
         );
     }
 
     return (
-        <div>
-            <h1 className="screen-h2">Admin</h1>
+        <>
+            <Hero>
+                <h1 className="hero-h1">Admin</h1>
+            </Hero>
+            <ScreenBody width="page">
             <div className="admin-tabs">
                 <button
                     className={`admin-tab${activeSection === 'content' ? ' active' : ''}`}
@@ -354,7 +362,8 @@ const Admin = () => {
                     )}
                 </>
             )}
-        </div>
+            </ScreenBody>
+        </>
     );
 };
 

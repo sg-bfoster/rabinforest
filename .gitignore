@@ -23,3 +23,7 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Local design handoff (not source)
+/Rabin Forest redesign.zip
+

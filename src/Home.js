@@ -7,7 +7,33 @@ import { API_ENDPOINTS } from './config/api';
 import { FEATURES } from './config/features';
 import { detectSitesInText } from './utils/siteDetector';
 import { LinkedText } from './utils/linkedText';
-import PixelForest from './components/PixelForest';
+import { Hero, ScreenBody } from './components/Hero';
+import { NavLink } from 'react-router-dom';
+import { PLAYGROUND_FACT_CHECK } from './playgroundRoutes';
+
+const QUESTION_POOL = [
+    'What has Brian built recently?',
+    "What's his frontend stack?",
+    'Tell me about AskGWINnett',
+    "What's stilltrue?",
+    'Tell me about Callmata',
+    "What's RabinAI?",
+    'Is he available for work?',
+    'Where is he based?',
+    'Does he work in Angular or React?',
+    'Tell me about Lost Corridors',
+    "What's Tellspinners?",
+    'How do I contact him?',
+];
+
+const pickQuestions = (pool, n) => {
+    const copy = pool.slice();
+    for (let i = copy.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy.slice(0, n);
+};
 
 // Generate a unique conversation ID
 const generateConversationId = () => {
@@ -17,6 +43,7 @@ const generateConversationId = () => {
 const Home = () => {
     const [prompt, setPrompt] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [suggested, setSuggested] = useState(() => pickQuestions(QUESTION_POOL, 3));
     const [conversationId, setConversationId] = useState(() => {
         // Get or create conversation ID from localStorage
         const storedId = localStorage.getItem('conversationId');
@@ -32,7 +59,7 @@ const Home = () => {
         const storedMessages = localStorage.getItem('assistantMessages');
         return storedMessages ? JSON.parse(storedMessages) : [];
     });
-    const messagesEndRef = useRef(null);
+    const askCardRef = useRef(null);
     const dispatch = useDispatch();
 
     /**
@@ -124,13 +151,11 @@ const Home = () => {
         );
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async (e, override) => {
+        e?.preventDefault();
 
-        if (!prompt.trim() || isLoading) return;
-
-        // Store the prompt value before clearing
-        const currentPrompt = prompt.trim();
+        const currentPrompt = (override ?? prompt).trim();
+        if (!currentPrompt || isLoading) return;
 
         // Clear the input immediately
         setPrompt('');
@@ -351,11 +376,15 @@ const Home = () => {
 
     const handleResetChat = () => {
         localStorage.removeItem('assistantMessages');
-        // Generate a new conversation ID for the new session
         const newConversationId = generateConversationId();
         localStorage.setItem('conversationId', newConversationId);
         setConversationId(newConversationId);
         setMessages([]);
+        setPrompt('');
+        setIsLoading(false);
+        stopSpeaking();
+        setSuggested(pickQuestions(QUESTION_POOL, 3));
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     // Stick to the bottom while an answer streams in, but stop fighting the
@@ -372,23 +401,21 @@ const Home = () => {
 
     useEffect(() => {
         const onScroll = () => {
-            const doc = document.documentElement;
-            stickToBottom.current =
-                doc.scrollHeight - (window.scrollY + window.innerHeight) < 160;
+            const el = askCardRef.current;
+            if (!el) return;
+            const rect = el.getBoundingClientRect();
+            stickToBottom.current = rect.bottom < window.innerHeight + 160;
         };
         window.addEventListener('scroll', onScroll, { passive: true });
         return () => window.removeEventListener('scroll', onScroll);
     }, []);
 
     useEffect(() => {
-        // Scroll the PAGE to the bottom rather than aligning the end-of-list
-        // marker: that marker sits above the input form, so scrolling it into
-        // view pushes the form off-screen and can even scroll upward.
+        // Pin the composer (bottom of the card) in view. Scrolling a sentinel
+        // in the thread used to land mid-card and hide the input under the fold.
         if (messages.length > 0 && stickToBottom.current) {
-            window.scrollTo({
-                top: document.documentElement.scrollHeight,
-                // Smooth animation can't keep up with streaming deltas and ends
-                // up trailing the text, so jump instantly while a reply lands.
+            askCardRef.current?.scrollIntoView({
+                block: 'end',
                 behavior: isLoading ? 'auto' : 'smooth',
             });
         }
@@ -405,143 +432,169 @@ const Home = () => {
     };
 
     return (
-        <div>
-            <h1 className="intro-line">
-                A portfolio you can talk to.
-            </h1>
-            <div className="forest-strip">
-                <PixelForest />
-            </div>
-            {/* Landing copy, direction B — see bfoster-services/docs/SITE_MESSAGING_PLAN.md.
-                Written for a recruiter, not an engineer. The previous version led with
-                "A virtual neural forest…", which never said what the page IS or what to
-                DO with it, and put two unexplained proper nouns above the fold
-                ("Answers from RabinAI, with Gemini as backup") — where "backup" also
-                implied something might be broken. The self-hosted story is the site's
-                best fact, so it is now STATED in plain words rather than only named;
-                "RabinAI" still appears throughout the rest of the site. */}
-            <h2 className="intro-line">
-                Brian Foster
-            </h2>
-            <p className="intro-sub">
-                Senior frontend / UI engineer in Metro Atlanta. Ask about his
-                experience, his projects, or whether he's available.
-            </p>
-            <p className="intro-note">
-                Answers come from an AI server Brian built and runs at home. When
-                it's busy, Google's Gemini fills in — so you always get an answer.
-            </p>
-            {messages.length > 0 && (
-                <div className="conversation">
-                    {messages.map((msg, index) => {
-                        const isAssistantMessage = msg.role === 'model';
-                        const isStreaming = !!msg.streaming;
-                        const rawText = msg.parts[0].text;
+        <>
+            <Hero variant="assistant">
+                <h1 className="hero-h1">Ask me about Brian.</h1>
+                <p className="hero-sub">
+                    Senior UI engineer in Metro Atlanta. This model runs on hardware
+                    he owns and wired himself.
+                </p>
+                <form onSubmit={handleSubmit} className="ask-form">
+                    <div ref={askCardRef} className={`ask-card${messages.length > 0 ? ' ask-card--live' : ''}`}>
+                        {messages.length > 0 && (
+                            <div className="ask-card-thread">
+                                {messages.map((msg, index) => {
+                                    const isAssistantMessage = msg.role === 'model';
+                                    const isStreaming = !!msg.streaming;
+                                    const rawText = msg.parts[0].text;
+                                    const messageText = isStreaming ? rawText.replace(/<[^>]*$/, '') : rawText;
+                                    const detectedSites =
+                                        isAssistantMessage && !isStreaming ? detectSitesInText(messageText) : [];
 
-                        // While an answer streams, the text is partial: a trailing
-                        // "<a href='..." would render as literal markup, so trim any
-                        // half-written tag until the closing bracket arrives.
-                        const messageText = isStreaming ? rawText.replace(/<[^>]*$/, '') : rawText;
+                                    if (!isAssistantMessage) {
+                                        return (
+                                            <div key={index} className="msg-user">{messageText}</div>
+                                        );
+                                    }
 
-                        // Site thumbnails are computed from the finished answer only.
-                        // Running detection on every delta remounts the <img> tags
-                        // repeatedly, aborting their loads mid-flight and leaving
-                        // broken-image icons behind.
-                        const detectedSites =
-                            isAssistantMessage && !isStreaming ? detectSitesInText(messageText) : [];
+                                    const engineLabel =
+                                        msg.engine === 'gemini' ? 'Gemini'
+                                        : msg.engine === 'rabinai' ? 'RabinAI'
+                                        : null;
 
-                        if (!isAssistantMessage) {
-                            return (
-                                <div key={index} className="msg-user">{messageText}</div>
-                            );
-                        }
-
-                        const engineLabel =
-                            msg.engine === 'gemini' ? 'Gemini'
-                            : msg.engine === 'rabinai' ? 'RabinAI'
-                            : null;
-
-                        return (
-                            <div key={index} className="msg-assistant">
-                                {engineLabel && (
-                                    <span
-                                        className={`engine-tag engine-${msg.engine}`}
-                                        title={
-                                            msg.engine === 'rabinai'
-                                                ? "Answered by Brian's home inference box"
-                                                : 'Answered by Google Gemini (RabinAI was offline or busy)'
-                                        }
-                                    >
-                                        {engineLabel}
-                                    </span>
-                                )}
-                                {FEATURES.readAloud && !isStreaming && messageText.trim() && (
-                                    <button
-                                        type="button"
-                                        className="read-aloud-btn"
-                                        onClick={() => handleReadAloud(index, messageText)}
-                                        disabled={loadingSpeechIndex === index}
-                                        aria-label={
-                                            speakingIndex === index ? 'Stop reading' : 'Read this answer aloud'
-                                        }
-                                        title={
-                                            speakingIndex === index ? 'Stop reading' : 'Read this answer aloud'
-                                        }
-                                    >
-                                        {loadingSpeechIndex === index ? '…' : speakingIndex === index ? '◼' : '🔊'}
-                                    </button>
-                                )}
-                                <span className="msg-text">
-                                    <LinkedText text={messageText} />
-                                </span>
-                                {detectedSites.length > 0 && (
-                                    <div className="site-thumbnails-container">
-                                        {detectedSites.map((site) => (
-                                            <button
-                                                key={site.key}
-                                                type="button"
-                                                className="site-thumbnail"
-                                                onClick={() => handleThumbnailClick(site)}
-                                                title={`Click to view ${site.displayName} screenshot`}
-                                            >
-                                                <img
-                                                    src={site.screenshotPath}
-                                                    alt={`${site.displayName} thumbnail`}
-                                                    className="site-thumbnail-image"
-                                                />
-                                                <span className="site-thumbnail-label">{site.displayName}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
+                                    return (
+                                        <div key={index} className="msg-assistant">
+                                            {engineLabel && (
+                                                <span
+                                                    className={`engine-tag engine-${msg.engine}`}
+                                                    title={
+                                                        msg.engine === 'rabinai'
+                                                            ? "Answered by Brian's home inference box"
+                                                            : 'Answered by Google Gemini (RabinAI was offline or busy)'
+                                                    }
+                                                >
+                                                    <span className="engine-tag-dot" aria-hidden="true" />
+                                                    {engineLabel}
+                                                </span>
+                                            )}
+                                            {FEATURES.readAloud && !isStreaming && messageText.trim() && (
+                                                <button
+                                                    type="button"
+                                                    className="read-aloud-btn"
+                                                    onClick={() => handleReadAloud(index, messageText)}
+                                                    disabled={loadingSpeechIndex === index}
+                                                    aria-label={
+                                                        speakingIndex === index ? 'Stop reading' : 'Read this answer aloud'
+                                                    }
+                                                    title={
+                                                        speakingIndex === index ? 'Stop reading' : 'Read this answer aloud'
+                                                    }
+                                                >
+                                                    {loadingSpeechIndex === index ? '…' : speakingIndex === index ? '◼' : '🔊'}
+                                                </button>
+                                            )}
+                                            <span className="msg-text">
+                                                <LinkedText text={messageText} />
+                                            </span>
+                                            {detectedSites.length > 0 && (
+                                                <div className="site-thumbnails-container">
+                                                    {detectedSites.map((site) => (
+                                                        <button
+                                                            key={site.key}
+                                                            type="button"
+                                                            className="site-thumbnail"
+                                                            onClick={() => handleThumbnailClick(site)}
+                                                            title={`Click to view ${site.displayName} screenshot`}
+                                                        >
+                                                            <img
+                                                                src={site.screenshotPath}
+                                                                alt={`${site.displayName} thumbnail`}
+                                                                className="site-thumbnail-image"
+                                                            />
+                                                            <span className="site-thumbnail-label">
+                                                                {site.displayName}
+                                                                <span> · screenshot</span>
+                                                            </span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
-                        );
-                    })}
-                    <div ref={messagesEndRef} />
-                </div>
-            )}
-            <form onSubmit={handleSubmit}>
-                <div className="chat-input-row">
-                    <textarea
-                        className="input"
-                        rows="2"
-                        placeholder="Ask about skills, projects, or availability…"
-                        aria-label="Your question"
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                    />
-                    <button type="submit" className="btn btn-primary" disabled={isLoading}>
-                        {isLoading ? <span className="spinner" /> : 'Ask'}
-                    </button>
-                    {messages.length > 0 && (
-                        <button type="button" className="btn btn-ghost" onClick={handleResetChat}>
-                            Reset
-                        </button>
-                    )}
-                </div>
-            </form>
-        </div>
+                        )}
+                        <div className="ask-card-composer">
+                            <textarea
+                                rows="2"
+                                placeholder={
+                                    messages.length === 0
+                                        ? "Ask about his stack, what he's shipped, or whether he's available…"
+                                        : ''
+                                }
+                                aria-label="Your question"
+                                value={prompt}
+                                onChange={(e) => setPrompt(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                            />
+                            <div className="ask-card-footer">
+                                <span>Enter to send · Shift+Enter for a new line</span>
+                                <div className="ask-card-actions">
+                                    {messages.length > 0 && (
+                                        <button type="button" className="btn btn-ghost" onClick={handleResetChat}>
+                                            Clear
+                                        </button>
+                                    )}
+                                    <button type="submit" className="btn btn-primary" disabled={isLoading}>
+                                        {isLoading ? <span className="spinner" /> : <>Send <span aria-hidden="true">↑</span></>}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                {messages.length === 0 && (
+                    <div className="popular-questions">
+                        <div className="eyebrow">Popular questions</div>
+                        {suggested.map((q) => (
+                            <button
+                                key={q}
+                                type="button"
+                                className="popular-row"
+                                onClick={() => handleSubmit(null, q)}
+                            >
+                                {q}
+                                <span aria-hidden="true">→</span>
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </Hero>
+            <ScreenBody width="assistant">
+                <section className="trust-band">
+                    <h2>How this is built</h2>
+                    <div className="trust-band-grid">
+                        <div>
+                            <div className="trust-band-title">Same source as the resume</div>
+                            <p>Answers come from the document Brian keeps for this site — the same one that generates the PDF. Update it once, and both stay in sync.</p>
+                        </div>
+                        <div>
+                            <div className="trust-band-title">Home box, or Gemini</div>
+                            <p>RabinAI runs on hardware in his house. If it's cold or busy, Gemini takes the turn and the reply is tagged. You always get an answer, and you always know which model wrote it.</p>
+                        </div>
+                        <div>
+                            <div className="trust-band-title">A judge you can run</div>
+                            <p>
+                                stilltrue is his open-source fact checker — the same machinery behind AskGWINnett.
+                                Open{' '}
+                                <NavLink to={PLAYGROUND_FACT_CHECK}>Fact Check</NavLink>
+                                , paste a claim and a source, and it rules whether the source actually backs the sentence.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+            </ScreenBody>
+        </>
     );
 }
 

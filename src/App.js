@@ -17,55 +17,67 @@ import Home from './Home';
 import Resume from './Resume';
 import EmmaSplashPage from './EmmaSplashPage';
 import Admin from './Admin';
+import SynapseCanvas from './components/SynapseCanvas';
+import { HeroProvider, HeroSlot } from './components/Hero';
 
-// Helper component to access location
 const AppContent = () => {
   const location = useLocation();
   const [isEmmaReferrer, setIsEmmaReferrer] = useState(false);
 
   useEffect(() => {
-    // Check if the referrer is emmajanefoster.net
     const referrer = document.referrer;
-
-    // Check for URL parameter for testing
     const urlParams = new URLSearchParams(location.search);
     const isTestMode = urlParams.get('emma') === 'true';
-
     const isEmmaDomain = referrer.includes('emmajanefoster.net');
-
     setIsEmmaReferrer(isEmmaDomain || isTestMode);
   }, [location]);
 
-  // If the user came from emmajanefoster.net, show only the Emma splash page
   if (isEmmaReferrer) {
     return <EmmaSplashPage />;
   }
 
   return (
-    <div className="app-shell">
-      <DocumentHead />
-      <Header />
-      <main className="page">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/playground" element={<Playground />}>
-            <Route index element={<Navigate to={PLAYGROUND_CHAT_BOTS} replace />} />
-            <Route path="ai-chat-bots" element={<AIChatBots />} />
-            <Route path="ai-imagery" element={<AiImageryForm />} />
-            <Route path="fact-check" element={<FactCheck />} />
-            <Route
-              path="rabinai-imagery"
-              element={FEATURES.rabinaiImagery ? <RabinAIImagery /> : <Navigate to={PLAYGROUND_CHAT_BOTS} replace />}
-            />
-          </Route>
-          <Route path="/resume" element={<Resume />} />
-          <Route path="/admin" element={<Admin />} />
-        </Routes>
-      </main>
-      <Footer />
-      <LinksPanel />
-      <Modal />
-    </div>
+    <HeroProvider>
+      <div className="app-shell">
+        <DocumentHead />
+        <Header />
+        <div className="hero-shell">
+          <div className="hero-layers" aria-hidden="true">
+            <div className="hero-sky">
+              <img
+                className="hero-photo"
+                src="/forest-space-background.png"
+                alt=""
+              />
+              <SynapseCanvas />
+              <div className="hero-vignette" />
+            </div>
+            <div className="hero-hairline" />
+          </div>
+          <HeroSlot />
+        </div>
+        <main className="page">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/playground" element={<Playground />}>
+              <Route index element={<Navigate to={PLAYGROUND_CHAT_BOTS} replace />} />
+              <Route path="ai-chat-bots" element={<AIChatBots />} />
+              <Route path="ai-imagery" element={<AiImageryForm />} />
+              <Route path="fact-check" element={<FactCheck />} />
+              <Route
+                path="rabinai-imagery"
+                element={FEATURES.rabinaiImagery ? <RabinAIImagery /> : <Navigate to={PLAYGROUND_CHAT_BOTS} replace />}
+              />
+            </Route>
+            <Route path="/resume" element={<Resume />} />
+            <Route path="/admin" element={<Admin />} />
+          </Routes>
+        </main>
+        <Footer />
+        <LinksPanel />
+        <Modal />
+      </div>
+    </HeroProvider>
   );
 };
 

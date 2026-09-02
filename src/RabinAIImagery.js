@@ -3,6 +3,7 @@ import API_BASE_URL from './config/api';
 import { useDispatch } from 'react-redux';
 import { addLink } from './features/assistantSlice';
 import { storeImageLink } from './utils/imageLinkStore';
+import { Hero, ScreenBody } from './components/Hero';
 
 /**
  * RabinAI Imagery — the box draws your prompt, and you watch it work.
@@ -132,32 +133,30 @@ const RabinAIImagery = () => {
   };
 
   return (
-    <div>
-      <h1 className="screen-h2">Drawn in the basement.</h1>
-      <p className="screen-sub">
-        Type a prompt and RabinAI — the mini PC that answers this site's
-        assistant — creates it live. What you're watching in the console is
-        the actual machine working, step by step, over an encrypted tunnel
-        into the house. About half a minute per image. Nothing is saved:
-        the picture exists in this tab and nowhere else.
-      </p>
-
-      <form onSubmit={generate}>
-        <div className="chat-input-row">
-          <input
-            className="input"
-            type="text"
-            value={prompt}
-            maxLength={400}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder={IDLE_HINT}
-            aria-label="Image prompt"
-            disabled={phase === 'running'}
-          />
-          <button type="submit" className="btn btn-primary" disabled={phase === 'running' || !prompt.trim()}>
-            {phase === 'running' ? 'Painting…' : 'Generate'}
-          </button>
-        </div>
+    <>
+      <Hero>
+        <h1 className="hero-h1">Drawn in the basement.</h1>
+        <p className="hero-sub hero-sub--page">
+          Type a prompt and RabinAI paints it live, over an encrypted tunnel into the house.
+          The console below is the actual machine working, step by step — about half a minute
+          per image. Nothing is saved.
+        </p>
+      </Hero>
+      <ScreenBody width="playground">
+      <form onSubmit={generate} className="panel panel-row">
+        <input
+          className="input"
+          type="text"
+          value={prompt}
+          maxLength={400}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder={IDLE_HINT}
+          aria-label="Image prompt"
+          disabled={phase === 'running'}
+        />
+        <button type="submit" className="btn btn-primary" disabled={phase === 'running' || !prompt.trim()}>
+          {phase === 'running' ? 'Painting…' : 'Generate'}
+        </button>
       </form>
 
       {phase !== 'idle' && (
@@ -182,11 +181,12 @@ const RabinAIImagery = () => {
           <figcaption>
             {(meta.ms / 1000).toFixed(1)}s on the box · seed {meta.seed} ·{' '}
             <a href={image} download={downloadName()}>save it</a> — this
-            page won't remember it.
+            page won't remember it. Exists in this tab and nowhere else.
           </figcaption>
         </figure>
       )}
-    </div>
+      </ScreenBody>
+    </>
   );
 };
 

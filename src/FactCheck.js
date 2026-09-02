@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { API_ENDPOINTS } from './config/api';
 import StilltrueFlow from './components/StilltrueFlow';
+import { Hero, ScreenBody } from './components/Hero';
 
 const VERDICT_LABELS = {
   supported: 'Supported',
@@ -89,18 +90,20 @@ const FactCheck = () => {
   };
 
   return (
-    <div>
-      <h1 className="screen-h2">One claim, one source.</h1>
-      <p className="screen-sub">
-        AI answers sound confident whether or not their sources back them up. This page is the
-        checkpoint that catches the difference: paste a claim and the source that supposedly
-        backs it — pasted text, or a URL to fetch — and a judge model rules on it. It's the
-        trust layer running behind{' '}
-        <a href="https://www.askgwinnett.com" target="_blank" rel="noopener noreferrer">AskGwinnett</a>{' '}
-        on every answer, packaged as{' '}
-        <a href="https://github.com/sg-bfoster/stilltrue" target="_blank" rel="noopener noreferrer">stilltrue</a>.
-      </p>
-
+    <>
+      <Hero>
+        <h1 className="hero-h1">One claim, one source.</h1>
+        <p className="hero-sub hero-sub--page">
+          AI answers sound confident whether or not their sources back them up. Paste a claim
+          and the source that supposedly supports it, and a judge model rules on the pairing.
+          It's the trust layer behind{' '}
+          <a href="https://www.askgwinnett.com" target="_blank" rel="noopener noreferrer">AskGWINnett</a>
+          , packaged as{' '}
+          <a href="https://github.com/sg-bfoster/stilltrue" target="_blank" rel="noopener noreferrer">stilltrue</a>.
+        </p>
+      </Hero>
+      <ScreenBody width="playground">
+      <div className="panel fact-check-panel">
       <div className="fact-check-legend">
         <div className="fact-check-legend-row">
           <span className="fact-check-verdict verdict-supported">Supported</span>
@@ -172,7 +175,7 @@ const FactCheck = () => {
           <textarea
             id="fc-source"
             className="input"
-            rows="6"
+            rows="5"
             value={source}
             disabled={isChecking}
             onChange={(e) => setSource(e.target.value)}
@@ -198,6 +201,7 @@ const FactCheck = () => {
           )}
         </div>
       </form>
+      </div>
 
       <div ref={resultRef} />
       {error && <p className="error-message" style={{ marginTop: 'var(--space-4)' }}>{error}</p>}
@@ -249,7 +253,8 @@ const FactCheck = () => {
         <a href="https://github.com/sg-bfoster/stilltrue" target="_blank" rel="noopener noreferrer">GitHub</a>.
         Your tests check your code — stilltrue checks your facts.
       </p>
-    </div>
+      </ScreenBody>
+    </>
   );
 };
 
