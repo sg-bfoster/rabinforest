@@ -140,6 +140,9 @@ const AIChatBots = () => {
     // "user", which is how each model sees itself as a participant.
     const histories = useRef(BOTS.map(() => []));
     const rabinAsleep = useRef(false);
+    const conversationRef = useRef(null);
+    const followRef = useRef(true);
+    const wasActiveRef = useRef(false);
 
     const resetConversation = (newSubject) => {
         setMessages([]);
@@ -227,6 +230,7 @@ const AIChatBots = () => {
         if (!subject || isActive) return;
         if (override) setTopic(override);
 
+        followRef.current = true;
         resetConversation(subject);
         setIsActive(true);
 
@@ -285,29 +289,47 @@ const AIChatBots = () => {
         }
     }, [messages]);
 
-    // After React commits the new bubble (and its height), scroll the page.
-    // Calling this next to setMessages aimed at the old document height, so
-    // the last message sat below the fold. Instant jump: a sticky footer
-    // plus smooth animation undershoots the same way.
+    // Follow the latest bubble, then once more onto New topic when the run
+    // ends. We used to gate on "already near the document bottom" — that
+    // never fired from the form (hero + chips sit above the thread), so the
+    // conversation grew off-screen. Stick-to-tail instead, same as Home:
+    // follow until the reader scrolls up, resume if they come back down.
+    useEffect(() => {
+        const onScroll = () => {
+            const tail = conversationRef.current?.lastElementChild;
+            if (!tail) return;
+            const rect = tail.getBoundingClientRect();
+            followRef.current = rect.bottom <= window.innerHeight + 160;
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => window.removeEventListener('scroll', onScroll);
+    }, []);
+
     useEffect(() => {
         if (messages.length === 0) return;
-        const id = requestAnimationFrame(() => {
-            // Follow the conversation only if the reader is already near the
-            // bottom. The reveal updates state every ~26ms, so an unconditional
-            // scroll here meant anyone who scrolled up to re-read got yanked
-            // back down for the entire life of every typing bubble.
-            const nearBottom =
-                window.innerHeight + window.scrollY >=
-                document.documentElement.scrollHeight - 240;
-            if (nearBottom) {
-                document.querySelector('.conversation')?.lastElementChild?.scrollIntoView({
-                    block: 'end',
+        const runEnded = wasActiveRef.current && !isActive;
+        wasActiveRef.current = isActive;
+        if (!followRef.current && !runEnded) return;
+
+        // After commit, one rAF has the new bubble's height. New topic mounts
+        // in the same commit as isActive flipping off — a second rAF waits
+        // until its height is in the layout before we aim at it.
+        let inner = 0;
+        const outer = requestAnimationFrame(() => {
+            const tail = conversationRef.current?.lastElementChild;
+            if (!tail) return;
+            if (runEnded) {
+                inner = requestAnimationFrame(() => {
+                    tail.scrollIntoView({ block: 'end' });
                 });
+            } else {
+                tail.scrollIntoView({ block: 'end' });
             }
         });
-        return () => cancelAnimationFrame(id);
-        // isActive: the New-topic button renders when the run ends — after the
-        // last message's scroll has already fired — so scroll once more then.
+        return () => {
+            cancelAnimationFrame(outer);
+            cancelAnimationFrame(inner);
+        };
     }, [messages, isActive]);
 
     const botFor = (id) => BOTS.find((b) => b.id === id) || BOTS[0];
@@ -394,7 +416,7 @@ const AIChatBots = () => {
                 ))}
             </div>
             {messages.length > 0 && (
-                <div className="conversation">
+                <div className="conversation" ref={conversationRef}>
                     {messages.map((msg, idx) => {
                         const bot = botFor(msg.assistant);
                         const cls =

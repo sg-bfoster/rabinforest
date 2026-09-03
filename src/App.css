@@ -425,6 +425,11 @@
   flex-direction: column;
   gap: 22px;
 }
+.conversation > * {
+  /* Fixed footer covers the last ~60px; without this, block:end parks the
+     current bubble (and New topic) underneath it. Same token as .ask-card. */
+  scroll-margin-bottom: 80px;
+}
 .msg-user {
   align-self: flex-end;
   max-width: 78%;
