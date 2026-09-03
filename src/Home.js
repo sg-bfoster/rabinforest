@@ -454,8 +454,7 @@ const Home = () => {
             <Hero variant="assistant">
                 <h1 className="hero-h1">Ask me about Brian.</h1>
                 <p className="hero-sub">
-                    Senior UI engineer in Metro Atlanta. RabinAI runs on hardware
-                    in his basement he configured himself.
+                    Senior UI engineer in Metro Atlanta. This project: RabinAI, runs on hardware in his basement he configured himself.
                 </p>
                 <form onSubmit={handleSubmit} className="ask-form">
                     <div ref={askCardRef} className={`ask-card${messages.length > 0 ? ' ask-card--live' : ''}`}>
