@@ -12,9 +12,9 @@ const VERDICT_LABELS = {
   cant_tell: "Can't tell",
 };
 
-// Two of each verdict. Three are drawn at random per load so a first visit
-// still shows what the judge does, without always serving the same three
-// chips. Each carries its flow, shown while the example is loaded untouched.
+// Four of each verdict. Four are drawn at random per load — same empty-box
+// treatment as the imagery chips. Each carries its flow, shown while the
+// example is loaded untouched.
 const EXAMPLES = [
   {
     label: 'A claim a web page backs up',
@@ -37,6 +37,30 @@ const EXAMPLES = [
       'The source is pasted library hours, sent as-is — no URL fetch.',
       'The judge checks whether the text actually says weekday closing is 8 PM.',
       'Monday through Friday to 8:00 PM matches the claim, so it is supported, with that hours line quoted as evidence.',
+    ],
+  },
+  {
+    label: 'A claim the speed limit matches',
+    claim: 'The speed limit in the school zone is 25 miles per hour.',
+    source:
+      'Public Works notice, posted August 12: Beginning Monday, flashing school-zone beacons on Oak Street will enforce a 25 mph limit on school days from 7:00 AM to 9:00 AM and 2:00 PM to 4:00 PM. The limit outside those hours remains 35 mph.',
+    expected: 'supported',
+    flow: [
+      'The source is a Public Works notice about Oak Street, pasted in full.',
+      'The judge looks for whether that text actually states a 25 mph school-zone limit.',
+      'It does — 25 mph on school days during the listed hours — so the claim is supported, with that sentence quoted as evidence.',
+    ],
+  },
+  {
+    label: 'A claim free Sunday admission',
+    claim: 'Museum admission is free on Sundays.',
+    source:
+      'Visitor information: Adult admission is $14. Seniors and students $10. Children under 12 are free. Every Sunday the museum waives all general-admission fees; special exhibitions may still require a timed ticket.',
+    expected: 'supported',
+    flow: [
+      'The source is pasted visitor information, not a URL.',
+      'The claim is that Sunday admission is free. The text says every Sunday general-admission fees are waived.',
+      'That is an affirmative match, so the pairing is supported.',
     ],
   },
   {
@@ -64,6 +88,30 @@ const EXAMPLES = [
     ],
   },
   {
+    label: 'A claim the pool hours deny',
+    claim: 'The community pool stays open until 9 PM every night.',
+    source:
+      'Aquatics schedule, summer session: Lap swim 6:00 AM–8:00 AM. Open swim 11:00 AM–7:00 PM daily, including weekends. The facility is locked at 7:15 PM. No evening rentals after close.',
+    expected: 'not_supported',
+    flow: [
+      'The source is a summer aquatics schedule.',
+      'The claim says open until 9 PM. The schedule says open swim ends at 7 PM and the building is locked at 7:15.',
+      'That contradicts the claim, so the verdict is not supported.',
+    ],
+  },
+  {
+    label: 'A claim weekly pickup, biweekly source',
+    claim: 'Recycling is collected every week.',
+    source:
+      'Sanitation calendar: Trash is collected every Monday. Recycling is collected every other Wednesday. Yard waste runs March through November on the same Wednesday as recycling. Place carts out by 6:30 AM.',
+    expected: 'not_supported',
+    flow: [
+      'The source is a sanitation calendar, pasted as-is.',
+      'The claim is weekly recycling. The calendar says recycling is every other Wednesday.',
+      'Every other week is not every week — the source contradicts the claim.',
+    ],
+  },
+  {
     label: "A claim the source doesn't address",
     claim: 'The property tax millage rate is 6.95 this year.',
     source:
@@ -87,6 +135,30 @@ const EXAMPLES = [
       "The claim may be true in the world, but this source does not address it, so the judge has to say can't tell.",
     ],
   },
+  {
+    label: 'A reelection claim on a road notice',
+    claim: 'The mayor is running for reelection this November.',
+    source:
+      'Street closure: Oak Avenue between 3rd and 7th will be closed to through traffic from 6:00 AM Monday through 6:00 PM Friday for water-main replacement. Local access will be maintained. Detour via Pine Street.',
+    expected: 'cant_tell',
+    flow: [
+      'The source is a road-closure notice.',
+      'It says nothing about the mayor, an election, or November.',
+      "The claim might be true somewhere else, but this source does not address it, so the judge has to say can't tell.",
+    ],
+  },
+  {
+    label: 'A budget claim on a concert lineup',
+    claim: 'The new recreation center is budgeted at $18 million.',
+    source:
+      'Summer concert series: June 14 — The Riverbend Band. June 28 — Cedar & Smoke. July 12 — Horns Up Brass. Shows start at 7:00 PM on the lawn. Bring a chair. Food trucks on site. Rain venue is the gym.',
+    expected: 'cant_tell',
+    flow: [
+      'The source is a concert lineup.',
+      'It never mentions a recreation center, a budget, or a dollar amount.',
+      "Silence is not support — can't tell, even if the budget figure is true in the world.",
+    ],
+  },
 ];
 
 const pickExamples = (pool, n) => {
@@ -101,7 +173,7 @@ const pickExamples = (pool, n) => {
 const FactCheck = () => {
   const [claim, setClaim] = useState('');
   const [source, setSource] = useState('');
-  const [examples] = useState(() => pickExamples(EXAMPLES, 3));
+  const [examples] = useState(() => pickExamples(EXAMPLES, 4));
   const [isChecking, setIsChecking] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
