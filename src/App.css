@@ -710,6 +710,33 @@
    browser simply cannot scroll far enough, leaving it under the fixed footer. */
 .imagery-scroll-room { height: 60vh; }
 
+/* Live denoise preview. Sized to the finished image's slot so the swap at the
+   end is a change of source, not a change of layout. The blur is deliberate:
+   early frames are near-noise and a 256px JPEG upscaled looks like a mistake
+   without it, while a slight softness reads as "still developing". It sharpens
+   as the steps progress because the frames themselves do. */
+.imagery-preview {
+  margin: 22px 0 0;
+  text-align: center;
+}
+.imagery-preview img {
+  width: 100%;
+  max-width: 520px;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 14px;
+  image-rendering: auto;
+  filter: blur(0.4px);
+  opacity: 0.96;
+  transition: filter 220ms ease, opacity 220ms ease;
+}
+.imagery-preview figcaption {
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
 .imagery-console {
   /* The footer is position:fixed, so it floats over the page. scroll-margin
      keeps scrollIntoView from parking this (or the image below it) underneath

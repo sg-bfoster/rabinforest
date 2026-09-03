@@ -77,6 +77,8 @@ const RabinAIImagery = () => {
   const [meta, setMeta] = useState(null);     // { ms, seed }
   const [errorMsg, setErrorMsg] = useState('');
   const [ideas] = useState(() => pickIdeas(IDEA_POOL, 4));
+  // Latest denoise preview frame (a small JPEG data-URI from the box).
+  const [preview, setPreview] = useState(null);
   const consoleRef = useRef(null);
   const resultRef = useRef(null);
 
@@ -144,6 +146,7 @@ const RabinAIImagery = () => {
 
     setPhase('running');
     setFrames([]);
+    setPreview(null);
     setImage(null);
     setMeta(null);
     setErrorMsg('');
@@ -180,8 +183,15 @@ const RabinAIImagery = () => {
           try { d = JSON.parse(line.slice(6)); } catch { continue; }
           if (event === 'step') {
             pushFrame(`[${((d.ms || 0) / 1000).toFixed(1).padStart(5)}s] ${d.label}`);
+          } else if (event === 'preview') {
+            // One frame per denoise step, already downscaled server-side. Only
+            // the newest is kept — this is a progress view, not a filmstrip.
+            // If the box is running without --preview-method these never
+            // arrive and the page behaves exactly as it did before.
+            setPreview(d.image);
           } else if (event === 'done') {
             setImage(d.image);
+            setPreview(null); // the finished image supersedes the last preview
             setMeta({ ms: d.ms, seed: d.seed });
             setPhase('done');
             // Bring the finished image into view once React has painted it.
@@ -270,6 +280,19 @@ const RabinAIImagery = () => {
             <div className="imagery-console-line imagery-console-error">{errorMsg}</div>
           )}
         </div>
+      )}
+
+      {/* The image emerging from noise, one frame per denoise step. Placed
+          directly above the finished-image slot so the preview and the final
+          picture occupy the same spot on the page — it reads as one image
+          resolving rather than two things appearing. Rendered only while a
+          render is live; if the box has no --preview-method flag no frames
+          ever arrive and this simply never shows. */}
+      {preview && !image && (
+        <figure className="imagery-preview">
+          <img src={preview} alt="" aria-hidden="true" />
+          <figcaption>sculpting — this is the actual latent, decoded live</figcaption>
+        </figure>
       )}
 
       {image && (
