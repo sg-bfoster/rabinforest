@@ -69,6 +69,36 @@ const TONES = {
 // panel. Subsequent RabinAI turns in the same run do not wait this out again.
 const RABINAI_CLIENT_MS = 32_000;
 
+/**
+ * Starter topics, four drawn at random per page load — same empty-box
+ * problem the imagery page solved with chips. Short enough to read as a
+ * chip, concrete enough that three models can spend nine turns on them
+ * without collapsing into "it depends".
+ */
+const TOPIC_POOL = [
+    'Is a hot dog a sandwich?',
+    'Should cities ban cars downtown?',
+    'Is remote work here to stay?',
+    'Does AI-generated art count as art?',
+    'Are open offices a mistake?',
+    'Should we bring back physical media?',
+    'Is college still worth the cost?',
+    'Can nuclear power carry the grid?',
+    'Is nostalgia ruining new movies?',
+    'Should phones be banned in schools?',
+    'Do we have too many streaming apps?',
+    'Is the 4-day work week inevitable?',
+];
+
+const pickTopics = (pool, n) => {
+    const copy = pool.slice();
+    for (let i = copy.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy.slice(0, n);
+};
+
 /** Pixel mini-PC with floating zzz — same rect language as the header tree. */
 const SleepingServer = () => (
     <svg
@@ -100,6 +130,7 @@ const AIChatBots = () => {
     const [messages, setMessages] = useState([]);
     const [isActive, setIsActive] = useState(false);
     const [topic, setTopic] = useState('');
+    const [topics] = useState(() => pickTopics(TOPIC_POOL, 4));
     // Mixed defaults on purpose, so a first visit shows the dropdowns matter.
     const [tones, setTones] = useState(['argumentative', 'agreeable', 'skeptical']);
     const [localModel, setLocalModel] = useState('primary');
@@ -188,10 +219,13 @@ const AIChatBots = () => {
             tick();
         });
 
-    const startDiscussion = async (e) => {
-        e.preventDefault();
-        const subject = topic.trim();
+    const startDiscussion = async (e, override) => {
+        e?.preventDefault();
+        // A chip passes its text directly: setTopic is async, so reading the
+        // state here would start the PREVIOUS topic on the first click.
+        const subject = (override ?? topic).trim();
         if (!subject || isActive) return;
+        if (override) setTopic(override);
 
         resetConversation(subject);
         setIsActive(true);
@@ -345,6 +379,20 @@ const AIChatBots = () => {
                     </div>
                 )}
             </form>
+            <div className="idea-chips">
+                <span className="idea-chips-label">Try one</span>
+                {topics.map((idea) => (
+                    <button
+                        key={idea}
+                        type="button"
+                        className="idea-chip"
+                        onClick={() => startDiscussion(null, idea)}
+                        disabled={isActive}
+                    >
+                        {idea}
+                    </button>
+                ))}
+            </div>
             {messages.length > 0 && (
                 <div className="conversation">
                     {messages.map((msg, idx) => {

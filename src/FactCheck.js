@@ -12,8 +12,9 @@ const VERDICT_LABELS = {
   cant_tell: "Can't tell",
 };
 
-// One example per verdict so first-time visitors see what the judge does.
-// Each carries its flow, shown while the example is loaded untouched.
+// Two of each verdict. Three are drawn at random per load so a first visit
+// still shows what the judge does, without always serving the same three
+// chips. Each carries its flow, shown while the example is loaded untouched.
 const EXAMPLES = [
   {
     label: 'A claim a web page backs up',
@@ -24,6 +25,18 @@ const EXAMPLES = [
       'The source is a URL, so the backend fetches https://example.com and strips the HTML down to plain text.',
       'The judge reads only that text — no outside knowledge allowed.',
       'The page itself says the domain is for use in documentation examples, so the claim is affirmatively backed, with the deciding sentence quoted as evidence.',
+    ],
+  },
+  {
+    label: 'A claim the hours confirm',
+    claim: 'The branch library is open until 8 PM on weekdays.',
+    source:
+      'Riverdale Branch — hours of operation. Monday–Friday: 9:00 AM to 8:00 PM. Saturday: 10:00 AM to 5:00 PM. Closed Sunday. Holiday hours posted on the door.',
+    expected: 'supported',
+    flow: [
+      'The source is pasted library hours, sent as-is — no URL fetch.',
+      'The judge checks whether the text actually says weekday closing is 8 PM.',
+      'Monday through Friday to 8:00 PM matches the claim, so it is supported, with that hours line quoted as evidence.',
     ],
   },
   {
@@ -39,6 +52,18 @@ const EXAMPLES = [
     ],
   },
   {
+    label: 'A claim the parking rules deny',
+    claim: 'Street parking is free after 6 PM on weekdays.',
+    source:
+      'Downtown parking enforcement: meters operate 8:00 AM to 10:00 PM, Monday through Saturday, at $2.00 per hour. The evening rate is the same as daytime. Sundays and posted city holidays are free.',
+    expected: 'not_supported',
+    flow: [
+      'The source is a parking-enforcement notice, pasted in full.',
+      'The claim says free after 6 PM. The notice says meters run until 10 PM at the same $2 rate.',
+      'Those cannot both be true, so the pairing is not supported — contradiction, not silence.',
+    ],
+  },
+  {
     label: "A claim the source doesn't address",
     claim: 'The property tax millage rate is 6.95 this year.',
     source:
@@ -50,11 +75,33 @@ const EXAMPLES = [
       "Silence is not support: even a true-sounding claim gets can't tell when this source doesn't back it. That rule is the whole point of the tool.",
     ],
   },
+  {
+    label: 'A millage claim on a lunch menu',
+    claim: 'The millage rate for county schools is 19.2 mills this year.',
+    source:
+      "This week's cafeteria menu: Monday — chicken sandwich and apple slices. Tuesday — spaghetti with marinara. Wednesday — taco salad. Thursday — baked potato bar. Friday — cheese pizza. Milk and fruit included with every meal. Menu subject to change.",
+    expected: 'cant_tell',
+    flow: [
+      'The source is a school lunch menu.',
+      'Nothing in it mentions millage, taxes, or a rate — it is a list of meals.',
+      "The claim may be true in the world, but this source does not address it, so the judge has to say can't tell.",
+    ],
+  },
 ];
+
+const pickExamples = (pool, n) => {
+  const copy = pool.slice();
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy.slice(0, n);
+};
 
 const FactCheck = () => {
   const [claim, setClaim] = useState('');
   const [source, setSource] = useState('');
+  const [examples] = useState(() => pickExamples(EXAMPLES, 3));
   const [isChecking, setIsChecking] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
@@ -124,7 +171,7 @@ const FactCheck = () => {
       </p>
       <div className="fact-check-examples">
         <span className="fact-check-examples-label">Try one</span>
-        {EXAMPLES.map((example) => (
+        {examples.map((example) => (
           <button
             key={example.label}
             type="button"

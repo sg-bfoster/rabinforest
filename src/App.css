@@ -108,8 +108,8 @@
 .hero-shell {
   position: relative;
   flex: none;
-  min-height: 50vh;
-  min-height: 50svh;
+  min-height: 35vh;
+  min-height: 35svh;
   background: var(--hero);
   isolation: isolate;
   overflow: hidden;
@@ -167,8 +167,8 @@
 .hero-slot {
   position: relative;
   z-index: 1;
-  min-height: 50vh;
-  min-height: 50svh;
+  min-height: 35vh;
+  min-height: 35svh;
   display: flex;
   flex-direction: column;
 }
@@ -279,9 +279,9 @@
 
 .ask-form { margin: 34px 0 0; }
 .ask-card {
-  --ask-radius: 28px;
-  --ask-pad: 12px;
-  --ask-line: 1px;
+  /* Same shell as .panel / .input on Chat Bots: 18px card, 22px inset, 12px field. */
+  --ask-radius: 18px;
+  --ask-pad: 22px;
   background: var(--surface);
   border-radius: var(--ask-radius);
   box-shadow: var(--shadow-ask);
@@ -290,12 +290,16 @@
   scroll-margin-bottom: 80px;
 }
 .ask-card-composer {
-  border: var(--ask-line) solid #888888;
-  border-radius: calc(var(--ask-radius) - var(--ask-pad));
-  padding: var(--ask-pad);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  padding: 13px 15px;
+  background: var(--field);
+}
+.ask-card-composer:hover {
+  border-color: var(--color-neutral-400);
 }
 .ask-card-composer:focus-within {
-  border-color: rgba(16, 20, 24, 0.22);
+  border-color: var(--cool);
 }
 .ask-card textarea {
   width: 100%;
@@ -329,13 +333,8 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
-  /* Horizontal breathing room for the conversation, added HERE rather than on
-     --ask-pad: the composer's corner radius is derived from that token
-     (calc(--ask-radius - --ask-pad)), so raising it would visibly reshape the
-     input. This insets the messages only. */
-  padding: 6px 18px 18px;
+  padding: 4px 4px 18px;
   margin-bottom: 8px;
-  /* border-bottom: 1px solid var(--hairline); */
 }
 .ask-card-thread .msg-user {
   background: var(--field);
@@ -668,11 +667,12 @@
    select in tokens.css. */
 .tone-select { padding: 10px 12px; border-radius: 10px; font-size: 16px; }
 
-/* Starter prompts on the imagery page. Deliberately NOT reusing .popular-row
-   from the assistant hero: that is light text on a dark field, and this sits on
-   the pale page body, so it would render white on white. Chips rather than
-   full-width rows because image prompts are short phrases — three of them read
-   as a palette to pick from, where stacked rows would read as a menu. */
+/* Starter prompts on the imagery and chat-bots pages. Deliberately NOT reusing
+   .popular-row from the assistant hero: that is light text on a dark field, and
+   this sits on the pale page body, so it would render white on white. Chips
+   rather than full-width rows because the prompts are short phrases — a handful
+   of them read as a palette to pick from, where stacked rows would read as a
+   menu. */
 .idea-chips {
   display: flex;
   flex-wrap: wrap;
