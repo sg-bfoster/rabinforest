@@ -730,12 +730,19 @@
   margin: 22px 0 0;
   text-align: center;
 }
+/* The preview must occupy EXACTLY the box the finished image will, or the
+   handoff reads as two separate pictures appearing rather than one resolving.
+   It used to cap at 520px and centre while the result ran full width, so the
+   image visibly jumped and grew at the moment it finished. Same width, same
+   radius, same 1:1 box (SDXL renders square) — the only difference left is
+   sharpness, which is the point. */
 .imagery-preview img {
+  display: block;
   width: 100%;
-  max-width: 520px;
   aspect-ratio: 1 / 1;
   object-fit: cover;
-  border-radius: 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
   image-rendering: auto;
   filter: blur(0.4px);
   opacity: 0.96;
@@ -767,11 +774,61 @@
 }
 .imagery-console-error { color: var(--console-err); font-weight: 600; }
 .imagery-result { margin: 28px 0 0; }
+/* Positioning context for the reveal overlay, and the same 1:1 box the
+   preview holds so nothing reflows between the two. */
+.imagery-result-frame {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
 .imagery-result img {
   display: block;
   width: 100%;
+  height: 100%;
+  object-fit: cover;
   border: 1px solid var(--hairline);
   border-radius: 16px;
+}
+
+/* The reveal: a white splash that holds briefly, then clears to the finished
+   image. It marks the transition from "watching it being made" to "here is the
+   thing" — the last preview frame is already close to the final image, so
+   without a beat between them the finish is easy to miss entirely.
+   pointer-events:none so the overlay never eats a click on the save link. */
+.imagery-result-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  border-radius: 16px;
+  pointer-events: none;
+  animation: imagery-splash 820ms ease-out forwards;
+}
+
+@keyframes imagery-splash {
+  0%   { opacity: 1; }
+  22%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Named for this page specifically: `.imagery-actions` already exists and
+   belongs to the Imagery Compare page (Dalle-3.js). Reusing it put two rules
+   with the same selector in one stylesheet — the later one won, so this was
+   silently left-aligned, and had the order been reversed it would have
+   restyled that other page instead. */
+.imagery-reset {
+  margin: 18px 0 0;
+  display: flex;
+  justify-content: center;
+}
+
+/* A flash of white is exactly the kind of motion this query exists for:
+   show the finished image immediately, with no splash at all. */
+@media (prefers-reduced-motion: reduce) {
+  .imagery-result-frame::after { animation: none; opacity: 0; }
+  .imagery-preview img { transition: none; }
 }
 .imagery-error, .error-message { color: var(--verdict-not); font-size: 14px; }
 

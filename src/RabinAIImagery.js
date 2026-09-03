@@ -81,6 +81,28 @@ const RabinAIImagery = () => {
   const [preview, setPreview] = useState(null);
   const consoleRef = useRef(null);
   const resultRef = useRef(null);
+  const formRef = useRef(null);
+
+  // Clear a finished render and hand the page back for another go.
+  //
+  // The prompt is deliberately KEPT. After a render the usual next move is a
+  // small edit to the same idea ("...at dusk" → "...at dawn"), and wiping the
+  // field would make the button hostile to the common case. This clears the
+  // output — console, preview, image, metadata — and returns to idle.
+  //
+  // Only offered once a render has finished: mid-render there is a live SSE
+  // stream whose handlers would carry on writing into the state this just
+  // cleared, so the button is absent while phase is 'running' rather than
+  // disabled, and the stream is never cancelled underneath itself.
+  const reset = () => {
+    setPhase('idle');
+    setFrames([]);
+    setPreview(null);
+    setImage(null);
+    setMeta(null);
+    setErrorMsg('');
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   // Bring the console into view when a render starts.
   //
@@ -236,7 +258,7 @@ const RabinAIImagery = () => {
         </p>
       </Hero>
       <ScreenBody width="playground">
-      <form onSubmit={generate} className="panel panel-row">
+      <form onSubmit={generate} className="panel panel-row" ref={formRef}>
         <input
           className="input"
           type="text"
@@ -297,13 +319,30 @@ const RabinAIImagery = () => {
 
       {image && (
         <figure className="imagery-result" ref={resultRef}>
-          <img src={image} alt={prompt} />
+          {/* The frame is the positioning context for the white splash overlay
+              (::after). It also holds the same 1:1 box the preview occupies, so
+              the handoff from last-preview to finished image is a cross-fade in
+              place rather than a jump. */}
+          <div className="imagery-result-frame">
+            <img src={image} alt={prompt} />
+          </div>
           <figcaption>
             {(meta.ms / 1000).toFixed(1)}s on the box · seed {meta.seed} ·{' '}
             <a href={image} download={downloadName()}>save it</a> — this
             page won't remember it. Exists in this tab and nowhere else.
           </figcaption>
         </figure>
+      )}
+
+      {/* Clear. Present once a render has settled — done or failed — because
+          both leave the page full of output that has to be scrolled past to
+          start again. */}
+      {(phase === 'done' || phase === 'error') && (
+        <div className="imagery-reset">
+          <button type="button" className="btn btn-secondary" onClick={reset}>
+            Clear and start over
+          </button>
+        </div>
       )}
 
       {/* Scroll room. The console is the last element on the page while a
