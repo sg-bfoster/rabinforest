@@ -8,6 +8,12 @@ const SITE_CONFIG = {
     key: 'rabinforest',
     displayName: 'Rabin Forest',
     screenshotPath: '/screenshots/rabinforest-screenshot.png',
+    screenshotPaths: [
+      '/screenshots/rabinforest-screenshot.png',
+      '/screenshots/rabinforest-chat-bots.png',
+      '/screenshots/rabinforest-imagery.png',
+      '/screenshots/rabinforest-fact-check.png',
+    ],
     url: 'https://www.rabinforest.com',
     patterns: [
       /rabin\s*forest/gi,

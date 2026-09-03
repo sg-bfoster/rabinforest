@@ -1,35 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
-  <rect width="1200" height="630" fill="#f3f2f2"/>
-  <rect x="0" y="0" width="8" height="630" fill="#ec3013"/>
-
-  <!-- Pixel tree (same geometry as PixelTreeLogo) -->
-  <g transform="translate(88, 198) scale(7.5)">
-    <g fill="#201e1d">
-      <rect x="14.4" y="2.4" width="3.2" height="3.2"/>
-      <rect x="10.4" y="6.4" width="3.2" height="3.2"/>
-      <rect x="18.4" y="6.4" width="3.2" height="3.2"/>
-      <rect x="6.4" y="10.4" width="3.2" height="3.2"/>
-      <rect x="10.4" y="10.4" width="3.2" height="3.2"/>
-      <rect x="18.4" y="10.4" width="3.2" height="3.2"/>
-      <rect x="22.4" y="10.4" width="3.2" height="3.2"/>
-      <rect x="2.4" y="14.4" width="3.2" height="3.2"/>
-      <rect x="6.4" y="14.4" width="3.2" height="3.2"/>
-      <rect x="10.4" y="14.4" width="3.2" height="3.2"/>
-      <rect x="18.4" y="14.4" width="3.2" height="3.2"/>
-      <rect x="22.4" y="14.4" width="3.2" height="3.2"/>
-      <rect x="26.4" y="14.4" width="3.2" height="3.2"/>
-      <rect x="14.4" y="18.4" width="3.2" height="3.2"/>
-      <rect x="14.4" y="22.4" width="3.2" height="3.2"/>
-      <rect x="2.4" y="26.4" width="27.2" height="2.4"/>
-    </g>
-    <rect x="14.4" y="6.4" width="3.2" height="3.2" fill="#ec3013"/>
-    <rect x="14.4" y="10.4" width="3.2" height="3.2" fill="#ec3013"/>
-    <rect x="14.4" y="14.4" width="3.2" height="3.2" fill="#ec3013"/>
+  <rect width="1200" height="630" fill="#070b10"/>
+  <g transform="translate(88, 188) scale(9)" fill="none" stroke="#cfe2f2" stroke-width="1.6" stroke-linecap="round" opacity="0.7">
+    <line x1="16" y1="25.5" x2="16" y2="15"/>
+    <line x1="16" y1="15" x2="8" y2="8.5"/>
+    <line x1="16" y1="15" x2="24" y2="8.5"/>
+    <line x1="16" y1="19" x2="23.2" y2="16.8"/>
   </g>
-
-  <text x="372" y="292" font-family="Archivo, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="72" font-weight="800" fill="#201e1d">Rabin Forest</text>
-  <text x="372" y="348" font-family="Archivo, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="28" font-weight="500" fill="#201e1d">Brian Foster - Senior Frontend Developer</text>
-  <rect x="372" y="378" width="72" height="4" fill="#ec3013"/>
-  <text x="372" y="428" font-family="Archivo, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="24" font-weight="500" fill="#ec3013">Ask the AI assistant about his work</text>
-  <text x="88" y="572" font-family="Archivo, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" font-weight="500" fill="#7d7979">rabinforest.com</text>
+  <g transform="translate(88, 188) scale(9)">
+    <circle cx="16" cy="15" r="2.5" fill="#cfe2f2"/>
+    <circle cx="8" cy="8.5" r="1.9" fill="#cfe2f2"/>
+    <circle cx="24" cy="8.5" r="1.9" fill="#cfe2f2"/>
+    <circle cx="23.2" cy="16.8" r="1.6" fill="#ec3013"/>
+    <circle cx="16" cy="25.5" r="1.6" fill="#cfe2f2" opacity="0.75"/>
+  </g>
+  <text x="420" y="292" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="68" font-weight="600" fill="#ffffff">Rabin Forest</text>
+  <text x="420" y="350" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="28" font-weight="400" fill="#cfe2f2" opacity="0.78">Ask me about Brian.</text>
+  <text x="88" y="558" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="22" font-weight="500" fill="#cfe2f2" opacity="0.4">rabinforest.com</text>
 </svg>
