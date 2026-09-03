@@ -231,9 +231,6 @@ const FactCheck = () => {
           />
         </div>
         <div className="fact-check-actions">
-          <button type="submit" className="btn btn-primary" disabled={isChecking}>
-            {isChecking ? <span className="spinner" /> : 'Check'}
-          </button>
           {(result || error) && (
             <button
               type="button"
@@ -246,6 +243,13 @@ const FactCheck = () => {
               Clear result
             </button>
           )}
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={isChecking || !claim.trim() || !source.trim()}
+          >
+            {isChecking ? <span className="spinner" /> : 'Check'}
+          </button>
         </div>
       </form>
       </div>

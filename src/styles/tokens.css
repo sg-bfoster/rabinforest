@@ -123,8 +123,15 @@ figcaption {
   font-size: 15px; padding: 12px 20px;
 }
 .btn-secondary:hover:not(:disabled) { border-color: var(--color-neutral-400); }
-.btn-ghost { color: var(--muted-2); padding-inline: 8px; font-size: 15px; }
-.btn-ghost:hover:not(:disabled) { color: var(--ink); }
+.btn-ghost {
+  color: var(--muted-2);
+  font-size: 15px;
+  border-color: var(--hairline);
+}
+.btn-ghost:hover:not(:disabled) {
+  color: var(--ink);
+  border-color: var(--color-neutral-400);
+}
 .btn-icon { width: 36px; height: 36px; padding: 0; }
 .btn-block { width: 100%; margin-top: var(--space-2); justify-content: flex-start; text-align: left; }
 
