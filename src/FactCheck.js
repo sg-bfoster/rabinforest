@@ -254,23 +254,30 @@ const FactCheck = () => {
       </form>
       </div>
 
-      <div ref={resultRef} />
-      {error && <p className="error-message" style={{ marginTop: 'var(--space-4)' }}>{error}</p>}
-
-      {result && (
-        <div className="fact-check-result">
-          <span className={`fact-check-verdict verdict-${result.verdict}`}>
-            {VERDICT_LABELS[result.verdict] || result.verdict}
-          </span>
-          <p className="fact-check-reasoning">{result.reasoning}</p>
-          {result.evidence && (
-            <blockquote className="fact-check-evidence">“{result.evidence}”</blockquote>
-          )}
-          {(result.sourceUrl || result.truncated) && (
-            <p className="fact-check-meta">
-              {result.sourceUrl && <>Judged against {result.sourceUrl}. </>}
-              {result.truncated && <>Source was truncated to the first 20,000 characters.</>}
-            </p>
+      {(error || result) && (
+        <div
+          ref={resultRef}
+          className={`panel fact-check-result result-${result?.verdict || 'not_supported'}`}
+        >
+          {error && <p className="error-message">{error}</p>}
+          {result && (
+            <>
+              <span className={`fact-check-verdict verdict-${result.verdict}`}>
+                {VERDICT_LABELS[result.verdict] || result.verdict}
+              </span>
+              <p className="fact-check-reasoning">{result.reasoning}</p>
+              {result.evidence && (
+                <blockquote className="fact-check-evidence">
+                  “<mark>{result.evidence}</mark>”
+                </blockquote>
+              )}
+              {(result.sourceUrl || result.truncated) && (
+                <p className="fact-check-meta">
+                  {result.sourceUrl && <>Judged against {result.sourceUrl}. </>}
+                  {result.truncated && <>Source was truncated to the first 20,000 characters.</>}
+                </p>
+              )}
+            </>
           )}
         </div>
       )}
