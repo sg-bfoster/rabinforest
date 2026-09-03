@@ -452,7 +452,7 @@ const Home = () => {
     return (
         <>
             <Hero variant="assistant">
-                <h1 className="hero-h1">Ask me about Brian.</h1>
+                <h1 className="hero-h1">Ask me about Brian Foster.</h1>
                 <p className="hero-sub">
                     Senior UI engineer in Metro Atlanta. This project: RabinAI, runs on hardware in his basement he configured himself.
                 </p>
