@@ -267,6 +267,12 @@
   background: var(--action);
   animation: rf-breathe 3.2s ease-in-out infinite;
 }
+/* Drawing: amber, not green. A render owns the same GPU the assistant uses, so
+   an answer asked mid-render may fall back to Gemini. Green would promise a
+   local answer the machine cannot guarantee. Amber is the honest middle
+   between "answering" and "asleep". */
+.rabinai-status-busy .rabinai-status-dot { background: #d98324; }
+.rabinai-status-busy { border-color: color-mix(in srgb, #d98324 45%, transparent); }
 .rabinai-status-off .rabinai-status-dot { background: rgba(207, 226, 242, 0.5); }
 @media (prefers-reduced-motion: reduce) {
   .rabinai-status-ok .rabinai-status-dot,

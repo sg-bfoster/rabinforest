@@ -61,18 +61,32 @@ export default function RabinAIStatus() {
   const s = STATE[status.engine] || STATE.offline;
   const rendering = status.images === 'rendering';
 
+  // A render owns the iGPU, and the assistant shares it. Measured: a render
+  // starves generation badly enough that an answer can miss its deadline and
+  // fall to Gemini. So while drawing, the chip is amber and says "may fall
+  // back" rather than green and "answering directly" — green there would be
+  // claiming more than the machine can deliver, which is the one thing this
+  // chip exists not to do.
+  const view = rendering
+    ? {
+        dot: 'busy',
+        short: 'RabinAI drawing',
+        text: 'RabinAI is drawing an image — answers may fall back to Gemini until it finishes',
+        hint: 'The box is rendering an image, which uses the same GPU the assistant runs on. Questions asked right now may be answered by Gemini instead.',
+      }
+    : s;
+
   return (
     <div
-      className={`rabinai-status rabinai-status-${s.dot}`}
-      title={rendering ? `${s.hint} It's also drawing an image right now.` : s.hint}
+      className={`rabinai-status rabinai-status-${view.dot}`}
+      title={view.hint}
       role="status"
       aria-live="polite"
-      aria-label={`${s.text}${rendering ? ', drawing an image' : ''}`}
+      aria-label={view.text}
     >
       <span className="rabinai-status-dot" aria-hidden="true" />
       <span className="rabinai-status-text">
-        {s.short}
-        {rendering ? ' · drawing' : ''}
+        {view.short}
       </span>
     </div>
   );
