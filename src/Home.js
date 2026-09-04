@@ -42,6 +42,16 @@ const QUESTION_POOL = [
     'Does he work in Angular or React?',
     'Is he available for work?',
     'How do I contact him?',
+    // Added 2026-09-04. Each points at knowledge-base material that answers
+    // well but that a visitor would otherwise have to guess was there: the
+    // ownership section, the Angular 15-to-20 upgrade, and his position on
+    // verifying AI output. The analytics one earns its slot for a different
+    // reason — it is the question that exposed the fabricated-denial bug, and
+    // it is worth keeping in front of people now that it answers correctly.
+    'What does he own at Safe-Guard?',
+    'Tell me about the Angular upgrade',
+    'How does he make sure AI answers are accurate?',
+    'Has he set up analytics?',
 ];
 
 const pickQuestions = (pool, n) => {

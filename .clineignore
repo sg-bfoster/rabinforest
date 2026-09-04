@@ -1,0 +1,44 @@
+# Keep Cline out of files that will blow a 32k context window.
+#
+# The box loads qwen3-30b-a3b-2507 with a 32,768-token window. A single
+# bundled file in node_modules (rollup.js and friends) is larger than that on
+# its own, so one stray read ends the task with "Context size has been
+# exceeded" and no way to recover except starting over. A `find . -name "*.js"`
+# walks straight into them, which is exactly what happened.
+#
+# This is about context budget, not secrecy — everything here is either
+# generated, vendored, or binary, and none of it is worth spending the window
+# on when the answer is always in src/.
+
+node_modules/
+dist/
+build/
+.next/
+coverage/
+
+# Lockfiles: enormous, generated, and never the thing you are asking about.
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build and editor noise
+.git/
+.DS_Store
+*.log
+.vite/
+.cache/
+
+# Binaries and documents — unreadable as text and expensive to try
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.ico
+*.woff
+*.woff2
+*.ttf
+*.zip
+*.mp4
+*.mp3
