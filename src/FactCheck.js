@@ -52,14 +52,27 @@ const EXAMPLES = [
     ],
   },
   {
+    // Narrowed 2026-09-04, from "Museum admission is free on Sundays".
+    // That phrasing is the first case found where the two engines genuinely
+    // disagree: Gemini ruled it supported, RabinAI ruled it not_supported,
+    // because the source waives GENERAL admission while noting that special
+    // exhibitions may still require a ticket. Both readings are defensible —
+    // RabinAI is being the stricter of the two, which is the right direction
+    // for a fact-checker and the wrong thing to put behind a chip that
+    // promises "should be Supported". Naming the general case makes the
+    // pairing unambiguous and both engines agree.
+    //
+    // The original is worth keeping in mind for the show-both-verdicts idea in
+    // FACT_CHECK_LOCAL_PLAN.md: it is a real, honest disagreement on a caveat,
+    // which is exactly what that feature exists to display.
     label: 'A claim free Sunday admission',
-    claim: 'Museum admission is free on Sundays.',
+    claim: 'General admission is free on Sundays.',
     source:
       'Visitor information: Adult admission is $14. Seniors and students $10. Children under 12 are free. Every Sunday the museum waives all general-admission fees; special exhibitions may still require a timed ticket.',
     expected: 'supported',
     flow: [
       'The source is pasted visitor information, not a URL.',
-      'The claim is that Sunday admission is free. The text says every Sunday general-admission fees are waived.',
+      'The claim is about general admission specifically. The text says every Sunday general-admission fees are waived.',
       'That is an affirmative match, so the pairing is supported.',
     ],
   },
@@ -159,25 +172,235 @@ const EXAMPLES = [
       "Silence is not support — can't tell, even if the budget figure is true in the world.",
     ],
   },
+
+  // ── Added 2026-09-04 ──────────────────────────────────────────────────────
+  // Twelve more, balanced 4/4/4 so the stratified picker keeps drawing an even
+  // spread. Everyday civic sources on purpose: the failure this page teaches —
+  // a true claim failing on the wrong source — is most legible when the source
+  // is the kind of thing a person actually gets handed.
+  {
+    label: 'A claim the holiday notice confirms',
+    claim: 'Trash pickup moves to Wednesday during Thanksgiving week.',
+    source:
+      'Solid Waste notice: In observance of the Thanksgiving holiday, there will be no collection on Thursday. Residents on the Thursday route should place carts out on Wednesday instead. Friday routes are unaffected.',
+    expected: 'supported',
+    flow: [
+      'The source is a pasted Solid Waste notice, sent as-is with no URL fetch.',
+      'The judge checks whether the text actually moves Thursday collection to Wednesday.',
+      'It does, explicitly and for that week, so the claim is supported with the rerouting sentence quoted as evidence.',
+    ],
+  },
+  {
+    label: 'A claim the clinic notice backs',
+    claim: 'The flu clinic accepts walk-ins.',
+    source:
+      'Community health bulletin: The seasonal flu clinic runs Saturday from 9 AM to 3 PM at the recreation center. No appointment is necessary — walk-ins are welcome throughout the day. Bring an insurance card if you have one.',
+    expected: 'supported',
+    flow: [
+      'Pasted bulletin text, no URL involved.',
+      'The claim is narrow: does the clinic take walk-ins?',
+      'The text says walk-ins are welcome and no appointment is necessary, which affirmatively backs the claim.',
+    ],
+  },
+  {
+    label: 'A claim the fee schedule matches',
+    claim: 'A residential fence permit costs $75.',
+    source:
+      'Permit fee schedule, effective January 1. Residential fence: $75. Residential deck: $125. Accessory structure under 200 sq ft: $95. Commercial signage: $250. Fees are non-refundable once a review has begun.',
+    expected: 'supported',
+    flow: [
+      'A fee schedule pasted in full, several line items long.',
+      'The judge has to find the right row rather than the first dollar figure it sees.',
+      'Residential fence is listed at $75, matching the claim exactly, so it is supported.',
+    ],
+  },
+  {
+    label: 'A claim the park rules confirm',
+    claim: 'The nature preserve closes at sunset.',
+    source:
+      'Preserve rules: Open daily from dawn until sunset. Pets must remain leashed. No collecting of plants, rocks or wildlife. Bicycles are permitted on the gravel loop only. Carry out everything you carry in.',
+    expected: 'supported',
+    flow: [
+      'A short list of posted park rules, pasted as the source.',
+      'The judge looks for the closing time specifically, not the general tone of the rules.',
+      'The hours line says open until sunset, which supports the claim directly.',
+    ],
+  },
+  {
+    label: 'A claim the deadline contradicts',
+    claim: 'Voter registration closes on October 1.',
+    source:
+      'Elections office reminder: The registration deadline for the November general election is October 15. Applications postmarked by that date will be accepted. Early voting begins October 20 at four locations.',
+    expected: 'not_supported',
+    flow: [
+      'A pasted elections reminder, sent as-is.',
+      'Both the claim and the source name a deadline, so the judge has to compare them rather than just spot the topic.',
+      'The source says October 15, which is incompatible with October 1 — ruled not supported, not merely unproven.',
+    ],
+  },
+  {
+    label: 'A claim the leash rule denies',
+    claim: 'Dogs may be off-leash in the dog park.',
+    source:
+      'Parks ordinance summary: Dogs are permitted in all county parks but must remain on a leash no longer than six feet at all times, including within fenced dog areas. Owners are responsible for waste removal.',
+    expected: 'not_supported',
+    flow: [
+      'A pasted ordinance summary, no URL.',
+      'The claim sounds reasonable — dog parks usually do allow this — so the judge has to resist outside knowledge.',
+      'The text requires a leash at all times, explicitly including fenced dog areas, so the claim is contradicted.',
+    ],
+  },
+  {
+    label: 'A claim the fare table denies',
+    claim: 'Seniors ride the county bus for free.',
+    source:
+      'Transit fares: Standard adult fare $2.50. Students with valid ID $1.25. Seniors 65 and over $1.00. Children under 5 ride free with a paying adult. Day passes are $5.00.',
+    expected: 'not_supported',
+    flow: [
+      'A pasted fare table with several categories.',
+      'Someone does ride free here — children under five — so the judge has to match the right row to the claim.',
+      'Seniors are listed at $1.00, not free, so the claim is contradicted by the source.',
+    ],
+  },
+  {
+    label: 'A claim the venue change denies',
+    claim: 'The planning commission meets at the public library.',
+    source:
+      'Notice of venue change: Effective this month, all planning commission meetings will be held in the community center auditorium on Grove Street. The previous library meeting room is no longer available due to renovation.',
+    expected: 'not_supported',
+    flow: [
+      'A pasted venue-change notice.',
+      'The library is mentioned, which is exactly the trap — a keyword match is not support.',
+      'It is mentioned only as the location that is no longer used, so the source contradicts the claim.',
+    ],
+  },
+  {
+    label: 'A parking cost claim on a hours notice',
+    claim: 'Downtown parking costs $2 per hour.',
+    source:
+      'Parking enforcement hours: Metered spaces downtown are enforced Monday through Saturday, 8 AM to 6 PM. Enforcement does not occur on Sundays or county holidays. Time limits are posted at each block face.',
+    expected: 'cant_tell',
+    flow: [
+      'The source is about parking, which is why this one is tempting.',
+      'It covers enforcement hours and time limits, and never states a rate.',
+      'The claim may well be true, but this source does not decide it — silence is not support.',
+    ],
+  },
+  {
+    label: 'An enrollment claim on a calendar',
+    claim: 'The high school has more than 2,000 students.',
+    source:
+      'Academic calendar: First day of school August 5. Labor Day holiday September 1. Fall break October 13-17. Winter break December 22 through January 2. Last day of school May 22, with early release.',
+    expected: 'cant_tell',
+    flow: [
+      'A school calendar pasted as the source — same institution, different subject.',
+      'Nothing in it speaks to enrollment numbers at all.',
+      'The judge should decline rather than reach, so the correct verdict is that it cannot tell.',
+    ],
+  },
+  {
+    label: 'A health score claim on a menu',
+    claim: 'The diner passed its most recent health inspection.',
+    source:
+      'Lunch menu: Patty melt with fries $11. Turkey club $10. Soup of the day cup $4, bowl $6. Breakfast served until 11 AM. Daily specials posted on the board. Cash and cards accepted.',
+    expected: 'cant_tell',
+    flow: [
+      'A restaurant menu, pasted in full.',
+      'The claim is about the same business, which is what makes this a near miss rather than an obvious mismatch.',
+      'A menu says nothing about inspections, so there is no basis in this source either way.',
+    ],
+  },
+  {
+    label: 'A results claim on polling locations',
+    claim: 'Turnout in the last election was above 40 percent.',
+    source:
+      'Polling place list: Precinct 1 votes at Grove Street Community Center. Precinct 2 at Riverdale Elementary. Precinct 3 at the fire station on Main. Polls open 7 AM to 7 PM. Bring photo identification.',
+    expected: 'cant_tell',
+    flow: [
+      'A polling location list — unmistakably election material.',
+      'The claim is about turnout, which is a different fact entirely from where people vote.',
+      'The source never reports any turnout figure, so the pairing cannot be decided from it.',
+    ],
+  },
+  {
+    // A live URL on purpose — the only other fetching example is example.com,
+    // which is a specification rather than a real site. This exercises the
+    // whole path: fetch, strip HTML, judge. It is also a scope error rather
+    // than a factual one, which is the kind people actually make: the site
+    // covers a county, the claim widens it to a metro area, and nothing in the
+    // source supports the wider reading.
+    //
+    // Verified 2026-09-04: both engines return not_supported. It does depend on
+    // askgwinnett.com staying up and on-message — tools/factcheck-compare.js
+    // and the example verifier will catch it if that changes.
+    label: 'A scope claim on a real county site',
+    claim: 'Ask Gwinnett answers questions for metro Atlanta.',
+    source: 'https://www.askgwinnett.com/',
+    expected: 'not_supported',
+    flow: [
+      'The source is a URL, so the backend fetches askgwinnett.com and strips the page down to plain text.',
+      'The claim widens the scope from a county to a metro area, which is the kind of over-generalisation that reads as harmless until you check it.',
+      'The page describes a Gwinnett County project and never claims the wider region, so the pairing is ruled not supported rather than merely unproven.',
+    ],
+  },
 ];
 
+/**
+ * Draw n examples with every verdict represented.
+ *
+ * A flat shuffle can hand a visitor four "Can't tell" chips and no sense that
+ * the judge ever rules any other way — which was happening, and matters more
+ * now that each chip advertises the verdict it should produce. Taking an equal
+ * slice per verdict guarantees the demo shows its whole range; the result is
+ * then shuffled so the order still varies between loads.
+ */
 const pickExamples = (pool, n) => {
-  const copy = pool.slice();
-  for (let i = copy.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy.slice(0, n);
+  const shuffle = (arr) => {
+    const copy = arr.slice();
+    for (let i = copy.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  };
+  const byVerdict = pool.reduce((acc, ex) => {
+    (acc[ex.expected] = acc[ex.expected] || []).push(ex);
+    return acc;
+  }, {});
+  const verdicts = Object.keys(byVerdict);
+  const perVerdict = Math.floor(n / verdicts.length);
+  const picked = verdicts.flatMap((v) => shuffle(byVerdict[v]).slice(0, perVerdict));
+  // Any remainder (n not divisible by the verdict count) is topped up at random
+  // from whatever was not already chosen.
+  const rest = shuffle(pool.filter((ex) => !picked.includes(ex)));
+  return shuffle(picked.concat(rest.slice(0, n - picked.length)));
 };
 
 const FactCheck = () => {
   const [claim, setClaim] = useState('');
   const [source, setSource] = useState('');
-  const [examples] = useState(() => pickExamples(EXAMPLES, 4));
+  const [examples] = useState(() => pickExamples(EXAMPLES, 6));
   const [isChecking, setIsChecking] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  // Which engine the visitor asked for. RabinAI is the default deliberately:
+  // the site's whole claim is that the box does the work, and defaulting to
+  // Gemini would mean almost nobody ever sees it.
+  const [engine, setEngine] = useState('rabinai');
+  // Live step frames from the server. Every line is a measured event — there is
+  // a real ~9s silence while the box reads the source and nothing is emitted to
+  // paper over it.
+  const [frames, setFrames] = useState([]);
   const resultRef = useRef(null);
+  const consoleRef = useRef(null);
+
+  // Keep the newest line visible as the console grows (same pattern as the
+  // imagery page: an effect on frames runs after commit, so scrollHeight is
+  // current — scheduling this from the handler scrolls to the previous height).
+  useEffect(() => {
+    const el = consoleRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [frames]);
 
   useEffect(() => {
     if ((result || error) && resultRef.current) {
@@ -195,14 +418,56 @@ const FactCheck = () => {
     setIsChecking(true);
     setResult(null);
     setError(null);
+    setFrames([]);
+
+    // SSE rather than a plain POST. The server writes headers before it does
+    // any work, which moves Heroku's 30s limit from total duration to
+    // time-to-first-byte — the box needs ~10-14s to read a long source and the
+    // URL fetch can spend six before that.
     try {
-      const { data } = await axios.post(API_ENDPOINTS.FACT_CHECK, {
-        claim: claim.trim(),
-        source: source.trim(),
+      const res = await fetch(API_ENDPOINTS.FACT_CHECK, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ claim: claim.trim(), source: source.trim(), engine }),
       });
-      setResult(data);
+
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('text/event-stream')) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || `The judge did not answer (HTTP ${res.status}).`);
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '';
+      let event = '';
+      let settled = false;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split('\n');
+        buf = lines.pop();
+        for (const line of lines) {
+          if (line.startsWith('event: ')) { event = line.slice(7).trim(); continue; }
+          if (!line.startsWith('data: ')) continue;
+          let d;
+          try { d = JSON.parse(line.slice(6)); } catch { continue; }
+          if (event === 'step') {
+            setFrames((prev) => [...prev, `[${((d.ms || 0) / 1000).toFixed(1).padStart(5)}s] ${d.label}`]);
+          } else if (event === 'done') {
+            setResult(d);
+            settled = true;
+          } else if (event === 'error') {
+            setError(d.message || 'Fact check failed.');
+            settled = true;
+          }
+        }
+      }
+      // A stream that ends without a verdict is a failure, not a silent no-op.
+      if (!settled) setError('The judge stopped before returning a verdict.');
     } catch (err) {
-      setError(err.response?.data?.error || 'Fact check failed. Please try again.');
+      setError(err.message || 'Fact check failed. Please try again.');
     } finally {
       setIsChecking(false);
     }
@@ -223,40 +488,68 @@ const FactCheck = () => {
       </Hero>
       <ScreenBody width="playground">
       <div className="panel fact-check-panel">
-      <div className="fact-check-legend">
-        <div className="fact-check-legend-row">
-          <span className="fact-check-verdict verdict-supported">Supported</span>
-          <span>The source affirmatively backs the claim — the deciding sentence is quoted as evidence.</span>
-        </div>
-        <div className="fact-check-legend-row">
-          <span className="fact-check-verdict verdict-not_supported">Not supported</span>
-          <span>The source contradicts the claim, or says something incompatible with it.</span>
-        </div>
-        <div className="fact-check-legend-row">
-          <span className="fact-check-verdict verdict-cant_tell">Can't tell</span>
-          <span>The source never addresses the claim. Silence is not support — even a true claim fails on the wrong source.</span>
+      {/* Step 1. The engine choice moved to the TOP, ahead of everything else.
+          It was previously buried next to the submit button, which meant a
+          visitor made the interesting decision on this page last, or never —
+          and the page's whole point is that you can pick who judges. */}
+      <div className="fact-check-step">
+        <span className="fact-check-step-n">1</span>
+        <div className="fact-check-step-body">
+          <h2 className="fact-check-step-title">Choose a judge</h2>
+          <div className="fact-check-engine-choice" role="radiogroup" aria-label="Judge engine">
+            <button
+              type="button"
+              role="radio"
+              aria-checked={engine === 'rabinai'}
+              className={`fact-check-engine-btn${engine === 'rabinai' ? ' is-on' : ''}`}
+              disabled={isChecking}
+              onClick={() => setEngine('rabinai')}
+            >
+              RabinAI <span className="fact-check-engine-note">Brian's mini PC · ~3-15s</span>
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={engine === 'gemini'}
+              className={`fact-check-engine-btn${engine === 'gemini' ? ' is-on' : ''}`}
+              disabled={isChecking}
+              onClick={() => setEngine('gemini')}
+            >
+              Gemini <span className="fact-check-engine-note">Google's cloud · ~1-3s</span>
+            </button>
+          </div>
+          <p className="fact-check-step-hint">
+            Same claim, same source, same rules — only the model changes. Both are
+            judged at temperature 0, reading nothing but the source you supply.
+          </p>
         </div>
       </div>
-      <p className="fact-check-rules">
-        The judge reads <em>only</em> the source you give it — no web search, no outside
-        knowledge, temperature 0. It is judging the pairing, not the truth of the world.
-      </p>
+
+      {/* Step 2. Examples now announce their expected verdict, so a visitor can
+          see the judge got it right rather than having to work that out. */}
+      <div className="fact-check-step">
+        <span className="fact-check-step-n">2</span>
+        <div className="fact-check-step-body">
+          <h2 className="fact-check-step-title">Load an example, or write your own below</h2>
       <div className="fact-check-examples">
-        <span className="fact-check-examples-label">Try one</span>
         {examples.map((example) => (
           <button
             key={example.label}
             type="button"
-            className="fact-check-example"
+            className={`fact-check-example${activeExample === example ? ' is-on' : ''}`}
             disabled={isChecking}
             onClick={() => {
               setClaim(example.claim);
               setSource(example.source);
               setResult(null);
               setError(null);
+              setFrames([]);
             }}
           >
-            {example.label}
+            <span className="fact-check-example-label">{example.label}</span>
+            <span className={`fact-check-example-expect verdict-${example.expected}`}>
+              should be {VERDICT_LABELS[example.expected]}
+            </span>
           </button>
         ))}
       </div>
@@ -275,6 +568,14 @@ const FactCheck = () => {
           </ol>
         </div>
       )}
+        </div>
+      </div>
+
+      {/* Step 3. */}
+      <div className="fact-check-step">
+        <span className="fact-check-step-n">3</span>
+        <div className="fact-check-step-body">
+          <h2 className="fact-check-step-title">Check the pairing</h2>
       <form onSubmit={handleSubmit} className="fact-check-form">
         <div className="field">
           <label htmlFor="fc-claim">Claim</label>
@@ -303,13 +604,14 @@ const FactCheck = () => {
           />
         </div>
         <div className="fact-check-actions">
-          {(result || error) && (
+          {(result || error || frames.length > 0) && (
             <button
               type="button"
               className="btn btn-ghost"
               onClick={() => {
                 setResult(null);
                 setError(null);
+                setFrames([]);
               }}
             >
               Clear result
@@ -324,12 +626,57 @@ const FactCheck = () => {
           </button>
         </div>
       </form>
+        </div>
       </div>
+
+      {/* Reference, deliberately AFTER the form rather than before it. It used
+          to open the page: three verdict definitions and a rules paragraph
+          standing between the visitor and the thing they came to try. */}
+      <div className="fact-check-legend">
+        <div className="fact-check-legend-row">
+          <span className="fact-check-verdict verdict-supported">Supported</span>
+          <span>The source affirmatively backs the claim — the deciding sentence is quoted as evidence.</span>
+        </div>
+        <div className="fact-check-legend-row">
+          <span className="fact-check-verdict verdict-not_supported">Not supported</span>
+          <span>The source contradicts the claim, or says something incompatible with it.<br/> &nbsp;</span>
+        </div>
+        <div className="fact-check-legend-row">
+          <span className="fact-check-verdict verdict-cant_tell">Can't tell</span>
+          <span>The source never addresses the claim. Silence is not support — even a true claim fails on the wrong source.</span>
+        </div>
+      </div>
+      <p className="fact-check-rules">
+        The judge reads <em>only</em> the source you give it — no web search, no outside
+        knowledge, temperature 0. It is judging the pairing, not the truth of the world.
+      </p>
+      </div>
+
+      {/* The console. Every line is a measured event from the server — fetch
+          duration, real source size, the moment the verdict lands. The gap in
+          the middle is the box genuinely reading the source, and labelling it
+          is what turns the wait into the demonstration rather than dead air. */}
+      {frames.length > 0 && (
+        <div className="fact-check-console" ref={consoleRef} aria-live="polite">
+          {frames.map((line, i) => (
+            <div key={i} className="fact-check-console-line">{line}</div>
+          ))}
+          {isChecking && (
+            <div className="fact-check-console-line">
+              <span className="stream-cursor">▍</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {(error || result) && (
         <div
           ref={resultRef}
-          className={`panel fact-check-result result-${result?.verdict || 'not_supported'}`}
+          // An error is NOT a verdict. This fell back to result-not_supported
+          // when there was no result, so a failed URL fetch was painted in the
+          // same red as a ruling — on the page whose entire subject is reading
+          // verdicts precisely. Errors get their own neutral treatment.
+          className={`panel fact-check-result ${result ? `result-${result.verdict}` : 'result-error'}`}
         >
           {error && <p className="error-message">{error}</p>}
           {result && (
@@ -337,6 +684,12 @@ const FactCheck = () => {
               <span className={`fact-check-verdict verdict-${result.verdict}`}>
                 {VERDICT_LABELS[result.verdict] || result.verdict}
               </span>
+              {result.engine && (
+                <span className="fact-check-engine-tag">
+                  judged by {result.engine === 'rabinai' ? 'RabinAI' : 'Gemini'}
+                  {typeof result.ms === 'number' && ` · ${(result.ms / 1000).toFixed(1)}s`}
+                </span>
+              )}
               <p className="fact-check-reasoning">{result.reasoning}</p>
               {result.evidence && (
                 <blockquote className="fact-check-evidence">

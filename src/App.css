@@ -1055,6 +1055,12 @@
 .fact-check-result.result-supported { --result-accent: var(--verdict-supported); }
 .fact-check-result.result-not_supported { --result-accent: var(--verdict-not); }
 .fact-check-result.result-cant_tell { --result-accent: #6a7380; }
+
+/* A failure is not a ruling. Errors used to inherit the not_supported accent,
+   which painted "that site refused us" in the same red as "the source
+   contradicts the claim" — two very different statements to a visitor who is
+   here to learn the difference between verdicts. */
+.fact-check-result.result-error { --result-accent: #6a7380; }
 .fact-check-verdict {
   font-size: 11.5px;
   letter-spacing: 0.1em;
@@ -1491,4 +1497,180 @@
     bottom: auto;
     max-height: min(420px, calc(100vh - 96px));
   }
+}
+
+/* ── Fact Check: engine choice, console, engine tag ──────────────────────── */
+
+/* The visitor picks the judge. Deliberately not a "fast mode" switch — the box
+   is not a degraded option, it is a different trade, and the labels say which
+   trade rather than implying one is broken. */
+/* Numbered steps. The page previously opened with three verdict definitions
+   and a rules paragraph before a visitor could touch anything; the engine
+   choice — the most interesting decision here — sat last, beside the submit
+   button. Now: choose a judge, load an example, check. */
+.fact-check-step {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.fact-check-step:last-of-type { border-bottom: none; }
+
+.fact-check-step-n {
+  flex: 0 0 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--color-neutral-200, #e6e9ec);
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.fact-check-step-body { flex: 1; min-width: 0; }
+
+.fact-check-step-title {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.fact-check-step-hint {
+  margin: 10px 0 0;
+  font-size: 13.5px;
+  color: var(--muted);
+  max-width: 60ch;
+}
+
+.fact-check-engine-choice {
+  display: inline-flex;
+  gap: 6px;
+  padding: 4px;
+  background: var(--color-neutral-100, #f1f3f5);
+  border-radius: 999px;
+}
+
+.fact-check-engine-btn {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: 15px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+/* Hover moves the BACKGROUND, not the text colour.
+   The previous rule set `color` on hover, and `.btn:hover:not(:disabled)`
+   outscores `.btn.is-on` on specificity — so hovering the selected (dark)
+   button flipped its label back to black and made it invisible against its own
+   background. Each state gets its own hover, and the selected one is the more
+   specific of the two so it wins cleanly. */
+.fact-check-engine-btn:hover:not(:disabled) {
+  background: var(--color-neutral-200);
+  color: var(--color-text);
+}
+
+.fact-check-engine-btn.is-on:hover:not(:disabled) {
+  background: var(--color-neutral-800);
+  color: #fff;
+}
+
+.fact-check-engine-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* The selected judge has to be unmistakable — this is now step 1 and the most
+   interesting choice on the page. White-on-light-grey was far too subtle to
+   carry that. */
+.fact-check-engine-btn.is-on {
+  background: var(--color-text);
+  color: #fff;
+  border-color: var(--color-text);
+  font-weight: 600;
+}
+
+.fact-check-engine-btn.is-on .fact-check-engine-note {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.fact-check-engine-note {
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+/* Same console as the imagery page, on purpose: it is the same machine doing
+   the work, and it should look like it. */
+.fact-check-console {
+  scroll-margin-top: 96px;
+  margin-top: 22px;
+  background: var(--console);
+  border-radius: 16px;
+  padding: 18px 20px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: rgba(207, 226, 242, 0.85);
+  max-height: 15rem;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+
+.fact-check-console-line { white-space: pre-wrap; word-break: break-word; }
+
+/* Which engine actually answered — not which one was asked for. If the box was
+   busy or unreachable the console says so and this tag reflects what really
+   happened, the same honesty the assistant's engine label practises. */
+.fact-check-engine-tag {
+  display: inline-block;
+  margin-left: 10px;
+  font-size: 12.5px;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@media (max-width: 620px) {
+  .fact-check-engine { gap: 8px; }
+  .fact-check-engine-choice { width: 100%; }
+  .fact-check-engine-btn { flex: 1; justify-content: center; flex-wrap: wrap; }
+}
+
+/* Example chips now announce the verdict they should produce, so a visitor can
+   see the judge got it RIGHT rather than having to reason it out themselves —
+   which is the whole point of a demo. */
+.fact-check-example {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
+}
+
+.fact-check-example-label { font-size: 15px; }
+
+.fact-check-example-expect {
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.fact-check-example.is-on {
+  border-color: var(--action);
+  box-shadow: 0 0 0 1px var(--action);
+}
+
+@media (max-width: 620px) {
+  .fact-check-step { gap: 10px; }
+  .fact-check-example { width: 100%; }
 }

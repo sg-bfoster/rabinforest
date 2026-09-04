@@ -7,7 +7,7 @@ const StilltrueFlow = () => (
   <svg
     viewBox="0 0 760 690"
     role="img"
-    aria-label="Flowchart: the stilltrue package contains a deterministic drift lane, and a verify pipeline with an empty stage slot; golden regression evals are deliberately delegated to promptfoo or the app's own harness. The Gemini judge model sits outside the package, in the host app, and is plugged into that slot. The GitHub Actions drift run never touches the judge."
+    aria-label="Flowchart: the stilltrue package contains a deterministic drift lane, and a verify pipeline with an empty stage slot; golden regression evals are deliberately delegated to promptfoo or the app's own harness. The judge model sits outside the package, in the host app, and is plugged into that slot; on this page the judge can be either Google Gemini or RabinAI, a model running on Brian's own mini PC. The GitHub Actions drift run never touches the judge."
   >
     <defs>
       <marker id="st-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -99,12 +99,19 @@ const StilltrueFlow = () => (
     <text x="178" y="527" fontSize="11" fill="var(--color-neutral-600)">promptfoo tests prompts —</text>
     <text x="178" y="542" fontSize="11" fill="var(--color-neutral-600)">stilltrue tests facts.</text>
 
-    {/* the judge, outside the boundary */}
-    <rect x="230" y="614" width="300" height="64" fill="none" stroke="var(--color-accent)" strokeWidth="2" />
-    <text x="380" y="638" fontSize="13" fontWeight="700" textAnchor="middle" fill="var(--color-accent)">Gemini judge · temperature 0</text>
-    <text x="380" y="656" fontSize="11" textAnchor="middle" fill="currentColor">lives in your app (bfoster-services) — the only AI</text>
+    {/* The judge, outside the boundary.
+        Relabelled 2026-09-04. This used to read "Gemini judge — the only AI",
+        which stopped being true when this page gained a local judge, and a
+        false architecture diagram on the page about whether claims match their
+        sources is the worst possible place for one. The correction also makes
+        the stronger point: the slot is pluggable, and the package does not care
+        what fills it. That is stilltrue's actual architectural claim. */}
+    <rect x="196" y="608" width="368" height="78" fill="none" stroke="var(--color-accent)" strokeWidth="2" />
+    <text x="380" y="630" fontSize="13" fontWeight="700" textAnchor="middle" fill="var(--color-accent)">the judge · temperature 0</text>
+    <text x="380" y="648" fontSize="11" textAnchor="middle" fill="currentColor">lives in your app (bfoster-services) — the only AI in the system</text>
+    <text x="380" y="666" fontSize="11" textAnchor="middle" fill="var(--color-neutral-600)">this page lets you pick: Gemini, or RabinAI on Brian's mini PC</text>
 
-    <line x1="428" y1="610" x2="428" y2="360" stroke="var(--color-accent)" strokeWidth="2" markerEnd="url(#st-arr-red)" />
+    <line x1="428" y1="604" x2="428" y2="360" stroke="var(--color-accent)" strokeWidth="2" markerEnd="url(#st-arr-red)" />
     <text x="440" y="562" fontSize="11" fill="var(--color-accent)">plugged into the slot</text>
     <text x="440" y="578" fontSize="11" fill="var(--color-neutral-600)">AskGwinnett answer review ·</text>
     <text x="440" y="593" fontSize="11" fill="var(--color-neutral-600)">this Fact Check page</text>
