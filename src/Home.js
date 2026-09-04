@@ -516,18 +516,18 @@ const Home = () => {
                                                         <button
                                                             key={site.key}
                                                             type="button"
-                                                            className="site-thumbnail"
+                                                            className={`site-thumbnail${site.imageFit === 'contain' ? ' site-thumbnail--contain' : ''}`}
                                                             onClick={() => handleThumbnailClick(site)}
-                                                            title={`Click to view ${site.displayName} screenshot`}
+                                                            title={`View ${site.displayName}`}
                                                         >
                                                             <img
                                                                 src={site.screenshotPath}
-                                                                alt={`${site.displayName} thumbnail`}
+                                                                alt=""
                                                                 className="site-thumbnail-image"
                                                             />
                                                             <span className="site-thumbnail-label">
                                                                 {site.displayName}
-                                                                <span> · screenshot</span>
+                                                                <span> · {site.chipSuffix || 'screenshot'}</span>
                                                             </span>
                                                         </button>
                                                     ))}

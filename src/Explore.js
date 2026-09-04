@@ -43,6 +43,7 @@ const GROUPS = [
       'tellspinners',
       'experimental_cheese',
       'rabinai',
+      'homebox',
       'rabinforest',
       'brianfoster_net',
       'findmeplaces',
@@ -82,10 +83,10 @@ const LinkCard = ({ site, compact }) => {
       {hasThumb ? (
         <button
           type="button"
-          className="links-card-thumb"
+          className={`links-card-thumb${site.imageFit === 'contain' ? ' links-card-thumb--contain' : ''}`}
           onClick={openGallery}
-          aria-label={`View ${site.displayName} screenshots`}
-          title={`View ${site.displayName} screenshots`}
+          aria-label={`View ${site.displayName}`}
+          title={`View ${site.displayName}`}
         >
           <img src={site.screenshotPath} alt="" />
         </button>

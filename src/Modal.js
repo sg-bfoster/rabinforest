@@ -197,8 +197,8 @@ const Modal = () => {
                         {activeScreenshotPath && (
                             <img
                                 src={activeScreenshotPath}
-                                alt={`${payload.siteName || 'Site'} screenshot`}
-                                className="modal-screenshot"
+                                alt={`${payload.siteName || 'Site'}${payload.imageFit === 'contain' ? '' : ' screenshot'}`}
+                                className={`modal-screenshot${payload.imageFit === 'contain' ? ' modal-screenshot--contain' : ''}`}
                             />
                         )}
 
@@ -228,7 +228,7 @@ const Modal = () => {
                         <div className="modal-screenshot-buttons">
                             {payload && payload.url && (
                                 <button className="btn btn-primary" onClick={handleOpenWebsite}>
-                                    Open Website
+                                    {payload.urlLabel || 'Open Website'}
                                 </button>
                             )}
                             {docs.map((doc) => (

@@ -617,6 +617,11 @@
   object-position: top;
   display: block;
 }
+.site-thumbnail--contain .site-thumbnail-image {
+  object-fit: contain;
+  object-position: center;
+  background: var(--field);
+}
 .site-thumbnail-label {
   display: block;
   padding: 10px 13px;
@@ -676,6 +681,11 @@
   object-position: top;
   display: block;
   transition: opacity 140ms ease;
+}
+.links-card-thumb--contain img {
+  object-fit: contain;
+  object-position: center;
+  background: var(--field);
 }
 .links-card-thumb:hover img { opacity: 0.88; }
 .links-card-thumb:focus-visible { outline: 2px solid var(--cool); outline-offset: -2px; }
@@ -1222,6 +1232,11 @@
   width: 100%;
   border: 1px solid var(--hairline);
   border-radius: 14px;
+}
+.modal-body .modal-screenshot--contain {
+  object-fit: contain;
+  max-height: min(70vh, 520px);
+  background: var(--field);
 }
 .modal-gallery-controls {
   display: flex;

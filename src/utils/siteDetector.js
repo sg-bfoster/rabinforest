@@ -561,6 +561,39 @@ const SITE_CONFIG = {
       { pattern: /\brabin\s+ai\b/gi, score: 5 },
     ],
   },
+  homebox: {
+    key: 'homebox',
+    displayName: 'The home box',
+    // Not portfolio: hardware mentions should not compete with project cards
+    // for the 2–4 portfolio cap. Show beside whatever else matched.
+    category: 'hardware',
+    chipSuffix: 'hardware',
+    urlLabel: 'View on Amazon',
+    imageFit: 'contain',
+    screenshotPath: '/minisforum.jpg',
+    screenshotPaths: ['/minisforum.jpg'],
+    url: 'https://www.amazon.com/MINISFORUM-Pro-370-Desktop-Computer-Graphics/dp/B0F47QT4XF',
+    summary:
+      "The machine that runs RabinAI. A MINISFORUM AI X1 Pro-370 mini PC — AMD Ryzen AI 9 HX 370 (12 cores / 24 threads), 64GB DDR5, Radeon 890M. No discrete GPU; 48GB of system memory is allocated to the iGPU so the local model fits. It sits in Brian's basement.",
+    docs: [
+      {
+        label: 'MINISFORUM product page',
+        url: 'https://store.minisforum.com/products/minisforum-ai-x1-pro-370-mini-pc',
+      },
+    ],
+    minScore: 3,
+    scoreRules: [
+      { pattern: /\bminisforum\b/gi, score: 5 },
+      { pattern: /\bai\s*x1\b/gi, score: 5 },
+      { pattern: /\bpro[-\s]?370\b/gi, score: 5 },
+      { pattern: /\bhx\s*370\b/gi, score: 5 },
+      { pattern: /\bmini[\s-]?pc\b/gi, score: 4 },
+      { pattern: /\bhome\s+gpu\b/gi, score: 4 },
+      { pattern: /\bhome\s+(?:inference\s+)?box\b/gi, score: 4 },
+      { pattern: /\bthe\s+box\b/gi, score: 3 },
+      { pattern: /\bbasement\b/gi, score: 2 },
+    ],
+  },
 };
 
 /**
@@ -697,7 +730,10 @@ export const toDisplaySite = (site) => {
     screenshotPaths,
     summary: site.summary || '',
     url: site.url || null,
+    urlLabel: site.urlLabel || null,
     docs: Array.isArray(site.docs) ? site.docs : [],
+    chipSuffix: site.chipSuffix || 'screenshot',
+    imageFit: site.imageFit || 'cover',
   };
 };
 
@@ -714,6 +750,8 @@ export const screenshotModalFor = (site) => ({
     summary: site.summary || '',
     siteName: site.displayName,
     url: site.url || null,
+    urlLabel: site.urlLabel || null,
     docs: Array.isArray(site.docs) ? site.docs : [],
+    imageFit: site.imageFit || 'cover',
   },
 });
