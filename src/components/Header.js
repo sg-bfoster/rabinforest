@@ -75,14 +75,14 @@ const Header = () => {
           <NavLink to="/" end className={navClass}>
             Assistant
           </NavLink>
-          <NavLink to={PLAYGROUND_CHAT_BOTS} className={navClass}>
-            Chat Bots
-          </NavLink>
           {FEATURES.rabinaiImagery && (
             <NavLink to={PLAYGROUND_RABINAI_IMAGERY} className={navClass}>
               RabinAI Images
             </NavLink>
           )}
+          <NavLink to={PLAYGROUND_CHAT_BOTS} className={navClass}>
+            Chat Bots
+          </NavLink>
           <NavLink to={PLAYGROUND_FACT_CHECK} className={navClass}>
             Fact Check
           </NavLink>
