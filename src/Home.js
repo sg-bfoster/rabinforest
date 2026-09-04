@@ -5,7 +5,7 @@ import { useDispatch } from 'react-redux';
 import { addLink } from './features/assistantSlice';
 import { API_ENDPOINTS } from './config/api';
 import { FEATURES } from './config/features';
-import { detectSitesInText } from './utils/siteDetector';
+import { detectSitesInText, screenshotModalFor } from './utils/siteDetector';
 import { LinkedText } from './utils/linkedText';
 import { Hero, ScreenBody } from './components/Hero';
 import { NavLink } from 'react-router-dom';
@@ -153,20 +153,7 @@ const Home = () => {
     };
 
     const handleThumbnailClick = (site) => {
-        dispatch(
-            openModal({
-                type: 'screenshot',
-                title: site.displayName,
-                payload: {
-                    screenshotPath: site.screenshotPath,
-                    screenshotPaths: site.screenshotPaths || (site.screenshotPath ? [site.screenshotPath] : []),
-                    summary: site.summary || '',
-                    siteName: site.displayName,
-                    url: site.url,
-                    docs: site.docs || [],
-                },
-            })
-        );
+        dispatch(openModal(screenshotModalFor(site)));
     };
 
     const handleSubmit = async (e, override) => {

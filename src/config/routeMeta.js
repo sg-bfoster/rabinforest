@@ -59,6 +59,13 @@ const PAGES = {
     canonical: `${SITE}${PLAYGROUND_FACT_CHECK}`,
     robots: 'index, follow',
   },
+  '/explore': {
+    title: 'Explore | Rabin Forest',
+    description:
+      "Every live site, screenshot, and document Brian Foster's assistant can point at — AskGWINnett, stilltrue, Callmata, Lost Corridors, and the Safe-Guard brand platforms.",
+    canonical: `${SITE}/explore`,
+    robots: 'index, follow',
+  },
   '/resume': {
     title: 'Resume | Rabin Forest',
     description:

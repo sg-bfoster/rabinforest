@@ -633,21 +633,8 @@ export const detectSitesInText = (text) => {
     }
 
     if (hasMatch) {
-      const screenshotPaths = Array.isArray(site.screenshotPaths) && site.screenshotPaths.length > 0
-        ? site.screenshotPaths
-        : (site.screenshotPath ? [site.screenshotPath] : []);
-
       detectedSites.push({
-        key: site.key,
-        category: site.category || 'site',
-        displayName: site.displayName,
-        // Back-compat (single thumbnail image)
-        screenshotPath: site.screenshotPath || screenshotPaths[0],
-        // New: gallery support
-        screenshotPaths,
-        summary: site.summary || '',
-        url: site.url || null,
-        docs: Array.isArray(site.docs) ? site.docs : [],
+        ...toDisplaySite(site),
         _score: score,
         _pos: firstMatchPos,
       });
@@ -689,3 +676,44 @@ export const detectSitesInText = (text) => {
 export const getSiteConfig = (key) => {
   return SITE_CONFIG[key] || null;
 };
+
+/**
+ * Display shape shared by chat thumbnails and the Explore page. Strips
+ * detection-only fields (patterns, scoreRules) so a visitor-facing page
+ * cannot accidentally depend on them.
+ */
+export const toDisplaySite = (site) => {
+  const screenshotPaths =
+    Array.isArray(site.screenshotPaths) && site.screenshotPaths.length > 0
+      ? site.screenshotPaths
+      : site.screenshotPath
+        ? [site.screenshotPath]
+        : [];
+  return {
+    key: site.key,
+    category: site.category || 'site',
+    displayName: site.displayName,
+    screenshotPath: site.screenshotPath || screenshotPaths[0] || null,
+    screenshotPaths,
+    summary: site.summary || '',
+    url: site.url || null,
+    docs: Array.isArray(site.docs) ? site.docs : [],
+  };
+};
+
+/** Every entry in SITE_CONFIG — the Explore page's source of truth. */
+export const getAllSites = () => Object.values(SITE_CONFIG).map(toDisplaySite);
+
+/** Payload for the existing screenshot modal (chat thumbnails and Links cards). */
+export const screenshotModalFor = (site) => ({
+  type: 'screenshot',
+  title: site.displayName,
+  payload: {
+    screenshotPath: site.screenshotPath,
+    screenshotPaths: site.screenshotPaths || (site.screenshotPath ? [site.screenshotPath] : []),
+    summary: site.summary || '',
+    siteName: site.displayName,
+    url: site.url || null,
+    docs: Array.isArray(site.docs) ? site.docs : [],
+  },
+});

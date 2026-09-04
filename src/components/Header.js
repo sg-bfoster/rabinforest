@@ -86,6 +86,9 @@ const Header = () => {
           <NavLink to={PLAYGROUND_FACT_CHECK} className={navClass}>
             Fact Check
           </NavLink>
+          <NavLink to="/explore" className={navClass}>
+            Explore
+          </NavLink>
           <NavLink to="/resume" className={navClass}>
             Resume
           </NavLink>

@@ -15,6 +15,7 @@ import RabinAIImagery from './RabinAIImagery';
 import Modal from './Modal';
 import Home from './Home';
 import Resume from './Resume';
+import Explore from './Explore';
 import EmmaSplashPage from './EmmaSplashPage';
 import Admin from './Admin';
 import SynapseCanvas from './components/SynapseCanvas';
@@ -69,6 +70,7 @@ const AppContent = () => {
                 element={FEATURES.rabinaiImagery ? <RabinAIImagery /> : <Navigate to={PLAYGROUND_CHAT_BOTS} replace />}
               />
             </Route>
+            <Route path="/explore" element={<Explore />} />
             <Route path="/resume" element={<Resume />} />
             <Route path="/admin" element={<Admin />} />
           </Routes>
