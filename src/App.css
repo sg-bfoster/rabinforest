@@ -389,7 +389,8 @@
 .page-body--assistant { max-width: 900px; padding-top: 48px; } /* match the hero, or the column jumps width mid-page */
 .page-body--playground { max-width: 820px; padding-top: 56px; }
 .page-body--resume { max-width: 900px; padding-top: 56px; }
-.page-body--links { max-width: 1120px; padding-top: 56px; }
+/* 3 cards at the old 4-col size, so the column clears the floating links panel. */
+.page-body--links { max-width: 852px; padding-top: 56px; }
 .page-body--page { max-width: 820px; padding-top: 56px; }
 
 .panel {
@@ -651,7 +652,7 @@
 .links-grid,
 .links-grid--compact {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   margin-top: 24px;
 }
