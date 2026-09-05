@@ -58,7 +58,7 @@
   align-items: center;
   gap: 4px;
   font-size: 14.5px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 .site-nav-link {
   text-decoration: none;
@@ -1445,7 +1445,9 @@
   .links-grid, .links-grid--compact { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-@media (max-width: 600px) {
+/* iPad portrait is 768–834; 12.9" is 1024. Six links wrap before 600px,
+   which is when the hamburger used to appear. */
+@media (max-width: 1024px) {
   .nav-toggle { display: inline-flex; align-items: center; justify-content: center; }
   .site-header-inner { flex-wrap: nowrap; }
   .site-nav {
@@ -1485,6 +1487,9 @@
     .site-nav,
     .site-nav.open { transition: none; transform: none; }
   }
+}
+
+@media (max-width: 600px) {
   .msg-user, .msg-assistant { max-width: 90%; }
   .ask-card-thread .msg-assistant { max-width: 100%; }
   .site-thumbnails-container { grid-template-columns: repeat(2, minmax(0, 1fr)); }
