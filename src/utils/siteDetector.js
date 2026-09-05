@@ -34,6 +34,40 @@ const SITE_CONFIG = {
       /brian\s*foster\.net/gi,
     ],
   },
+  linkedin: {
+    key: 'linkedin',
+    displayName: 'LinkedIn',
+    category: 'profile',
+    chipSuffix: 'profile',
+    summary: 'The recruiter-facing profile — roles, dates, and how to reach him.',
+    screenshotPath: '/screenshots/linkedin-screenshot.png',
+    url: 'https://www.linkedin.com/in/brianfoster',
+    patterns: [
+      /linkedin\.com\/in\/brianfoster/gi,
+      /\blinkedin\s+profile\b/gi,
+    ],
+  },
+  github: {
+    key: 'github',
+    displayName: 'GitHub',
+    category: 'profile',
+    chipSuffix: 'profile',
+    summary: 'Public repos, including stilltrue and the code behind this site.',
+    screenshotPath: '/screenshots/github-screenshot.png',
+    url: 'https://github.com/sg-bfoster',
+    docs: [
+      {
+        label: 'Gists',
+        url: 'https://gist.github.com/sg-bfoster',
+      },
+    ],
+    patterns: [
+      // Profile only. `github.com/sg-bfoster/stilltrue` belongs to the
+      // stilltrue card, not this one.
+      /github\.com\/sg-bfoster(?!\/[A-Za-z0-9._-])/gi,
+      /gist\.github\.com\/sg-bfoster/gi,
+    ],
+  },
   findmeplaces: {
     key: 'findmeplaces',
     displayName: 'Find Me Places',

@@ -8,6 +8,13 @@ import { getAllSites, screenshotModalFor } from './utils/siteDetector';
 // anything added there and not listed here still renders in "Also".
 const GROUPS = [
   {
+    id: 'profiles',
+    title: 'Find him',
+    blurb: 'LinkedIn and GitHub — the two places a recruiter actually clicks.',
+    compact: false,
+    keys: ['linkedin', 'github'],
+  },
+  {
     id: 'safeguard',
     title: 'Safe-Guard brand platforms',
     blurb:
@@ -62,7 +69,7 @@ const linkLabel = (url) => {
   try {
     const parsed = new URL(url);
     const host = parsed.hostname.replace(/^www\./, '');
-    if (host === 'github.com' || host === 'npmjs.com') {
+    if (host === 'github.com' || host === 'npmjs.com' || host === 'linkedin.com') {
       return `${host}${parsed.pathname.replace(/\/$/, '')}`;
     }
     return host;
