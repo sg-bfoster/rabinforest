@@ -309,6 +309,9 @@ const AIChatBots = () => {
         if (messages.length === 0) return;
         const runEnded = wasActiveRef.current && !isActive;
         wasActiveRef.current = isActive;
+        // Restored transcripts stay at the top of the page. Only a live run
+        // (or the New topic landing after one) should pull the viewport down.
+        if (!isActive && !runEnded) return;
         if (!followRef.current && !runEnded) return;
 
         // After commit, one rAF has the new bubble's height. New topic mounts

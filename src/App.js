@@ -1,5 +1,5 @@
 import './App.css';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import Header from './components/Header';
 import LinksPanel from './components/LinksPanel';
 import Footer from './Footer';
@@ -24,6 +24,16 @@ import { HeroProvider, HeroSlot } from './components/Hero';
 const AppContent = () => {
   const location = useLocation();
   const [isEmmaReferrer, setIsEmmaReferrer] = useState(false);
+
+  useLayoutEffect(() => {
+    window.history.scrollRestoration = 'manual';
+  }, []);
+
+  // SPA navigations keep window scroll. Reset to the top on every route;
+  // Home then scrolls into an existing conversation after paint.
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   useEffect(() => {
     const referrer = document.referrer;
