@@ -606,9 +606,11 @@ const SITE_CONFIG = {
     imageFit: 'contain',
     screenshotPath: '/minisforum.jpg',
     screenshotPaths: ['/minisforum.jpg'],
-    url: 'https://www.amazon.com/MINISFORUM-Pro-370-Desktop-Computer-Graphics/dp/B0F47QT4XF',
+    // B0F47G69MJ is the 64GB configuration Brian actually bought. It was
+    // B0F47QT4XF, which is the 96GB variant — same machine, wrong listing.
+    url: 'https://www.amazon.com/MINISFORUM-Pro-370-Desktop-Computer-Graphics/dp/B0F47G69MJ',
     summary:
-      "The machine that runs RabinAI. A MINISFORUM AI X1 Pro-370 mini PC — AMD Ryzen AI 9 HX 370 (12 cores / 24 threads), 64GB DDR5, Radeon 890M. No discrete GPU; 48GB of system memory is allocated to the iGPU so the local model fits. It sits in Brian's basement.",
+      "The machine that runs RabinAI. A MINISFORUM AI X1 Pro-370 mini PC — AMD Ryzen AI 9 HX 370 (12 cores / 24 threads), 64GB DDR5, Radeon 890M. No discrete GPU; the 64GB is split evenly, 32GB carved out for the iGPU and 32GB left to the system, so the local model fits alongside everything else. It sits in Brian's basement.",
     docs: [
       {
         label: 'MINISFORUM product page',
