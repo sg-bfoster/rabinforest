@@ -66,6 +66,34 @@ import { Hero, ScreenBody } from './components/Hero';
  * "my machine is off right now" is part of the story.
  */
 
+/**
+ * Real renders from the box, shown so the page is not a blank form.
+ *
+ * A visitor arriving here previously saw an empty text field and a Generate
+ * button, with no way to know whether this makes photographs or clip art, or
+ * how long it takes. These are actual output at the settings the page uses —
+ * not stock images and not cherry-picked from another model — so they set an
+ * accurate expectation.
+ *
+ * Clicking one loads its prompt. That matters: a gallery you can only look at
+ * is decoration, but a gallery that hands you a working starting point is the
+ * shortest path from "what is this" to "I made something".
+ */
+const SAMPLES = [
+  { file: 'ramen-shop', alt: 'A neon ramen shop at night, reflected in wet pavement',
+    prompt: 'a neon ramen shop in the rain at night, reflections on wet pavement' },
+  { file: 'waterfall', alt: 'A jungle waterfall seen from ground level, light through ferns',
+    prompt: 'a jungle waterfall seen from ground level looking upward, ferns, mist in shafts of sunlight' },
+  { file: 'campfire', alt: 'A campfire on a rocky beach at night with embers rising',
+    prompt: 'a campfire on a rocky beach at night, embers rising, driftwood' },
+  { file: 'rusted-truck', alt: 'An old rusted pickup truck overgrown with wildflowers',
+    prompt: 'an old rusted pickup truck reclaimed by wildflowers and vines in a summer field' },
+  { file: 'ramen-bowl', alt: 'A bowl of ramen photographed from directly above',
+    prompt: 'a bowl of ramen shot from directly above' },
+  { file: 'bookshop-cat', alt: 'A cat asleep in a sunlit bookshop window',
+    prompt: 'a bookshop cat asleep in the window' },
+];
+
 const IDLE_HINT = 'a lighthouse on a rocky coast at dusk, warm lamplight';
 
 const RabinAIImagery = () => {
@@ -287,6 +315,30 @@ const RabinAIImagery = () => {
           </button>
         ))}
       </div>
+
+      {/* Hidden once a render starts: at that point the visitor has their own
+          image coming and the samples are just competing for attention. */}
+      {phase === 'idle' && (
+        <section className="imagery-samples" aria-labelledby="samples-heading">
+          <h2 id="samples-heading" className="imagery-samples-title">
+            Made on the box — tap one to start from it
+          </h2>
+          <div className="imagery-samples-grid">
+            {SAMPLES.map((s) => (
+              <button
+                key={s.file}
+                type="button"
+                className="imagery-sample"
+                onClick={() => { setPrompt(s.prompt); }}
+                title={s.prompt}
+              >
+                <img src={`/samples/${s.file}.webp`} alt={s.alt} loading="lazy" width="400" height="400" />
+                <span className="imagery-sample-prompt">{s.prompt}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       {phase !== 'idle' && (
         <div className="imagery-console" ref={consoleRef} aria-live="polite">
