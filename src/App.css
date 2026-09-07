@@ -279,8 +279,20 @@
   .rabinai-status-warn .rabinai-status-dot { animation: none; }
 }
 @media (max-width: 600px) {
-  .rabinai-status-text { display: none; }
-  .rabinai-status { padding: 6px; }
+  /* The label stays. It used to be hidden here, leaving a bare 21px dot whose
+     only explanation was a `title` attribute — and titles do nothing on touch,
+     which is most of this traffic. The chip is the one element on the site that
+     reports whether the machine is up; an unlabelled dot reports nothing.
+     The nav collapses to a hamburger at this width, so there is room. */
+  .rabinai-status { padding: 5px 9px 5px 7px; gap: 6px; }
+  .rabinai-status-text { font-size: 12px; }
+}
+
+/* Below ~380px the wordmark and the chip genuinely compete. Shorten the label
+   rather than delete it: "RabinAI" plus a coloured dot still says which machine
+   and what state, where a lone dot says neither. */
+@media (max-width: 380px) {
+  .rabinai-status-text { font-size: 11.5px; max-width: 62px; overflow: hidden; white-space: nowrap; }
 }
 
 .ask-form { margin: 34px 0 0; }
