@@ -222,7 +222,7 @@
 }
 .hero-sub--page {
   margin: 16px 0 0;
-  max-width: 56ch;
+  max-width: 60ch;
   font-size: 17.5px;
   line-height: 1.6;
   color: rgba(222, 232, 241, 0.8);
@@ -1849,3 +1849,99 @@
 }
 
 .fact-check-own strong { color: var(--color-text); }
+
+/* ---- Still Moving (/playground/still-moving) — see StillMoving.js ---- */
+/* No width/padding/background/heading styles here — <Hero> carries the title
+   and blurb like every other page, ScreenBody supplies the standard column,
+   and .app-shell the background. Restating any of them is how this page ended
+   up wider than the rest and running under the links panel. */
+
+/* Viewer + rail. minmax(0,1fr) not 1fr: a bare 1fr floors at the image's
+   intrinsic width and would push the rail off the column. */
+.still-moving-viewer {
+  display: grid; gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr) 124px;
+  align-items: start;
+}
+
+/* isolation:isolate confines the layers' z-index to this box. Without it
+   `position:relative` alone creates no stacking context, so the stacked
+   frames competed with the sticky header and painted over the nav. */
+.still-moving-stage {
+  position: relative; aspect-ratio: 1; overflow: hidden;
+  background: var(--hero);
+  border: 1px solid var(--hairline); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  isolation: isolate;
+}
+.still-moving-stage img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; max-width: none;
+  will-change: opacity, transform;
+}
+
+.still-moving-rail { display: flex; flex-direction: column; gap: 10px; }
+.still-moving-thumb {
+  display: block; width: 100%; padding: 0; cursor: pointer;
+  background: var(--surface); color: var(--muted);
+  border: 1px solid var(--hairline); border-radius: var(--radius-md);
+  overflow: hidden; text-align: left;
+  transition: border-color 140ms ease, color 140ms ease;
+}
+.still-moving-thumb img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+.still-moving-thumb span {
+  display: block; padding: 6px 8px 7px;
+  font-size: 11.5px; line-height: 1.25; font-weight: 600;
+}
+.still-moving-thumb:hover { border-color: var(--color-neutral-400); color: var(--ink); }
+/* The selected thumb reads as selected on the border and label, not by dimming
+   the others — greyed-out siblings look disabled rather than unchosen. */
+.still-moving-thumb.is-active {
+  border-color: var(--action); color: var(--ink);
+  box-shadow: 0 0 0 1px var(--action);
+}
+.still-moving-thumb:focus-visible { outline: 2px solid var(--cool); outline-offset: 2px; }
+
+.still-moving-bar {
+  margin-top: var(--space-4); padding: 14px 18px 18px;
+  background: var(--surface); border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+}
+.still-moving-caprow {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-3); margin-bottom: var(--space-4);
+  font-size: 14px;
+}
+.still-moving-caprow b { color: var(--ink); }
+.still-moving-note-inline { color: var(--muted-2); }
+.still-moving-toggle { flex: none; padding: 6px 16px; font-size: 13px; min-width: 76px; }
+
+.still-moving-controls {
+  display: flex; flex-wrap: wrap; gap: var(--space-4) var(--space-8);
+}
+.still-moving-ctl-label {
+  display: block; font-size: 11.5px; font-weight: 600;
+  color: var(--muted); margin-bottom: 6px;
+}
+
+@keyframes sceneBreathe {
+  from { transform: scale(1); }
+  to   { transform: scale(var(--scene-zoom, 1.1)); }
+}
+/* Motion here is decorative; anyone who has asked the OS to stop it gets stills. */
+@media (prefers-reduced-motion: reduce) {
+  .still-moving-stage img { animation: none !important; transition: none !important; }
+}
+
+.still-moving-note {
+  margin-top: var(--space-6); font-size: 13.5px;
+  color: var(--muted); max-width: 70ch;
+}
+
+/* Narrow: rail goes under the viewer as a row of four. */
+@media (max-width: 640px) {
+  .still-moving-viewer { grid-template-columns: minmax(0, 1fr); }
+  .still-moving-rail { flex-direction: row; }
+  .still-moving-thumb { flex: 1 1 0; min-width: 0; }
+  .still-moving-thumb span { display: none; }
+}

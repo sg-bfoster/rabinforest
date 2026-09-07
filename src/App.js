@@ -18,6 +18,7 @@ import Resume from './Resume';
 import Explore from './Explore';
 import EmmaSplashPage from './EmmaSplashPage';
 import Admin from './Admin';
+import StillMoving from './StillMoving';
 import SynapseCanvas from './components/SynapseCanvas';
 import { HeroProvider, HeroSlot } from './components/Hero';
 
@@ -75,6 +76,7 @@ const AppContent = () => {
               <Route path="ai-chat-bots" element={<AIChatBots />} />
               <Route path="ai-imagery" element={<AiImageryForm />} />
               <Route path="fact-check" element={<FactCheck />} />
+              <Route path="still-moving" element={<StillMoving />} />
               <Route
                 path="rabinai-imagery"
                 element={FEATURES.rabinaiImagery ? <RabinAIImagery /> : <Navigate to={PLAYGROUND_CHAT_BOTS} replace />}

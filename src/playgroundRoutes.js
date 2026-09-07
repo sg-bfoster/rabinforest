@@ -4,6 +4,7 @@ export const PLAYGROUND_CHAT_BOTS = '/playground/ai-chat-bots';
 export const PLAYGROUND_IMAGERY = '/playground/ai-imagery';
 export const PLAYGROUND_FACT_CHECK = '/playground/fact-check';
 export const PLAYGROUND_RABINAI_IMAGERY = '/playground/rabinai-imagery';
+export const PLAYGROUND_STILL_MOVING = '/playground/still-moving';
 
 export const VIEW_PATHS = {
   aichat: PLAYGROUND_CHAT_BOTS,
@@ -12,6 +13,8 @@ export const VIEW_PATHS = {
   'ai-imagery': PLAYGROUND_IMAGERY,
   factcheck: PLAYGROUND_FACT_CHECK,
   'fact-check': PLAYGROUND_FACT_CHECK,
+  'still-moving': PLAYGROUND_STILL_MOVING,
+  stillmoving: PLAYGROUND_STILL_MOVING,
 };
 
 export const pathForView = (view) => VIEW_PATHS[view] || PLAYGROUND_CHAT_BOTS;

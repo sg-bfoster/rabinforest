@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { FEATURES } from '../config/features';
-import { PLAYGROUND_CHAT_BOTS, PLAYGROUND_FACT_CHECK, PLAYGROUND_RABINAI_IMAGERY } from '../playgroundRoutes';
+import {
+  PLAYGROUND_CHAT_BOTS,
+  PLAYGROUND_FACT_CHECK,
+  PLAYGROUND_RABINAI_IMAGERY,
+  PLAYGROUND_STILL_MOVING,
+} from '../playgroundRoutes';
 import RabinAIStatus from './RabinAIStatus';
 
 export const SynapseLogo = ({ size = 24 }) => (
@@ -80,6 +85,9 @@ const Header = () => {
               RabinAI Images
             </NavLink>
           )}
+          <NavLink to={PLAYGROUND_STILL_MOVING} className={navClass}>
+            Still Moving
+          </NavLink>
           <NavLink to={PLAYGROUND_CHAT_BOTS} className={navClass}>
             Chat Bots
           </NavLink>

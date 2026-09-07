@@ -16,6 +16,7 @@ import {
   PLAYGROUND_IMAGERY,
   PLAYGROUND_FACT_CHECK,
   PLAYGROUND_RABINAI_IMAGERY,
+  PLAYGROUND_STILL_MOVING,
 } from '../playgroundRoutes.js'; // extension required: Node ESM resolves this file directly at build time, and unlike Vite it does not guess
 
 const SITE = 'https://www.rabinforest.com';
@@ -50,6 +51,13 @@ const PAGES = {
     description:
       "Brian's home GPU draws your prompt live, step by step — self-hosted, no cloud fallback. A playground on Rabin Forest.",
     canonical: `${SITE}${PLAYGROUND_RABINAI_IMAGERY}`,
+    robots: 'index, follow',
+  },
+  [PLAYGROUND_STILL_MOVING]: {
+    title: 'Still Moving | Rabin Forest',
+    description:
+      "Four scenes drawn on Brian's home GPU as eight stills each, then crossfaded and drifted by your browser. No video, no animated file — the motion is composited on your machine.",
+    canonical: `${SITE}${PLAYGROUND_STILL_MOVING}`,
     robots: 'index, follow',
   },
   [PLAYGROUND_FACT_CHECK]: {
