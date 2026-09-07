@@ -175,7 +175,6 @@
 .hero-slot::before,
 .hero-slot::after {
   content: '';
-  flex: 1 1 0;
   min-height: 0;
 }
 .hero-content--assistant,
