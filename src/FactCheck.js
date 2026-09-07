@@ -476,11 +476,12 @@ const FactCheck = () => {
   return (
     <>
       <Hero>
-        <h1 className="hero-h1">One claim, one source.</h1>
+        <h1 className="hero-h1">Does the source actually say that?</h1>
         <p className="hero-sub hero-sub--page">
-          AI answers sound confident whether or not their sources back them up. Paste a claim
-          and the source that supposedly supports it, and a judge model rules on the pairing.
-          It's the trust layer behind{' '}
+          This does not tell you whether a claim is true. It tells you whether the source you
+          picked <em>backs it up</em> — a different question, and the one that catches an AI
+          making things up. Give it a claim and a web page; a judge reads only that page before
+          ruling. It's the trust layer behind{' '}
           <a href="https://www.askgwinnett.com" target="_blank" rel="noopener noreferrer">AskGWINnett</a>
           , packaged as{' '}
           <a href="https://github.com/sg-bfoster/stilltrue" target="_blank" rel="noopener noreferrer">stilltrue</a>.
@@ -530,7 +531,77 @@ const FactCheck = () => {
       <div className="fact-check-step">
         <span className="fact-check-step-n">2</span>
         <div className="fact-check-step-body">
-          <h2 className="fact-check-step-title">Load an example, or write your own below</h2>
+          <h2 className="fact-check-step-title">Start with a real web page</h2>
+
+          {/* The whole idea in two clicks, on a site everybody knows. Same URL,
+              two claims, two different answers — and the FALSE one comes back
+              "can't tell", not "not supported", because apple.com never mentions
+              Windows either way. The gap between "wrong" and "unsupported" is
+              what this page exists to teach, and watching it land is faster than
+              any amount of explanatory copy. Verified against both engines
+              2026-09-08. */}
+          <div className="fact-check-teach">
+            <p className="fact-check-teach-lead">
+              All three read the same page — <code>apple.com</code> — and get three different answers.
+            </p>
+            <div className="fact-check-teach-pair">
+              <button
+                type="button"
+                className="fact-check-teach-btn"
+                disabled={isChecking}
+                onClick={() => {
+                  setClaim('Apple sells the iPhone.');
+                  setSource('https://www.apple.com');
+                  setResult(null); setError(null); setFrames([]);
+                }}
+              >
+                <span className="fact-check-teach-claim">&ldquo;Apple sells the iPhone.&rdquo;</span>
+                <span className="fact-check-example-expect verdict-supported">should be Supported</span>
+              </button>
+              <button
+                type="button"
+                className="fact-check-teach-btn"
+                disabled={isChecking}
+                onClick={() => {
+                  setClaim('Apple Card gives 10% Daily Cash back on every purchase.');
+                  setSource('https://www.apple.com');
+                  setResult(null); setError(null); setFrames([]);
+                }}
+              >
+                <span className="fact-check-teach-claim">&ldquo;Apple Card gives 10% Daily Cash back.&rdquo;</span>
+                <span className="fact-check-example-expect verdict-not_supported">should be Not supported</span>
+              </button>
+              <button
+                type="button"
+                className="fact-check-teach-btn"
+                disabled={isChecking}
+                onClick={() => {
+                  setClaim('Apple sells Windows 11 PCs.');
+                  setSource('https://www.apple.com');
+                  setResult(null); setError(null); setFrames([]);
+                }}
+              >
+                <span className="fact-check-teach-claim">&ldquo;Apple sells Windows 11 PCs.&rdquo;</span>
+                <span className="fact-check-example-expect verdict-cant_tell">should be Can&rsquo;t tell</span>
+              </button>
+            </div>
+            <p className="fact-check-teach-note">
+              Look at the last two. Apple Card is <strong>not supported</strong> because the page
+              says 3%, contradicting the claim outright. But &ldquo;Windows 11 PCs&rdquo; — which
+              is just as <strong>false</strong> — comes back &ldquo;can&rsquo;t tell&rdquo;,
+              because Apple&rsquo;s homepage never mentions Windows either way and so cannot
+              settle it. A claim being wrong, and a source disproving it, are two different
+              things. That gap is where AI answers quietly go wrong.
+            </p>
+          </div>
+
+          <p className="fact-check-own">
+            <strong>Then try your own.</strong> Paste any web page and a claim about it — a
+            shop&rsquo;s returns policy, a park&rsquo;s opening hours, something a chatbot told
+            you. Some sites refuse automated readers; if that happens the page says so, and you
+            can paste the text in instead.
+          </p>
+
       <div className="fact-check-examples">
         {examples.map((example) => (
           <button
