@@ -180,7 +180,13 @@ const EXAMPLES = [
   // is the kind of thing a person actually gets handed.
   {
     label: 'A claim the holiday notice confirms',
-    claim: 'Trash pickup moves to Wednesday during Thanksgiving week.',
+    // "Thursday" is load-bearing. Without it the claim is unquantified —
+    // "trash pickup" reads as all of it — and the source explicitly says
+    // Friday routes are unaffected, so a strict judge is right to call it
+    // an overgeneralization. Gemini did exactly that while RabinAI said
+    // supported, which made a labelled teaching example show two verdicts.
+    // A teaching example must have one defensible answer.
+    claim: 'Thursday trash pickup moves to Wednesday during Thanksgiving week.',
     source:
       'Solid Waste notice: In observance of the Thanksgiving holiday, there will be no collection on Thursday. Residents on the Thursday route should place carts out on Wednesday instead. Friday routes are unaffected.',
     expected: 'supported',
