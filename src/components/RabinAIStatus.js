@@ -61,6 +61,7 @@ export default function RabinAIStatus() {
   const s = STATE[status.engine] || STATE.offline;
   const rendering = status.images === 'rendering';
   const answering = status.language === 'answering';
+  const switching = status.swap === 'switching';
 
   // A render owns the iGPU, and the assistant shares it. Measured: a render
   // starves generation badly enough that an answer can miss its deadline and
@@ -71,7 +72,14 @@ export default function RabinAIStatus() {
   //
   // language: answering is a real /chat/completions in flight (or the short
   // linger so a 5s poll can see a ~2s turn). It does not name the caller.
-  const view = rendering
+  const view = switching
+    ? {
+        dot: 'warn',
+        short: 'switching',
+        text: 'RabinAI is changing models — Gemini is covering answers',
+        hint: 'The box is unloading one model and loading another. Questions asked right now go to Gemini.',
+      }
+    : rendering
     ? {
         dot: 'busy',
         short: 'drawing',
