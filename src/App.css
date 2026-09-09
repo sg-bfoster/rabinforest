@@ -275,10 +275,17 @@
    between "answering" and "asleep". */
 .rabinai-status-busy .rabinai-status-dot { background: #d98324; }
 .rabinai-status-busy { border-color: color-mix(in srgb, #d98324 45%, transparent); }
+.rabinai-status-reply .rabinai-status-dot {
+  background: var(--cool);
+  box-shadow: 0 0 10px rgba(47, 109, 153, 0.75);
+  animation: rf-breathe 1.4s ease-in-out infinite;
+}
+.rabinai-status-reply { border-color: color-mix(in srgb, var(--cool) 50%, transparent); }
 .rabinai-status-off .rabinai-status-dot { background: rgba(207, 226, 242, 0.5); }
 @media (prefers-reduced-motion: reduce) {
   .rabinai-status-ok .rabinai-status-dot,
-  .rabinai-status-warn .rabinai-status-dot { animation: none; }
+  .rabinai-status-warn .rabinai-status-dot,
+  .rabinai-status-reply .rabinai-status-dot { animation: none; }
 }
 @media (max-width: 600px) {
   /* Keep the state word, drop the "RabinAI" prefix. A 62px clip used to leave

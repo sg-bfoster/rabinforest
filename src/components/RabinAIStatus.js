@@ -44,7 +44,7 @@ export default function RabinAIStatus() {
         const d = await r.json();
         if (alive) setStatus(d);
       } catch {
-        if (alive) setStatus({ engine: 'offline', images: 'idle' });
+        if (alive) setStatus({ engine: 'offline', images: 'idle', language: 'idle' });
       }
     };
 
@@ -60,6 +60,7 @@ export default function RabinAIStatus() {
 
   const s = STATE[status.engine] || STATE.offline;
   const rendering = status.images === 'rendering';
+  const answering = status.language === 'answering';
 
   // A render owns the iGPU, and the assistant shares it. Measured: a render
   // starves generation badly enough that an answer can miss its deadline and
@@ -67,6 +68,9 @@ export default function RabinAIStatus() {
   // back" rather than green and "answering directly" — green there would be
   // claiming more than the machine can deliver, which is the one thing this
   // chip exists not to do.
+  //
+  // language: answering is a real /chat/completions in flight (or the short
+  // linger so a 5s poll can see a ~2s turn). It does not name the caller.
   const view = rendering
     ? {
         dot: 'busy',
@@ -74,7 +78,14 @@ export default function RabinAIStatus() {
         text: 'RabinAI is drawing an image — answers may fall back to Gemini until it finishes',
         hint: 'The box is rendering an image, which uses the same GPU the assistant runs on. Questions asked right now may be answered by Gemini instead.',
       }
-    : s;
+    : answering
+      ? {
+          dot: 'reply',
+          short: 'answering',
+          text: 'RabinAI is answering a prompt from the box right now',
+          hint: 'The home box is generating a reply. This is the machine, not Gemini.',
+        }
+      : s;
 
   return (
     <div
