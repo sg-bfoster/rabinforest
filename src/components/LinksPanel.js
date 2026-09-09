@@ -23,6 +23,15 @@ const LinksPanel = () => {
 
   useEffect(() => onImageLinksHydrated(() => setHydrated((n) => n + 1)), []);
 
+  useEffect(() => {
+    if (filteredLinks.length === 0) {
+      document.documentElement.classList.remove('has-links-toggle');
+      return undefined;
+    }
+    document.documentElement.classList.add('has-links-toggle');
+    return () => document.documentElement.classList.remove('has-links-toggle');
+  }, [filteredLinks.length]);
+
   if (filteredLinks.length === 0) return null;
 
   return (

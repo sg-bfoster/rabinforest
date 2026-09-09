@@ -246,6 +246,9 @@
   max-width: 100%;
 }
 .rabinai-status-text {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -278,20 +281,18 @@
   .rabinai-status-warn .rabinai-status-dot { animation: none; }
 }
 @media (max-width: 600px) {
-  /* The label stays. It used to be hidden here, leaving a bare 21px dot whose
-     only explanation was a `title` attribute — and titles do nothing on touch,
-     which is most of this traffic. The chip is the one element on the site that
-     reports whether the machine is up; an unlabelled dot reports nothing.
-     The nav collapses to a hamburger at this width, so there is room. */
+  /* Keep the state word, drop the "RabinAI" prefix. A 62px clip used to leave
+     "RabinAI" and hide "awake" — the wrong half, and the Links toggle then
+     covered what was left. The brand is already Rabin Forest; the chip's job
+     is the machine state, and a labelled word still beats a bare dot on touch
+     (titles do nothing there). */
   .rabinai-status { padding: 5px 9px 5px 7px; gap: 6px; }
+  .rabinai-status-name { display: none; }
   .rabinai-status-text { font-size: 12px; }
 }
 
-/* Below ~380px the wordmark and the chip genuinely compete. Shorten the label
-   rather than delete it: "RabinAI" plus a coloured dot still says which machine
-   and what state, where a lone dot says neither. */
 @media (max-width: 380px) {
-  .rabinai-status-text { font-size: 11.5px; max-width: 62px; overflow: hidden; white-space: nowrap; }
+  .rabinai-status-text { font-size: 11.5px; }
 }
 
 .ask-form { margin: 34px 0 0; }
@@ -1514,6 +1515,13 @@
     bottom: auto;
     max-height: min(420px, calc(100vh - 96px));
   }
+}
+
+@media (max-width: 380px) {
+  /* iPhone SE / mini: hamburger + wordmark + status + Links cannot share one
+     row. Keep the logo, the state word, and Links; the wordmark is the one
+     that duplicates the tab title. */
+  html.has-links-toggle .brand-wordmark { display: none; }
 }
 
 /* ── Fact Check: engine choice, console, engine tag ──────────────────────── */

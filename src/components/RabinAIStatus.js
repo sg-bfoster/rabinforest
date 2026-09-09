@@ -6,25 +6,25 @@ const POLL_MS = 5000;
 const STATE = {
   warm: {
     dot: 'ok',
-    short: 'RabinAI awake',
+    short: 'awake',
     text: "RabinAI is awake — answering from a mini PC in Brian's house",
     hint: 'The home box is primed and answering questions directly.',
   },
   warming: {
     dot: 'warn',
-    short: 'RabinAI warming',
+    short: 'warming',
     text: 'RabinAI is warming up — Gemini is covering answers for about half a minute',
     hint: 'The box is priming its cache — Gemini is covering answers until it takes over (about half a minute).',
   },
   cold: {
     dot: 'warn',
-    short: 'RabinAI starting',
+    short: 'starting',
     text: 'RabinAI is coming online — Gemini is covering answers meanwhile',
     hint: 'The box is coming online — Gemini is covering answers in the meantime.',
   },
   offline: {
     dot: 'off',
-    short: 'RabinAI asleep',
+    short: 'asleep',
     text: 'RabinAI is asleep — answers are coming from Google Gemini',
     hint: 'The box is off right now — answers come from Google Gemini.',
   },
@@ -70,7 +70,7 @@ export default function RabinAIStatus() {
   const view = rendering
     ? {
         dot: 'busy',
-        short: 'RabinAI drawing',
+        short: 'drawing',
         text: 'RabinAI is drawing an image — answers may fall back to Gemini until it finishes',
         hint: 'The box is rendering an image, which uses the same GPU the assistant runs on. Questions asked right now may be answered by Gemini instead.',
       }
@@ -86,6 +86,7 @@ export default function RabinAIStatus() {
     >
       <span className="rabinai-status-dot" aria-hidden="true" />
       <span className="rabinai-status-text">
+        <span className="rabinai-status-name">RabinAI</span>
         {view.short}
       </span>
     </div>
