@@ -65,7 +65,7 @@ const Header = () => {
         <div className="brand-cluster">
           <NavLink to="/" className="brand">
             <SynapseLogo />
-            Rabin Forest
+            <span className="brand-wordmark">Rabin Forest</span>
           </NavLink>
           {FEATURES.rabinaiStatus && <RabinAIStatus />}
         </div>
