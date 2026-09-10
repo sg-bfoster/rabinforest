@@ -21,13 +21,13 @@ const srcsFor = (key) =>
 // visitor to already know what a good value is, and the two interact — the
 // pair is really one idea, "how fast does it move".
 const PACES = {
-  slow:   { label: 'Slow',   fade: 2200, hold: 1000 },
-  steady: { label: 'Steady', fade: 1200, hold: 600 },
+  slow:   { label: 'Slow',   fade: 1200, hold: 600 },
+  steady: { label: 'Steady', fade: 850,  hold: 375 },
   quick:  { label: 'Quick',  fade: 500,  hold: 150 },
 };
 const DRIFTS = {
   none:   { label: 'None',   zoom: 0,  zoomSecs: 24 },
-  gentle: { label: 'Gentle', zoom: 9,  zoomSecs: 30 },
+  gentle: { label: 'Gentle', zoom: 9,  zoomSecs: 24 },
   strong: { label: 'Strong', zoom: 20, zoomSecs: 18 },
 };
 
