@@ -49,11 +49,4 @@ export const FEATURES = {
    */
   rabinaiImagery: true,
 
-  /**
-   * Ambient RabinAI status chip in the header — polls the curated
-   * /ai/rabinai/status snapshot and shows what the home box is doing (warming,
-   * ready, asleep, drawing, answering) on every page. See
-   * bfoster-services/docs/RABINAI_STATUS_PLAN.md.
-   */
-  rabinaiStatus: true,
 };

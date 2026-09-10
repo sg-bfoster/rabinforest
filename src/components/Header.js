@@ -7,7 +7,6 @@ import {
   PLAYGROUND_RABINAI_IMAGERY,
   PLAYGROUND_STILL_MOVING,
 } from '../playgroundRoutes';
-import RabinAIStatus from './RabinAIStatus';
 
 export const SynapseLogo = ({ size = 24 }) => (
   <svg viewBox="0 0 28 28" style={{ width: size, height: size, display: 'block' }} aria-hidden="true">
@@ -67,7 +66,6 @@ const Header = () => {
             <SynapseLogo />
             <span className="brand-wordmark">Rabin Forest</span>
           </NavLink>
-          {FEATURES.rabinaiStatus && <RabinAIStatus />}
         </div>
         <nav
           id="site-nav"

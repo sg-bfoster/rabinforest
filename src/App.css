@@ -1,7 +1,6 @@
 /* Rabin Forest — neural-forest shell. Tokens live in styles/tokens.css. */
 @import './styles/tokens.css';
 
-@keyframes rf-breathe { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 
 .app-shell {
   min-height: 100vh;
@@ -241,79 +240,6 @@
 }
 .hero-sub a { color: var(--glow); }
 .hero-sub a:hover { color: #fff; }
-
-.rabinai-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 12px 5px 9px;
-  border: 1px solid rgba(207, 226, 242, 0.28);
-  border-radius: 999px;
-  background: rgba(207, 226, 242, 0.07);
-  font-size: 12px;
-  color: rgba(226, 236, 245, 0.88);
-  letter-spacing: 0.01em;
-  cursor: help;
-  user-select: none;
-  flex: none;
-  max-width: 100%;
-}
-.rabinai-status-text {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.35em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.rabinai-status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--muted-2);
-  flex: none;
-}
-.rabinai-status-ok .rabinai-status-dot {
-  background: var(--ok);
-  box-shadow: 0 0 10px rgba(78, 194, 127, 0.8);
-  animation: rf-breathe 3.2s ease-in-out infinite;
-}
-.rabinai-status-warn .rabinai-status-dot {
-  background: var(--action);
-  animation: rf-breathe 3.2s ease-in-out infinite;
-}
-/* Drawing: amber, not green. A render owns the same GPU the assistant uses, so
-   an answer asked mid-render may fall back to Gemini. Green would promise a
-   local answer the machine cannot guarantee. Amber is the honest middle
-   between "answering" and "asleep". */
-.rabinai-status-busy .rabinai-status-dot { background: #d98324; }
-.rabinai-status-busy { border-color: color-mix(in srgb, #d98324 45%, transparent); }
-.rabinai-status-reply .rabinai-status-dot {
-  background: var(--cool);
-  box-shadow: 0 0 10px rgba(47, 109, 153, 0.75);
-  animation: rf-breathe 1.4s ease-in-out infinite;
-}
-.rabinai-status-reply { border-color: color-mix(in srgb, var(--cool) 50%, transparent); }
-.rabinai-status-off .rabinai-status-dot { background: rgba(207, 226, 242, 0.5); }
-@media (prefers-reduced-motion: reduce) {
-  .rabinai-status-ok .rabinai-status-dot,
-  .rabinai-status-warn .rabinai-status-dot,
-  .rabinai-status-reply .rabinai-status-dot { animation: none; }
-}
-@media (max-width: 600px) {
-  /* Keep the state word, drop the "RabinAI" prefix. A 62px clip used to leave
-     "RabinAI" and hide "awake" — the wrong half, and the Links toggle then
-     covered what was left. The brand is already Rabin Forest; the chip's job
-     is the machine state, and a labelled word still beats a bare dot on touch
-     (titles do nothing there). */
-  .rabinai-status { padding: 5px 9px 5px 7px; gap: 6px; }
-  .rabinai-status-name { display: none; }
-  .rabinai-status-text { font-size: 12px; }
-}
-
-@media (max-width: 380px) {
-  .rabinai-status-text { font-size: 11.5px; }
-}
 
 .ask-form { margin: 34px 0 0; }
 .ask-card {
