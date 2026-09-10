@@ -159,14 +159,21 @@ const AIChatBots = () => {
     };
 
     const fetchResponse = async (history, ending, engine, tonePrompt) => {
+          // The steering message goes FIRST, not last.
+          //
+          // This used to append it after the history. Gemini and OpenAI tolerate
+          // a trailing system message; gpt-oss-20b effectively ignores one and
+          // reverts to its default markdown-document voice. Observed 2026-09-10:
+          // identical instruction, 143 words of headings and a table when it came
+          // last, 33 words of plain prose when it came first.
         const conversation = [
-            ...history,
             {
                 role: "system",
                 content: ending
-                    ? `This is the final round — wrap up the discussion in the same tone you've used throughout. ${tonePrompt} State where you landed and the strongest point another speaker made, in 25-45 words, then close with ONE short sign-off sentence. No drawn-out goodbyes and no thanking the other speakers by turn.`
-                    : `You are one voice in a panel discussion. ${tonePrompt} Back your points with a concrete example or a specific line of reasoning, in 25-50 words. Make one point well, not three points thinly. End with a question only if it genuinely moves the discussion somewhere new; statements are fine.`,
+                    ? `This is the final round — wrap up the discussion in the same tone you've used throughout. ${tonePrompt} Write as SPOKEN CONVERSATION: plain sentences only. No markdown headings, no tables, no bullet or numbered lists, no bold labels — you are talking in a room, not writing a document. State where you landed and the strongest point another speaker made, in 25-45 words, then close with ONE short sign-off sentence. No drawn-out goodbyes and no thanking the other speakers by turn.`
+                    : `You are one voice in a panel discussion. ${tonePrompt} Write as SPOKEN CONVERSATION: plain sentences only. No markdown headings, no tables, no bullet or numbered lists, no bold labels — you are talking in a room, not writing a document. Back your points with a concrete example or a specific line of reasoning, in 25-50 words. Make one point well, not three points thinly. End with a question only if it genuinely moves the discussion somewhere new; statements are fine.`,
             },
+              ...history,
         ];
         if (engine === 'rabinai' && rabinAsleep.current) return null;
         try {
