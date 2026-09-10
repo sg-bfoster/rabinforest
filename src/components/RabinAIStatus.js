@@ -30,6 +30,10 @@ const STATE = {
   },
 };
 
+// Model ids arrive vendor-prefixed ('openai/gpt-oss-20b'). The chip has room
+// for the recognisable half; the full id goes in the tooltip.
+const shortModel = (id) => (id ? String(id).split('/').pop() : null);
+
 export default function RabinAIStatus() {
   const [status, setStatus] = useState(null);
   const timerRef = useRef(null);
@@ -72,12 +76,21 @@ export default function RabinAIStatus() {
   //
   // language: answering is a real /chat/completions in flight (or the short
   // linger so a 5s poll can see a ~2s turn). It does not name the caller.
+  // Name the TARGET, not just the fact of switching. "switching" alone leaves a
+  // visitor wondering what is going on; "switching to gpt-oss-20b" costs the
+  // same glance and actually says something. Falls back to the bare word when
+  // the server sends no target.
+  const target = shortModel(status.swapTo);
   const view = switching
     ? {
         dot: 'warn',
-        short: 'switching',
-        text: 'RabinAI is changing models — Gemini is covering answers',
-        hint: 'The box is unloading one model and loading another. Questions asked right now go to Gemini.',
+        short: target ? `switching to ${target}` : 'switching',
+        text: target
+          ? `RabinAI is changing to ${target} — Gemini is covering answers`
+          : 'RabinAI is changing models — Gemini is covering answers',
+        hint: target
+          ? `The box is unloading its current model and loading ${status.swapTo}. Questions asked right now go to Gemini.`
+          : 'The box is unloading one model and loading another. Questions asked right now go to Gemini.',
       }
     : rendering
     ? {
