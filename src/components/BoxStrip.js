@@ -57,6 +57,20 @@ function line(status, elapsed) {
   if (status.language === 'answering') {
     return { tone: 'live', text: `${model} · answering` };
   }
+  // A request the box was supposed to answer just went to Gemini instead.
+  //
+  // 'warm' stays true through this: it describes the cached system prefix, not
+  // whether a given request fits its deadline. Conversation history is appended
+  // AFTER that prefix and re-prefilled every turn, so a long thread can push a
+  // genuinely primed box past its budget. Reporting only 'warm, prefix cached'
+  // through a turn the visitor watched stall and answer from the cloud is the
+  // fake-readiness this strip exists to refuse.
+  if (status.lastFallback) {
+    const why = status.lastFallback.reason === 'deadline'
+      ? 'missed its deadline — Gemini answered'
+      : 'could not answer — Gemini answered';
+    return { tone: 'warn', text: `${model} · warm, but the box ${why}` };
+  }
   return { tone: 'ok', text: `${model} · warm, prefix cached` };
 }
 
