@@ -40,15 +40,23 @@ const EXAMPLES = [
     ],
   },
   {
+    // Narrowed 2026-09-10, from "The speed limit in the school zone is 25 miles
+    // per hour". Same failure as the museum sample below: the claim asserted a
+    // limit with no conditions, while the source makes it conditional on beacon
+    // hours and says 35 mph outside them. Both engines caught that — Gemini
+    // cant_tell, RabinAI not_supported — so a sample labelled 'supported'
+    // demonstrated the opposite of what it promised. The engines were right and
+    // the sample was over-broad.
     label: 'A claim the speed limit matches',
-    claim: 'The speed limit in the school zone is 25 miles per hour.',
+    claim:
+      'During school-zone beacon hours on Oak Street, the speed limit is 25 miles per hour.',
     source:
       'Public Works notice, posted August 12: Beginning Monday, flashing school-zone beacons on Oak Street will enforce a 25 mph limit on school days from 7:00 AM to 9:00 AM and 2:00 PM to 4:00 PM. The limit outside those hours remains 35 mph.',
     expected: 'supported',
     flow: [
       'The source is a Public Works notice about Oak Street, pasted in full.',
-      'The judge looks for whether that text actually states a 25 mph school-zone limit.',
-      'It does — 25 mph on school days during the listed hours — so the claim is supported, with that sentence quoted as evidence.',
+      'The judge looks for whether that text states a 25 mph limit during beacon hours.',
+      'It does — 25 mph on school days from 7–9 AM and 2–4 PM — so the claim is supported, with that sentence quoted as evidence.',
     ],
   },
   {
