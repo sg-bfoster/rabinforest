@@ -1977,3 +1977,44 @@
   .still-moving-thumb { flex: 1 1 0; min-width: 0; }
   .still-moving-thumb span { display: none; }
 }
+
+/* ---- Swap progress — shown only while the box is changing model ---- */
+.swap-progress {
+  max-width: var(--page-max);
+  margin: 0 auto 18px;
+  padding: 14px 18px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-left: 3px solid var(--action);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+.swap-progress-head {
+  display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
+  font-size: 14.5px; margin-bottom: 10px;
+}
+.swap-progress-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex: none;
+  background: var(--action);
+  animation: swapPulse 1.4s ease-in-out infinite;
+}
+@keyframes swapPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+@media (prefers-reduced-motion: reduce) {
+  .swap-progress-dot { animation: none; }
+}
+.swap-progress-note { color: var(--muted); font-size: 13px; }
+
+.swap-progress-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+.swap-step {
+  display: grid; grid-template-columns: 18px 1fr auto; align-items: baseline;
+  gap: 8px; font-size: 13.5px; color: var(--muted);
+}
+.swap-step-mark { text-align: center; }
+.swap-step-time { font-variant-numeric: tabular-nums; font-size: 12.5px; }
+/* Done is stated plainly rather than struck through — the step succeeded,
+   it is not cancelled. */
+.swap-step.is-done { color: var(--muted-2); }
+.swap-step.is-done .swap-step-mark { color: var(--ok); }
+.swap-step.is-active { color: var(--ink); font-weight: 600; }
+.swap-step.is-active .swap-step-mark { color: var(--action); }
+.swap-step.is-todo { opacity: 0.55; }

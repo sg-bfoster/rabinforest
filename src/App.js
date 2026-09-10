@@ -1,6 +1,7 @@
 import './App.css';
 import React, { useState, useEffect, useLayoutEffect } from 'react';
 import Header from './components/Header';
+import SwapProgress from './components/SwapProgress';
 import LinksPanel from './components/LinksPanel';
 import Footer from './Footer';
 import Playground from './Playground';
@@ -69,6 +70,8 @@ const AppContent = () => {
           <HeroSlot />
         </div>
         <main className="page">
+          {/* Only renders while the box is mid-swap or priming. */}
+          <SwapProgress />
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/playground" element={<Playground />}>
