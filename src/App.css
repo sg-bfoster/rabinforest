@@ -558,10 +558,11 @@
   padding-left: 7px;
   border-left: 1px solid rgba(47, 109, 153, 0.3);
 }
-@media (max-width: 480px) {
-  /* Narrow screens: the engine name is the part that must survive. */
-  .engine-tag-model { display: none; }
-}
+/* Deliberately NOT hidden on narrow screens. The first version dropped it
+   under 480px on the theory that the engine name was the part that mattered;
+   on an iPhone that hid the model everywhere it was most wanted, and the pill
+   was nowhere near the edge. It is short — the label wraps before it clips. */
+.engine-tag { flex-wrap: wrap; row-gap: 2px; }
 .engine-tag-dot {
   width: 6px;
   height: 6px;
