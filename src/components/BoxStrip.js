@@ -66,9 +66,12 @@ function line(status, elapsed) {
   // through a turn the visitor watched stall and answer from the cloud is the
   // fake-readiness this strip exists to refuse.
   if (status.lastFallback) {
-    const why = status.lastFallback.reason === 'deadline'
-      ? 'missed its deadline — Gemini answered'
-      : 'could not answer — Gemini answered';
+    const why = {
+      deadline: 'missed its deadline — Gemini answered',
+      // The prompt changed under the cached prefix, so the box would have had
+      // to re-read the whole knowledge base to answer this one.
+      drift: 'is re-priming after a prompt change — Gemini answered',
+    }[status.lastFallback.reason] || 'could not answer — Gemini answered';
     return { tone: 'warn', text: `${model} · warm, but the box ${why}` };
   }
   return { tone: 'ok', text: `${model} · warm, prefix cached` };
