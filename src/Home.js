@@ -52,6 +52,16 @@ const QUESTION_POOL = [
     'Tell me about the Angular upgrade',
     'How does he make sure AI answers are accurate?',
     'Has he set up analytics?',
+    // Added 2026-09-10. The three major pieces of work currently only surface
+    // odometer + Angular; the Heroku-to-AWS move (the one with a dollar figure
+    // that survives a reference check) had no prompt. Security, remote, the
+    // design background, and the live brand sites are the same pattern as the
+    // 09-04 batch: the KB answers them well, a visitor would not guess to ask.
+    'Tell me about the Heroku to AWS migration',
+    'Does he own frontend security?',
+    'Is he open to remote work?',
+    'Does he have a design background?',
+    'Which consumer sites has he shipped?',
 ];
 
 const pickQuestions = (pool, n) => {
