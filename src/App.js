@@ -1,7 +1,7 @@
 import './App.css';
 import React, { useState, useEffect, useLayoutEffect } from 'react';
 import Header from './components/Header';
-import SwapProgress from './components/SwapProgress';
+import BoxStrip from './components/BoxStrip';
 import LinksPanel from './components/LinksPanel';
 import Footer from './Footer';
 import Playground from './Playground';
@@ -53,7 +53,12 @@ const AppContent = () => {
     <HeroProvider>
       <div className="app-shell">
         <DocumentHead />
-        <Header />
+        {/* Header + strip stick as one unit — see .site-chrome in App.css. */}
+        <div className="site-chrome">
+          <Header />
+          {/* One console line: what the box is running and doing. */}
+          <BoxStrip />
+        </div>
         <div className="hero-shell">
           <div className="hero-layers" aria-hidden="true">
             <div className="hero-sky">
@@ -70,8 +75,6 @@ const AppContent = () => {
           <HeroSlot />
         </div>
         <main className="page">
-          {/* Only renders while the box is mid-swap or priming. */}
-          <SwapProgress />
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/playground" element={<Playground />}>

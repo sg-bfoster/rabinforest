@@ -12,7 +12,20 @@
   font-family: var(--font-body);
 }
 
-/* ── sticky dark header ───────────────────────────────────────────────── */
+/* ── sticky dark chrome ───────────────────────────────────────────────── */
+/* Header and box strip stick together as ONE unit. The alternative — leaving
+   the header sticky and giving the strip `top: <header height>` — needs a
+   height that is a constant in CSS but a variable in fact: the header wraps
+   on narrow screens, and any constant would either float the strip over the
+   nav or leave a gap under it. Sticking the pair sidesteps the measurement. */
+.site-chrome {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+/* Scoped, so a Header used outside the chrome wrapper keeps its own sticky. */
+.site-chrome .site-header { position: static; }
+
 .site-header {
   position: sticky;
   top: 0;
@@ -2018,3 +2031,52 @@
 .swap-step.is-active { color: var(--ink); font-weight: 600; }
 .swap-step.is-active .swap-step-mark { color: var(--action); }
 .swap-step.is-todo { opacity: 0.55; }
+
+/* ---- Box strip — one console line under the nav ----
+   Sits against the dark header so it reads as part of the chrome, not as an
+   alert. Always present: which model is answering is the most interesting
+   fact this site has, and it used to be invisible until you asked. */
+.box-strip {
+  background: var(--console);
+  border-bottom: 1px solid rgba(207, 226, 242, 0.08);
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: 12px;
+  line-height: 1;
+  overflow: hidden;
+}
+.box-strip-inner {
+  display: flex; align-items: center; gap: 9px;
+  max-width: var(--page-max); margin: 0 auto;
+  padding: 7px var(--gutter);
+  white-space: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.box-strip-inner::-webkit-scrollbar { display: none; }
+
+.box-strip-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex: none;
+  background: var(--muted-2);
+}
+.box-strip-label {
+  color: var(--muted-2); flex: none;
+  letter-spacing: .04em;
+}
+.box-strip-text { color: var(--glow); opacity: .85; }
+
+.box-strip--ok   .box-strip-dot { background: var(--ok); }
+.box-strip--live .box-strip-dot { background: var(--cool); }
+.box-strip--busy .box-strip-dot { background: var(--action); animation: stripPulse 1.4s ease-in-out infinite; }
+.box-strip--warn .box-strip-dot { background: var(--action); }
+.box-strip--off  .box-strip-dot { background: var(--muted-2); }
+.box-strip--idle .box-strip-dot { background: var(--muted-2); }
+
+@keyframes stripPulse { 0%, 100% { opacity: 1 } 50% { opacity: .25 } }
+@media (prefers-reduced-motion: reduce) { .box-strip-dot { animation: none } }
+
+/* Narrow screens: the model name is what has to survive, so the strip scrolls
+   horizontally rather than truncating or wrapping into two lines. */
+@media (max-width: 600px) {
+  .box-strip { font-size: 11.5px; }
+  .box-strip-inner { padding: 6px 16px; }
+}
