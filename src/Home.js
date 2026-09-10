@@ -68,6 +68,16 @@ const generateConversationId = () => {
     return 'conv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 };
 
+
+// Model ids arrive vendor-prefixed and long ('openai/gpt-oss-20b',
+// 'qwen/qwen3-30b-a3b-2507', 'gemini-3.1-flash-lite'). The badge has room for
+// the part a person recognises, and the full id stays in the tooltip.
+const shortModel = (id) => {
+    if (!id) return '';
+    const tail = String(id).split('/').pop();
+    return tail.length > 24 ? `${tail.slice(0, 23)}\u2026` : tail;
+};
+
 const Home = () => {
     const [prompt, setPrompt] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -111,6 +121,7 @@ const Home = () => {
         if (!res.headers.get('content-type')?.includes('text/event-stream')) {
             const data = await res.json();
             const engine = data.engine || 'gemini';
+            const model = data.model || null;
             // Only the box's JSON shape is grammar-enforced at the sampler;
             // Gemini's is merely requested, so a body that isn't valid JSON is
             // possible on exactly this path. An unguarded JSON.parse here threw
@@ -119,11 +130,11 @@ const Home = () => {
             // 21.5s, real content. Fall back to treating it as plain text.
             try {
                 const parsed = JSON.parse(data.response);
-                return { text: parsed.text ?? '', links: parsed.links ?? [], engine };
+                return { text: parsed.text ?? '', links: parsed.links ?? [], engine, model };
             } catch {
                 const raw = typeof data.response === 'string' ? data.response.trim() : '';
                 if (!raw) throw new Error('Assistant returned an unusable response');
-                return { text: raw, links: [], engine };
+                return { text: raw, links: [], engine, model };
             }
         }
 
@@ -133,6 +144,7 @@ const Home = () => {
         let text = '';
         let links = [];
         let engine = 'rabinai';
+        let model = null;
         while (true) {
             const { done, value } = await reader.read();
             if (done) break;
@@ -144,13 +156,15 @@ const Home = () => {
                 let evt;
                 try { evt = JSON.parse(line.slice(6)); } catch { continue; }
                 if (evt.engine) engine = evt.engine;
+                if (evt.model) model = evt.model;
                 if (evt.delta) {
                     text += evt.delta;
-                    onDelta?.(text, engine);
+                    onDelta?.(text, engine, model);
                 }
                 if (evt.done) {
                     links = evt.links || [];
                     if (evt.engine) engine = evt.engine;
+                    if (evt.model) model = evt.model;
                     // The server sends the complete text on done; trust it over
                     // the accumulated deltas, which can lag the final fragment.
                     if (typeof evt.text === 'string' && evt.text.length >= text.length) {
@@ -159,7 +173,7 @@ const Home = () => {
                 }
             }
         }
-        return { text, links, engine };
+        return { text, links, engine, model };
     };
 
     const handleThumbnailClick = (site) => {
@@ -195,6 +209,7 @@ const Home = () => {
                 role: 'model',
                 parts: [{ text: response.text }],
                 engine: response.engine,
+                model: response.model,
             };
 
             if (response.links && response.links.length > 0) {
@@ -483,12 +498,19 @@ const Home = () => {
                                                     className={`engine-tag engine-${msg.engine}`}
                                                     title={
                                                         msg.engine === 'rabinai'
-                                                            ? "Answered by Brian's home inference box"
-                                                            : 'Answered by Google Gemini (RabinAI was offline or busy)'
+                                                            ? `Answered by Brian's home inference box${msg.model ? ` running ${msg.model}` : ''}`
+                                                            : `Answered by Google Gemini (RabinAI was offline or busy)${msg.model ? ` — ${msg.model}` : ''}`
                                                     }
                                                 >
                                                     <span className="engine-tag-dot" aria-hidden="true" />
                                                     {engineLabel}
+                                                    {msg.model && (
+                                                        // Which model, not just which engine. The box can be
+                                                        // swapped and Gemini can fall back to a different
+                                                        // version, so the engine alone no longer identifies
+                                                        // what actually answered.
+                                                        <span className="engine-tag-model">{shortModel(msg.model)}</span>
+                                                    )}
                                                 </span>
                                             )}
                                             {FEATURES.readAloud && !isStreaming && messageText.trim() && (

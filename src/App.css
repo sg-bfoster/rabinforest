@@ -545,6 +545,23 @@
   padding: 3px 10px;
   cursor: help;
 }
+
+/* The model id sits inside the same pill, subordinate to the engine name:
+   lowercase and monospace because it is an identifier, not a label, and
+   dimmer because the engine is what a visitor reads first. */
+.engine-tag-model {
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: 10.5px;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 0.72;
+  padding-left: 7px;
+  border-left: 1px solid rgba(47, 109, 153, 0.3);
+}
+@media (max-width: 480px) {
+  /* Narrow screens: the engine name is the part that must survive. */
+  .engine-tag-model { display: none; }
+}
 .engine-tag-dot {
   width: 6px;
   height: 6px;
