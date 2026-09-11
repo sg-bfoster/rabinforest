@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 /**
- * Starter prompts, six drawn at random per page load.
+ * Starter prompts, five drawn at random per page load.
  *
  * An empty text box is the hardest thing to hand a visitor — the assistant
  * page solves it with popular questions and this page had nothing. Chosen to
@@ -118,7 +118,7 @@ const RabinAIImagery = () => {
   const [image, setImage] = useState(null);
   const [meta, setMeta] = useState(null);     // { ms, seed }
   const [errorMsg, setErrorMsg] = useState('');
-  const [ideas] = useState(() => pickIdeas(IDEA_POOL, 6));
+  const [ideas] = useState(() => pickIdeas(IDEA_POOL, 5));
   // Latest denoise preview frame (a small JPEG data-URI from the box).
   const [preview, setPreview] = useState(null);
   const consoleRef = useRef(null);
