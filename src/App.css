@@ -2009,3 +2009,42 @@
   .box-strip { font-size: 11.5px; }
   .box-strip-inner { padding: 5px 16px; }
 }
+
+/* ---- Pending row: the box is building, with nothing to show yet ----
+   Deliberately quieter than an answer and quieter than the engine pill. It is
+   not a result, it is a promise of one, and it should not look like content
+   arriving. Borrows the engine pill's uppercase/letter-spaced treatment so it
+   reads as chrome from the same family, at the muted weight. */
+.msg-pending {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin: 6px 0 2px;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.msg-pending-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--cool);
+  flex: none;
+  animation: msgPendingPulse 1.4s ease-in-out infinite;
+}
+/* Tabular figures so the seconds do not jitter the line as they tick, and
+   monospace because it is a reading off the machine, not prose. */
+.msg-pending-secs {
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  color: var(--ink-2);
+}
+@keyframes msgPendingPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .msg-pending-dot { animation: none; }
+}

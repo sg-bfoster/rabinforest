@@ -91,6 +91,9 @@ const shortModel = (id) => {
 const Home = () => {
     const [prompt, setPrompt] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    // Milliseconds the box has been building, straight from the stream's
+    // heartbeat. Null when nothing is pending, or once text starts arriving.
+    const [waitingMs, setWaitingMs] = useState(null);
     const [suggested, setSuggested] = useState(() => pickQuestions(QUESTION_POOL, 3));
     const [conversationId, setConversationId] = useState(() => {
         // Get or create conversation ID from localStorage
@@ -116,7 +119,7 @@ const Home = () => {
      * Gemini replies with a normal JSON body, so both shapes are handled and
      * onDelta simply never fires in the non-streaming case.
      */
-    const fetchResponse = async (prompt, history, conversationId, onDelta) => {
+    const fetchResponse = async (prompt, history, conversationId, onDelta, onWaiting) => {
         // Strip UI-only fields (engine, streaming) before sending history back:
         // Gemini rejects unknown keys inside contents[] with a 400.
         const apiHistory = (history || []).map((m) => ({ role: m.role, parts: m.parts }));
@@ -167,6 +170,10 @@ const Home = () => {
                 try { evt = JSON.parse(line.slice(6)); } catch { continue; }
                 if (evt.engine) engine = evt.engine;
                 if (evt.model) model = evt.model;
+                // Heartbeat while the box prefills. Carries no text — it exists
+                // so the visitor sees the machine working instead of a still
+                // screen, and so Heroku keeps the stream open.
+                if (evt.waiting !== undefined) onWaiting?.(evt.waiting);
                 if (evt.delta) {
                     text += evt.delta;
                     onDelta?.(text, engine, model);
@@ -206,15 +213,20 @@ const Home = () => {
         const newMessages = [...messages, userMessage]; // Create new array for immutability
         setMessages(newMessages); // Update state
         setIsLoading(true);
+        setWaitingMs(null);
 
         try {
             // Render partial text in place as it streams in. SSE only opens
             // once RabinAI is actually answering, so the engine tag can show
             // from the first token instead of waiting for the finished reply.
-            const onDelta = (sofar, engine) =>
+            const onDelta = (sofar, engine) => {
+                setWaitingMs(null); // text is arriving; the counter has done its job
                 setMessages([...newMessages, { role: 'model', parts: [{ text: sofar }], streaming: true, engine }]);
+            };
 
-            const response = await fetchResponse(currentPrompt, messages, conversationId, onDelta);
+            const response = await fetchResponse(
+                currentPrompt, messages, conversationId, onDelta, setWaitingMs,
+            );
             const mockResponse = {
                 role: 'model',
                 parts: [{ text: response.text }],
@@ -568,6 +580,22 @@ const Home = () => {
                                         </div>
                                     );
                                 })}
+                                {/* Pending row: the box is prefilling and has sent
+                                    no text yet. Before this, the visitor watched a
+                                    still screen for up to 45s and reasonably
+                                    concluded it had hung — the machine was working
+                                    the whole time (GPU memory visibly filling), it
+                                    just had nothing to say yet. The seconds come
+                                    from the stream's heartbeat, not a local timer,
+                                    so the number is the box's actual elapsed work
+                                    rather than the browser's guess about it. */}
+                                {isLoading && waitingMs !== null && (
+                                    <div className="msg-pending" role="status" aria-live="polite">
+                                        <span className="msg-pending-dot" aria-hidden="true" />
+                                        <span>RabinAI is building an answer</span>
+                                        <span className="msg-pending-secs">{Math.floor(waitingMs / 1000)}s</span>
+                                    </div>
+                                )}
                             </div>
                         )}
                         <div className="ask-card-composer">
