@@ -914,6 +914,9 @@
   margin: 18px 0 0;
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 /* A flash of white is exactly the kind of motion this query exists for:

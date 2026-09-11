@@ -395,18 +395,22 @@ const RabinAIImagery = () => {
             <img src={image} alt={prompt} />
           </div>
           <figcaption>
-            {(meta.ms / 1000).toFixed(1)}s on the box · seed {meta.seed} ·{' '}
-            <a href={image} download={downloadName()}>save it</a> — this
+            {(meta.ms / 1000).toFixed(1)}s on the box · seed {meta.seed} — this
             page won't remember it. Exists in this tab and nowhere else.
           </figcaption>
         </figure>
       )}
 
-      {/* Clear. Present once a render has settled — done or failed — because
-          both leave the page full of output that has to be scrolled past to
-          start again. */}
+      {/* Save / clear. Present once a render has settled — done or failed —
+          because both leave the page full of output that has to be scrolled
+          past to start again. Save only when there is an image to keep. */}
       {(phase === 'done' || phase === 'error') && (
         <div className="imagery-reset">
+          {image && (
+            <a className="btn btn-primary" href={image} download={downloadName()}>
+              Save it
+            </a>
+          )}
           <button type="button" className="btn btn-secondary" onClick={reset}>
             Clear and start over
           </button>
