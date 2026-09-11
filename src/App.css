@@ -40,10 +40,10 @@
 .site-header-inner {
   max-width: var(--page-max);
   margin: 0 auto;
-  padding: 20px var(--gutter);
+  padding: var(--header-pad-y) var(--gutter);
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
 }
 .brand-cluster {
   display: flex;
@@ -55,10 +55,11 @@
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 11px;
+  gap: 10px;
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 17px;
+  font-size: 16px;
+  line-height: 1;
   letter-spacing: -0.01em;
   text-decoration: none;
   color: #fff;
@@ -68,14 +69,15 @@
 .site-nav {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 14.5px;
+  gap: 2px;
+  font-size: 14px;
+  line-height: 1.2;
   flex-wrap: nowrap;
 }
 .site-nav-link {
   text-decoration: none;
   color: rgba(219, 231, 242, 0.72);
-  padding: 7px 13px;
+  padding: 5px 11px;
   border-radius: 999px;
   font-weight: 400;
   white-space: nowrap;
@@ -92,8 +94,8 @@
 }
 .nav-toggle {
   display: none;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   margin: 0;
   border: 0;
@@ -843,7 +845,7 @@
   /* The footer is position:fixed, so it floats over the page. scroll-margin
      keeps scrollIntoView from parking this (or the image below it) underneath
      the footer bar. */
-  scroll-margin-top: 96px; /* clear the sticky header when scrolled into view */
+  scroll-margin-top: var(--chrome-height); /* clear sticky nav + box strip */
   margin-top: 28px;
   background: var(--console);
   border-radius: 16px;
@@ -1252,7 +1254,7 @@
 /* ── links panel ──────────────────────────────────────────────────────── */
 .links-panel {
   position: fixed;
-  top: 88px;
+  top: calc(var(--chrome-height) + 8px);
   right: var(--gutter);
   width: 220px;
   max-height: calc(100vh - 160px);
@@ -1424,6 +1426,7 @@
 /* iPad portrait is 768–834; 12.9" is 1024. Six links wrap before 600px,
    which is when the hamburger used to appear. */
 @media (max-width: 1024px) {
+  :root { --chrome-height: 76px; }
   .nav-toggle { display: inline-flex; align-items: center; justify-content: center; }
   .site-header-inner { flex-wrap: nowrap; }
   .site-nav {
@@ -1600,7 +1603,7 @@
 /* Same console as the imagery page, on purpose: it is the same machine doing
    the work, and it should look like it. */
 .fact-check-console {
-  scroll-margin-top: 96px;
+  scroll-margin-top: var(--chrome-height);
   margin-top: 22px;
   background: var(--console);
   border-radius: 16px;
@@ -1973,7 +1976,7 @@
 .box-strip-inner {
   display: flex; align-items: center; gap: 9px;
   max-width: var(--page-max); margin: 0 auto;
-  padding: 7px var(--gutter);
+  padding: 5px var(--gutter);
   white-space: nowrap;
   overflow-x: auto;
   scrollbar-width: none;
@@ -2004,5 +2007,5 @@
    horizontally rather than truncating or wrapping into two lines. */
 @media (max-width: 600px) {
   .box-strip { font-size: 11.5px; }
-  .box-strip-inner { padding: 6px 16px; }
+  .box-strip-inner { padding: 5px 16px; }
 }

@@ -45,6 +45,11 @@
 
   --page-max: 1120px;
   --gutter: 28px;
+  /* Vertical padding inside the nav. --chrome-height is nav + box strip
+     (desktop 71, hamburger 76 — overridden at the 1024px breakpoint).
+     Links panel and scroll-margin-top read this so they stay under the bar. */
+  --header-pad-y: 10px;
+  --chrome-height: 71px;
 
   --font-heading: "Figtree", system-ui, sans-serif;
   --font-heading-weight: 600;
