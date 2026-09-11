@@ -127,16 +127,17 @@ const RabinAIImagery = () => {
 
   // Clear a finished render and hand the page back for another go.
   //
-  // The prompt is deliberately KEPT. After a render the usual next move is a
-  // small edit to the same idea ("...at dusk" → "...at dawn"), and wiping the
-  // field would make the button hostile to the common case. This clears the
-  // output — console, preview, image, metadata — and returns to idle.
+  // The prompt goes too: the button is "Clear and start over", and leaving
+  // the last prompt in the field made it look like the button did nothing.
+  // Tweaking the same idea ("...at dusk" → "...at dawn") is still one edit
+  // away — just don't hit Clear.
   //
   // Only offered once a render has finished: mid-render there is a live SSE
   // stream whose handlers would carry on writing into the state this just
   // cleared, so the button is absent while phase is 'running' rather than
   // disabled, and the stream is never cancelled underneath itself.
   const reset = () => {
+    setPrompt('');
     setPhase('idle');
     setFrames([]);
     setPreview(null);
