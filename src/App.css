@@ -370,6 +370,7 @@
   left: 0;
   right: 0;
   z-index: 15;
+  display: flex;
   min-height: var(--footer-height);
   border-top: 1px solid rgba(207, 226, 242, 0.16);
   background: rgba(7, 11, 16, 0.92);
@@ -377,6 +378,8 @@
 }
 .site-footer-inner {
   box-sizing: border-box;
+  flex: 1;
+  width: 100%;
   max-width: var(--page-max);
   margin: 0 auto;
   padding: var(--header-pad-y) var(--gutter);
