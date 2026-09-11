@@ -85,9 +85,9 @@ import { Hero, ScreenBody } from './components/Hero';
  * not stock images and not cherry-picked from another model — so they set an
  * accurate expectation.
  *
- * Clicking one loads its prompt. That matters: a gallery you can only look at
- * is decoration, but a gallery that hands you a working starting point is the
- * shortest path from "what is this" to "I made something".
+ * Clicking one opens the picture in a new tab and loads its prompt. A gallery
+ * you can only look at is decoration; one that also hands you a working
+ * starting point is the shortest path from "what is this" to "I made something".
  */
 const SAMPLES = [
   { file: 'ramen-shop', alt: 'A neon ramen shop at night, reflected in wet pavement',
@@ -339,16 +339,18 @@ const RabinAIImagery = () => {
           </h2>
           <div className="imagery-samples-grid">
             {SAMPLES.map((s) => (
-              <button
+              <a
                 key={s.file}
-                type="button"
                 className="imagery-sample"
-                onClick={() => { setPrompt(s.prompt); }}
+                href={`/samples/${s.file}.webp`}
+                target="_blank"
+                rel="noopener noreferrer"
                 title={s.prompt}
+                onClick={() => setPrompt(s.prompt)}
               >
                 <img src={`/samples/${s.file}.webp`} alt={s.alt} loading="lazy" width="400" height="400" />
                 <span className="imagery-sample-prompt">{s.prompt}</span>
-              </button>
+              </a>
             ))}
           </div>
         </section>
