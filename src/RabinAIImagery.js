@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 /**
- * Starter prompts, three drawn at random per page load.
+ * Starter prompts, six drawn at random per page load.
  *
  * An empty text box is the hardest thing to hand a visitor — the assistant
  * page solves it with popular questions and this page had nothing. Chosen to
@@ -36,6 +36,16 @@ const IDEA_POOL = [
   'a stack of battered vintage suitcases',
   'a close-up of dew on a spiderweb',
   'a market stall piled with bright textiles',
+  'a red barn after a snowfall',
+  'a bicycle against a sunlit stone wall',
+  'a lantern on a snowy porch',
+  'a rowboat on a still alpine lake',
+  'a copper kettle on a gas stove',
+  'a field of sunflowers at noon',
+  'a mossy stone bridge over a creek',
+  'a vintage typewriter on a wooden desk',
+  'an old observatory under the milky way',
+  'a glass greenhouse in morning frost',
 ];
 
 /** Fisher-Yates, same as the assistant page's question picker. */
@@ -92,6 +102,10 @@ const SAMPLES = [
     prompt: 'a bowl of ramen shot from directly above' },
   { file: 'bookshop-cat', alt: 'A cat asleep in a sunlit bookshop window',
     prompt: 'a bookshop cat asleep in the window' },
+  { file: 'lighthouse', alt: 'A lighthouse on rocks in a storm, waves breaking',
+    prompt: 'a lighthouse in a storm' },
+  { file: 'koi-pond', alt: 'Orange koi swimming in a stone pond',
+    prompt: 'koi in a stone pond' },
 ];
 
 const IDLE_HINT = 'a lighthouse on a rocky coast at dusk, warm lamplight';
@@ -104,7 +118,7 @@ const RabinAIImagery = () => {
   const [image, setImage] = useState(null);
   const [meta, setMeta] = useState(null);     // { ms, seed }
   const [errorMsg, setErrorMsg] = useState('');
-  const [ideas] = useState(() => pickIdeas(IDEA_POOL, 4));
+  const [ideas] = useState(() => pickIdeas(IDEA_POOL, 6));
   // Latest denoise preview frame (a small JPEG data-URI from the box).
   const [preview, setPreview] = useState(null);
   const consoleRef = useRef(null);
