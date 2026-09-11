@@ -15,7 +15,17 @@ const hrefFromAttrs = (attrs) => {
   }
 };
 
-const BARE_URL_RE = /https?:\/\/[^\s<>()"']+/g;
+// Schemeless www. addresses count too. The assistant writes "you can visit
+// www.rabinai.com" — no scheme, because that is how a person writes a domain in
+// a sentence — and the old pattern required http(s)://, so it arrived as dead
+// text sitting next to links that worked, which reads to a visitor as a bug.
+//
+// Restricted to a leading `www.` rather than matching bare domains generally:
+// "Node.js", "3.5s" and any sentence ending in a short word plus a period are
+// all domain-shaped. Requiring www. keeps the match unambiguous, at the cost of
+// missing "rabinai.com" written without it — the right trade for text a model
+// produced.
+const BARE_URL_RE = /(?:https?:\/\/|www\.)[^\s<>()"']+/g;
 
 /**
  * `**this**` → a <strong>. Not a markdown renderer: the models emit this one
@@ -62,7 +72,11 @@ const linkifyBareUrls = (value) => {
     if (match.index > lastIndex) {
       chunks.push({ type: 'text', value: value.slice(lastIndex, match.index) });
     }
-    chunks.push({ type: 'link', href: url, value: url });
+    // Show what the model wrote; navigate somewhere valid. A schemeless match
+    // needs https:// bolted on, or the browser resolves it against the current
+    // page and /www.rabinai.com 404s on this site.
+    const href = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+    chunks.push({ type: 'link', href, value: url });
     lastIndex = match.index + url.length;
   }
 

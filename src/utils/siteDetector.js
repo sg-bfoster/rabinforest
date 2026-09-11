@@ -556,9 +556,14 @@ const SITE_CONFIG = {
     key: 'rabinai',
     displayName: 'RabinAI',
     category: 'portfolio',
-    // No website — RabinAI is a server, not a site. The artwork is the
-    // title block of each architecture PDF, so the card reads as what it
-    // actually offers: documents.
+    // RabinAI HAS a site now: www.rabinai.com, the public page about the
+    // machine — measured throughput, how swapping works, the build guide.
+    // This entry used to say "no website, RabinAI is a server, not a site",
+    // which stopped being true the day that site shipped, and left the card
+    // offering PDFs when there was somewhere better to send people.
+    //
+    // The architecture PDFs stay: they are the deeper technical read, and the
+    // card can offer both a site to visit and documents to open.
     screenshotPaths: [
       '/screenshots/rabinai1.png',
       '/screenshots/rabinai2.png',
@@ -566,7 +571,7 @@ const SITE_CONFIG = {
     summary:
       "Brian's self-hosted LLM inference server: a MINISFORUM AI X1 Pro-370 running Qwen3-30B-A3B under LM Studio, reached over a Cloudflare Tunnel. It answers this assistant first and falls back to Gemini automatically when the box is cold, busy, or offline — every reply is tagged with the engine that produced it.",
     screenshotPath: '/screenshots/rabinai1.png',
-    url: null,
+    url: 'https://www.rabinai.com',
     docs: [
       {
         label: 'Architecture (overview)',
