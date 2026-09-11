@@ -558,16 +558,30 @@ const FactCheck = () => {
         <div className="fact-check-step-body">
           <h2 className="fact-check-step-title">Start with a real web page</h2>
 
-          {/* The whole idea in two clicks, on a site everybody knows. Same URL,
-              two claims, two different answers — and the FALSE one comes back
-              "can't tell", not "not supported", because apple.com never mentions
-              Windows either way. The gap between "wrong" and "unsupported" is
-              what this page exists to teach, and watching it land is faster than
-              any amount of explanatory copy. Verified against both engines
-              2026-09-08. */}
+          {/* The whole idea in three clicks, on a site everybody knows. One URL,
+              three claims, three verdicts — and the FALSE one comes back
+              "can't tell", not "not supported", because the page never mentions
+              Windows either way. The gap between "wrong" and "unsupported" is what
+              this page exists to teach, and watching it land beats any amount of
+              explanatory copy.
+
+              MOVED off apple.com 2026-09-11. The "not supported" case leaned on the
+              homepage stating 3% Daily Cash. Apple pulled it, the case degraded to
+              "can't tell", and two buttons then gave the same verdict for different
+              reasons — collapsing the exact distinction this block exists to show.
+
+              The homepage could never have been evergreen: everything on it is launch
+              copy that rotates (a 48MP camera, pre-order dates, a copyright year).
+              The Apple Card page is the durable home — 1%, 2% and 3% are the
+              product's structure, not a promotion, so a 10% claim stays CONTRADICTED
+              rather than merely unaddressed.
+
+              All three claims now concern the same subject, so the only variable is
+              what the page says about it. Verified 6/6 across both engines
+              2026-09-11. */}
           <div className="fact-check-teach">
             <p className="fact-check-teach-lead">
-              All three read the same page — <code>apple.com</code> — and get three different answers.
+              All three read the same page — <code>apple.com/apple-card</code> — and get three different answers.
             </p>
             <div className="fact-check-teach-pair">
               <button
@@ -575,12 +589,12 @@ const FactCheck = () => {
                 className="fact-check-teach-btn"
                 disabled={isChecking}
                 onClick={() => {
-                  setClaim('Apple sells the iPhone.');
-                  setSource('https://www.apple.com');
+                  setClaim('Apple Card gives 3% Daily Cash back on purchases made at Apple.');
+                  setSource('https://www.apple.com/apple-card/');
                   setResult(null); setError(null); setFrames([]);
                 }}
               >
-                <span className="fact-check-teach-claim">&ldquo;Apple sells the iPhone.&rdquo;</span>
+                <span className="fact-check-teach-claim">&ldquo;Apple Card gives 3% Daily Cash at Apple.&rdquo;</span>
                 <span className="fact-check-example-expect verdict-supported">should be Supported</span>
               </button>
               <button
@@ -589,7 +603,7 @@ const FactCheck = () => {
                 disabled={isChecking}
                 onClick={() => {
                   setClaim('Apple Card gives 10% Daily Cash back on every purchase.');
-                  setSource('https://www.apple.com');
+                  setSource('https://www.apple.com/apple-card/');
                   setResult(null); setError(null); setFrames([]);
                 }}
               >
@@ -601,22 +615,23 @@ const FactCheck = () => {
                 className="fact-check-teach-btn"
                 disabled={isChecking}
                 onClick={() => {
-                  setClaim('Apple sells Windows 11 PCs.');
-                  setSource('https://www.apple.com');
+                  setClaim('Apple Card works with Windows PCs.');
+                  setSource('https://www.apple.com/apple-card/');
                   setResult(null); setError(null); setFrames([]);
                 }}
               >
-                <span className="fact-check-teach-claim">&ldquo;Apple sells Windows 11 PCs.&rdquo;</span>
+                <span className="fact-check-teach-claim">&ldquo;Apple Card works with Windows PCs.&rdquo;</span>
                 <span className="fact-check-example-expect verdict-cant_tell">should be Can&rsquo;t tell</span>
               </button>
             </div>
             <p className="fact-check-teach-note">
-              Look at the last two. Apple Card is <strong>not supported</strong> because the page
-              says 3%, contradicting the claim outright. But &ldquo;Windows 11 PCs&rdquo; — which
-              is just as <strong>false</strong> — comes back &ldquo;can&rsquo;t tell&rdquo;,
-              because Apple&rsquo;s homepage never mentions Windows either way and so cannot
-              settle it. A claim being wrong, and a source disproving it, are two different
-              things. That gap is where AI answers quietly go wrong.
+              Look at the last two. The 10% claim is <strong>not supported</strong> because
+              the page states 1%, 2% and 3% — it contradicts the claim outright. But
+              &ldquo;works with Windows PCs&rdquo; — which is just as <strong>false</strong> —
+              comes back &ldquo;can&rsquo;t tell&rdquo;, because the page never mentions
+              Windows either way and so cannot settle it. A claim being wrong, and a source
+              disproving it, are two different things. That gap is where AI answers quietly
+              go wrong.
             </p>
           </div>
 
