@@ -360,12 +360,7 @@
   padding: 22px;
   box-shadow: var(--shadow-lg);
 }
-.panel-row {
-  display: flex;
-  gap: 12px;
-  align-items: stretch;
-  scroll-margin-top: var(--scroll-clear);
-}
+.panel-row { display: flex; gap: 12px; align-items: stretch; }
 .fact-check-panel { display: grid; gap: 18px; padding: 24px; }
 
 /* ── footer ───────────────────────────────────────────────────────────── */

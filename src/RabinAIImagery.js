@@ -124,7 +124,6 @@ const RabinAIImagery = () => {
   const [preview, setPreview] = useState(null);
   const consoleRef = useRef(null);
   const resultRef = useRef(null);
-  const formRef = useRef(null);
 
   // Clear a finished render and hand the page back for another go.
   //
@@ -145,7 +144,7 @@ const RabinAIImagery = () => {
     setImage(null);
     setMeta(null);
     setErrorMsg('');
-    formRef.current && scrollBelowChrome(formRef.current);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Bring the console into view when a render starts.
@@ -302,7 +301,7 @@ const RabinAIImagery = () => {
         </p>
       </Hero>
       <ScreenBody width="playground">
-      <form onSubmit={generate} className="panel panel-row" ref={formRef}>
+      <form onSubmit={generate} className="panel panel-row">
         <input
           className="input"
           type="text"
