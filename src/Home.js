@@ -182,9 +182,19 @@ const Home = () => {
                     links = evt.links || [];
                     if (evt.engine) engine = evt.engine;
                     if (evt.model) model = evt.model;
-                    // The server sends the complete text on done; trust it over
-                    // the accumulated deltas, which can lag the final fragment.
-                    if (typeof evt.text === 'string' && evt.text.length >= text.length) {
+                    // The server sends the authoritative text on done; trust it
+                    // over the accumulated deltas, which can lag the final
+                    // fragment.
+                    //
+                    // No length guard. It used to require done.text to be at
+                    // least as long as the deltas, which was protecting against
+                    // a lagging parser — but the server now also STRIPS
+                    // scaffolding the model leaked into its own text ("Links: []"
+                    // trailing an answer), and a tidied text is legitimately
+                    // SHORTER. The guard would have rejected the correct value
+                    // and left the leak on screen, making the server fix a no-op
+                    // on exactly the path that streams.
+                    if (typeof evt.text === 'string' && evt.text.length > 0) {
                         text = evt.text;
                     }
                 }
