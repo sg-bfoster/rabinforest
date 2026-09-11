@@ -253,7 +253,7 @@
   box-shadow: var(--shadow-ask);
   padding: var(--ask-pad);
   text-align: left;
-  scroll-margin-bottom: 80px;
+  scroll-margin-bottom: calc(var(--footer-height) + 16px);
 }
 .ask-card-composer {
   border: 1px solid var(--hairline);
@@ -340,11 +340,11 @@
 .popular-row span { color: rgba(207, 226, 242, 0.5); }
 
 /* ── page body ────────────────────────────────────────────────────────── */
-.page { flex: 1; width: 100%; padding-bottom: 72px; }
+.page { flex: 1; width: 100%; padding-bottom: calc(var(--footer-height) + 24px); }
 .page-body {
   max-width: var(--page-max);
   margin: 0 auto;
-  padding: 0 var(--gutter) 96px;
+  padding: 0 var(--gutter) calc(var(--footer-height) + 48px);
 }
 .page-body--assistant { max-width: 900px; padding-top: 48px; } /* match the hero, or the column jumps width mid-page */
 .page-body--playground { max-width: 820px; padding-top: 56px; }
@@ -370,20 +370,23 @@
   left: 0;
   right: 0;
   z-index: 15;
+  min-height: var(--footer-height);
   border-top: 1px solid rgba(207, 226, 242, 0.16);
   background: rgba(7, 11, 16, 0.92);
   backdrop-filter: blur(14px);
 }
 .site-footer-inner {
+  box-sizing: border-box;
   max-width: var(--page-max);
   margin: 0 auto;
-  padding: 18px var(--gutter);
+  padding: var(--header-pad-y) var(--gutter);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 20px;
+  gap: 12px 20px;
   flex-wrap: wrap;
-  font-size: 13.5px;
+  font-size: 13px;
+  line-height: 1.2;
   color: rgba(219, 231, 242, 0.55);
 }
 
@@ -394,9 +397,9 @@
   gap: 22px;
 }
 .conversation > * {
-  /* Fixed footer covers the last ~60px; without this, block:end parks the
+  /* Fixed footer covers the last ~48px; without this, block:end parks the
      current bubble (and New topic) underneath it. Same token as .ask-card. */
-  scroll-margin-bottom: 80px;
+  scroll-margin-bottom: calc(var(--footer-height) + 16px);
 }
 .msg-user {
   align-self: flex-end;
@@ -1326,7 +1329,7 @@
 .links-panel-toggle {
   display: none;
   position: fixed;
-  bottom: 76px;
+  bottom: calc(var(--footer-height) + 12px);
   right: var(--gutter);
   z-index: 20;
   background: var(--surface);
@@ -1350,7 +1353,7 @@
   .links-panel.open {
     display: flex;
     top: auto;
-    bottom: 120px;
+    bottom: calc(var(--footer-height) + 56px);
     max-height: min(420px, calc(100vh - 200px));
   }
   .links-panel-close { display: block; }

@@ -50,6 +50,9 @@
      Links panel and scroll-margin-top read this so they stay under the bar. */
   --header-pad-y: 10px;
   --chrome-height: 71px;
+  /* Matches the header bar (not header + strip). Page padding and
+     scroll-margin-bottom read this so content still clears the fixed bar. */
+  --footer-height: 48px;
 
   --font-heading: "Figtree", system-ui, sans-serif;
   --font-heading-weight: 600;
