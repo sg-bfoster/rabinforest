@@ -50,6 +50,9 @@
      Links panel and scroll-margin-top read this so they stay under the bar. */
   --header-pad-y: 10px;
   --chrome-height: 71px;
+  /* Gap under sticky chrome for scrollIntoView / Links panel. JS still
+     measures .site-chrome live because the strip grows with the model name. */
+  --scroll-clear: calc(var(--chrome-height) + 12px);
   /* Matches the header bar (not header + strip). Page padding and
      scroll-margin-bottom read this so content still clears the fixed bar. */
   --footer-height: 48px;

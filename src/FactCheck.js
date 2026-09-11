@@ -5,6 +5,7 @@ import axios from 'axios';
 import { API_ENDPOINTS } from './config/api';
 import StilltrueFlow from './components/StilltrueFlow';
 import { Hero, ScreenBody } from './components/Hero';
+import { scrollBelowChrome } from './utils/scroll';
 
 const VERDICT_LABELS = {
   supported: 'Supported',
@@ -416,9 +417,19 @@ const FactCheck = () => {
     if (el) el.scrollTop = el.scrollHeight;
   }, [frames]);
 
+  // First frame mounts the console (it is not in the tree at submit). Bring
+  // it under the sticky chrome the same way the imagery page does — otherwise
+  // a check that takes ~9s happens below the fold and looks like a dead page.
+  useEffect(() => {
+    if (frames.length === 1) {
+      consoleRef.current && scrollBelowChrome(consoleRef.current);
+    }
+  }, [frames.length]);
+
   useEffect(() => {
     if ((result || error) && resultRef.current) {
-      resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // `center` parked the verdict label under the status strip on a tall card.
+      scrollBelowChrome(resultRef.current);
     }
   }, [result, error]);
 

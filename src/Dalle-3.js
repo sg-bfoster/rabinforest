@@ -13,6 +13,7 @@ import {
   toDisplayUrl,
 } from './utils/imageUrl';
 import { Hero, ScreenBody } from './components/Hero';
+import { scrollBelowChrome } from './utils/scroll';
 
 const ENGINE_LABELS = {
   openai: 'OpenAI',
@@ -243,7 +244,7 @@ const AiImageryForm = () => {
     }
     if ((images.openai || images.imagen || errors.global) && resultsRef.current) {
       setTimeout(() => {
-        resultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        scrollBelowChrome(resultsRef.current);
       }, 500);
     }
   }, [images, errors.global]);

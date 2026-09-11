@@ -360,7 +360,12 @@
   padding: 22px;
   box-shadow: var(--shadow-lg);
 }
-.panel-row { display: flex; gap: 12px; align-items: stretch; }
+.panel-row {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  scroll-margin-top: var(--scroll-clear);
+}
 .fact-check-panel { display: grid; gap: 18px; padding: 24px; }
 
 /* ── footer ───────────────────────────────────────────────────────────── */
@@ -850,8 +855,9 @@
 .imagery-console {
   /* The footer is position:fixed, so it floats over the page. scroll-margin
      keeps scrollIntoView from parking this (or the image below it) underneath
-     the footer bar. */
-  scroll-margin-top: var(--chrome-height); /* clear sticky nav + box strip */
+     the footer bar. Top clearance is nav + status strip, plus a little air —
+     flush against --chrome-height tucked the first console line under the strip. */
+  scroll-margin-top: var(--scroll-clear);
   margin-top: 28px;
   background: var(--console);
   border-radius: 16px;
@@ -865,7 +871,7 @@
   white-space: pre-wrap;
 }
 .imagery-console-error { color: var(--console-err); font-weight: 600; }
-.imagery-result { margin: 28px 0 0; }
+.imagery-result { margin: 28px 0 0; scroll-margin-top: var(--scroll-clear); }
 /* Positioning context for the reveal overlay, and the same 1:1 box the
    preview holds so nothing reflows between the two. */
 .imagery-result-frame {
@@ -1033,6 +1039,7 @@
 }
 .fact-check-result {
   margin-top: 24px;
+  scroll-margin-top: var(--scroll-clear);
   display: grid;
   gap: 14px;
   justify-items: start;
@@ -1380,6 +1387,7 @@
   grid-template-columns: 1fr 1fr;
   gap: var(--space-4);
   margin-top: var(--space-6);
+  scroll-margin-top: var(--scroll-clear);
 }
 .engine-label {
   margin: 0 0 var(--space-2);
@@ -1626,7 +1634,7 @@
 /* Same console as the imagery page, on purpose: it is the same machine doing
    the work, and it should look like it. */
 .fact-check-console {
-  scroll-margin-top: var(--chrome-height);
+  scroll-margin-top: var(--scroll-clear);
   margin-top: 22px;
   background: var(--console);
   border-radius: 16px;

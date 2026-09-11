@@ -1,4 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
+import API_BASE_URL from './config/api';
+import { useDispatch } from 'react-redux';
+import { addLink } from './features/assistantSlice';
+import { storeImageLink } from './utils/imageLinkStore';
+import { scrollBelowChrome } from './utils/scroll';
+import { Hero, ScreenBody } from './components/Hero';
 
 /**
  * Starter prompts, five drawn at random per page load.
@@ -57,11 +63,6 @@ const pickIdeas = (pool, n) => {
   }
   return copy.slice(0, n);
 };
-import API_BASE_URL from './config/api';
-import { useDispatch } from 'react-redux';
-import { addLink } from './features/assistantSlice';
-import { storeImageLink } from './utils/imageLinkStore';
-import { Hero, ScreenBody } from './components/Hero';
 
 /**
  * RabinAI Imagery — the box draws your prompt, and you watch it work.
@@ -144,7 +145,7 @@ const RabinAIImagery = () => {
     setImage(null);
     setMeta(null);
     setErrorMsg('');
-    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    formRef.current && scrollBelowChrome(formRef.current);
   };
 
   // Bring the console into view when a render starts.
@@ -169,7 +170,7 @@ const RabinAIImagery = () => {
     // render is running creates that room; with it, aligning the console's TOP
     // just under the sticky header (scroll-margin-top) puts the whole 15rem box
     // in view with the footer nowhere near it.
-    consoleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    consoleRef.current && scrollBelowChrome(consoleRef.current);
   }, [phase]);
 
   // Keep the newest line visible INSIDE the console as it grows.
@@ -263,7 +264,7 @@ const RabinAIImagery = () => {
             // rAF alone aims at the pre-image layout (the AI-Chat-Bots page
             // learned this the hard way); a paired rAF runs after commit.
             requestAnimationFrame(() => requestAnimationFrame(() => {
-              resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              resultRef.current && scrollBelowChrome(resultRef.current);
             }));
             // Same pattern the unlisted compare page uses: the image goes into
             // the links panel via the image-link store (quota-safe; the slice
