@@ -564,13 +564,23 @@ const SITE_CONFIG = {
     //
     // The architecture PDFs stay: they are the deeper technical read, and the
     // card can offer both a site to visit and documents to open.
+    // The SITE leads, then the PDF title blocks. Ordering matters: the card
+    // shows the first image, and leading with a document made RabinAI look
+    // like a folder of PDFs rather than something you can go and look at.
     screenshotPaths: [
+      '/screenshots/rabinai-site.png',
       '/screenshots/rabinai1.png',
       '/screenshots/rabinai2.png',
     ],
     summary:
-      "Brian's self-hosted LLM inference server: a MINISFORUM AI X1 Pro-370 running Qwen3-30B-A3B under LM Studio, reached over a Cloudflare Tunnel. It answers this assistant first and falls back to Gemini automatically when the box is cold, busy, or offline — every reply is tagged with the engine that produced it.",
-    screenshotPath: '/screenshots/rabinai1.png',
+      // Names no specific model on purpose. This said "running Qwen3-30B-A3B",
+      // which was a constant describing something that changes — the box holds
+      // one model at a time and it is swapped from rabinai.com/control. That is
+      // the same staleness the status chip and rabinai.com were rebuilt to
+      // avoid, and a card claiming one model while the site shows another is
+      // worse than a card that declines to say.
+      "Brian's self-hosted LLM inference server: a MINISFORUM AI X1 Pro-370 under LM Studio, reached over a Cloudflare Tunnel. It holds one language model at a time, swappable on the fly, answers this assistant first, and falls back to Gemini when the box is cold, busy, or offline — every reply is tagged with the engine that produced it. www.rabinai.com has the live figures.",
+    screenshotPath: '/screenshots/rabinai-site.png',
     url: 'https://www.rabinai.com',
     docs: [
       {

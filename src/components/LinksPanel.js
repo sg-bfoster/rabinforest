@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearLinks } from '../features/assistantSlice';
 import { isSelfLink } from '../utils/linkUtils';
@@ -12,14 +13,25 @@ import {
 
 // Floating panel on the right that collects links as the conversation builds.
 // On narrow viewports it collapses to a "Links · n" toggle so it never
-// overlaps the content column. On mobile the toggle sits in the header's
-// top-right; the open panel drops below it.
+// overlaps the content column. Once the nav goes hamburger the toggle is
+// portaled into the header row; the open panel drops below the chrome.
 const LinksPanel = () => {
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
+  const [slot, setSlot] = useState(null);
+  const [inHeader, setInHeader] = useState(false);
   const [, setHydrated] = useState(0);
   const links = useSelector((state) => state.assistant.persistentLinks);
   const filteredLinks = Array.isArray(links) ? links.filter((l) => !isSelfLink(l?.url)) : [];
+
+  useLayoutEffect(() => {
+    setSlot(document.querySelector('.header-links-slot'));
+    const mq = window.matchMedia('(max-width: 1024px)');
+    const sync = () => setInHeader(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
 
   useEffect(() => onImageLinksHydrated(() => setHydrated((n) => n + 1)), []);
 
@@ -34,16 +46,20 @@ const LinksPanel = () => {
 
   if (filteredLinks.length === 0) return null;
 
+  const toggle = (
+    <button
+      type="button"
+      className="links-panel-toggle"
+      onClick={() => setIsOpen(!isOpen)}
+      aria-expanded={isOpen}
+    >
+      Links · {filteredLinks.length}
+    </button>
+  );
+
   return (
     <>
-      <button
-        type="button"
-        className="links-panel-toggle"
-        onClick={() => setIsOpen(!isOpen)}
-        aria-expanded={isOpen}
-      >
-        Links · {filteredLinks.length}
-      </button>
+      {inHeader && slot ? createPortal(toggle, slot) : toggle}
       <aside className={`links-panel${isOpen ? ' open' : ''}`} aria-label="Collected links">
         <div className="links-panel-header">
           <span className="links-panel-label">Links</span>

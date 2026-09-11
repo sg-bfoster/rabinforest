@@ -1320,6 +1320,9 @@
 .links-panel-list button.links-panel-item:hover,
 .links-panel-list a:hover { color: var(--action); }
 .links-panel-clear { font-size: 12px; align-self: flex-start; }
+/* display:contents so the toggle participates in the header flex row once
+   it is no longer position:fixed. Empty when there are no collected links. */
+.header-links-slot { display: contents; }
 .links-panel-toggle {
   display: none;
   position: fixed;
@@ -1333,8 +1336,11 @@
   padding: 10px 16px;
   font: inherit;
   font-size: 12px;
+  line-height: 1.2;
   cursor: pointer;
   color: var(--ink);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .links-panel-toggle:hover { border-color: var(--color-neutral-400); }
 .link-expired { color: var(--muted-2); }
@@ -1466,6 +1472,21 @@
     .site-nav,
     .site-nav.open { transition: none; transform: none; }
   }
+  /* In the header row, not over it. Static so it takes flex space to the
+     right of the wordmark; padding matches the 32px hamburger. */
+  .links-panel-toggle {
+    position: static;
+    bottom: auto;
+    right: auto;
+    z-index: auto;
+    padding: 4px 10px;
+    box-shadow: none;
+  }
+  .links-panel.open {
+    top: calc(var(--chrome-height) + 8px);
+    bottom: auto;
+    max-height: min(420px, calc(100vh - var(--chrome-height) - 24px));
+  }
 }
 
 @media (max-width: 600px) {
@@ -1476,18 +1497,11 @@
   .imagery-grid { grid-template-columns: 1fr; }
   .ask-card textarea { min-height: 56px; }
   .ask-card-footer { flex-wrap: wrap; }
-  .links-panel-toggle { top: var(--space-4); bottom: auto; }
-  .links-panel.open {
-    top: calc(var(--space-4) + 44px);
-    bottom: auto;
-    max-height: min(420px, calc(100vh - 96px));
-  }
 }
 
 @media (max-width: 380px) {
-  /* iPhone SE / mini: hamburger + wordmark + status + Links cannot share one
-     row. Keep the logo, the state word, and Links; the wordmark is the one
-     that duplicates the tab title. */
+  /* iPhone SE / mini: hamburger + wordmark + Links cannot share one row.
+     Keep the logo and Links; the wordmark duplicates the tab title. */
   html.has-links-toggle .brand-wordmark { display: none; }
 }
 

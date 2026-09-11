@@ -131,6 +131,9 @@ const Header = () => {
             <span className="sr-only"> (opens in a new tab)</span>
           </a>
         </nav>
+        {/* LinksPanel portals its toggle here so the pill is in the flex row
+            once the nav collapses, instead of overlaying the chrome. */}
+        <div className="header-links-slot" />
       </div>
     </header>
   );
