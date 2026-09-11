@@ -396,7 +396,7 @@ const RabinAIImagery = () => {
           </div>
           <figcaption>
             {(meta.ms / 1000).toFixed(1)}s on the box · seed {meta.seed} — this
-            page won't remember it. Exists in this tab and nowhere else.
+            page won't remember it. It has been added to your links.
           </figcaption>
         </figure>
       )}
