@@ -98,6 +98,38 @@ const Header = () => {
           <NavLink to="/resume" className={navClass}>
             Resume
           </NavLink>
+          {/* A different SITE, not another page — rabinforest.com is Brian's
+              portfolio, rabinai.com is the machine that answers on it. So this
+              is an <a>, not a NavLink: it can never be "active", it opens in a
+              new tab, and it carries the external mark so nobody clicks it
+              expecting to stay put. Labelled with the domain for the same
+              reason: "RabinAI" would read as a sibling of "RabinAI Images" and
+              imply a page of this site. */}
+          <a
+            className="site-nav-link site-nav-external"
+            href="https://www.rabinai.com"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            rabinai.com
+            <svg
+              className="site-nav-external-icon"
+              viewBox="0 0 24 24"
+              width="11"
+              height="11"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M14 4h6v6" />
+              <path d="M20 4 11 13" />
+              <path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
+            </svg>
+            <span className="sr-only"> (opens in a new tab)</span>
+          </a>
         </nav>
       </div>
     </header>

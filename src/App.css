@@ -2048,3 +2048,56 @@
 @media (prefers-reduced-motion: reduce) {
   .msg-pending-dot { animation: none; }
 }
+
+/* ---- Header link to rabinai.com ----
+   Marked as leaving the site, not promoted above the internal nav. It sits at
+   the end, dimmer than a real nav item, with a hairline before it so the eye
+   reads "these pages, then somewhere else" rather than treating it as a
+   seventh tab. It can never be `.active`, because you are never on it. */
+.site-nav-external {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: rgba(219, 231, 242, 0.5);
+  margin-left: 6px;
+  padding-left: 13px;
+  border-left: 1px solid rgba(207, 226, 242, 0.16);
+  border-radius: 0 999px 999px 0;
+}
+.site-nav-external:hover { color: #fff; }
+/* The icon is the affordance, so it brightens with the label rather than
+   sitting at a fixed opacity that would read as disabled on hover. */
+.site-nav-external-icon {
+  opacity: 0.75;
+  transition: opacity 140ms ease;
+  flex: none;
+}
+.site-nav-external:hover .site-nav-external-icon { opacity: 1; }
+
+/* Announced to screen readers, invisible on screen: "opens in a new tab" is
+   information a sighted user gets from the icon and everyone else does not. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* On the mobile drawer the nav stacks, so a LEFT border reads as an oddity
+   mid-column. Separate with a rule above it instead. */
+@media (max-width: 900px) {
+  .site-nav-external {
+    margin-left: 0;
+    padding-left: 11px;
+    border-left: 0;
+    border-top: 1px solid rgba(207, 226, 242, 0.16);
+    border-radius: 0;
+    padding-top: 8px;
+    margin-top: 4px;
+  }
+}
