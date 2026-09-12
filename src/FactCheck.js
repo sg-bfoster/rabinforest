@@ -576,9 +576,26 @@ const FactCheck = () => {
               product's structure, not a promotion, so a 10% claim stays CONTRADICTED
               rather than merely unaddressed.
 
-              All three claims now concern the same subject, so the only variable is
-              what the page says about it. Verified 6/6 across both engines
-              2026-09-11. */}
+              THE SOURCE WAS NOT THE ONLY THING THAT COULD BREAK THIS, 2026-09-12.
+              The 10% case regressed to "can't tell" with the page unchanged — 27
+              mentions of 3% still present, all surviving the 20k truncation. The
+              judge read every rate and reasoned "it does not mention a 10% Daily
+              Cash rate", treating the absence of the claimed number as the claim
+              being unaddressed. Nothing on that page denies 10% in words, so
+              stilltrue 0.6.0's wording left it nowhere else to land.
+
+              Fixed upstream in stilltrue 0.7.0: not_supported now covers a source
+              stating a DIFFERENT VALUE for what the claim quantifies, and cant_tell
+              excludes it. So this block depends on a package version as much as on
+              a URL — pinning matters here, and ^0.6.0 would silently restore the
+              collapse.
+
+              Verified 5/5 against the box on the published 0.7.0 tarball,
+              2026-09-12: 3% supported, 10% not_supported, Windows cant_tell, plus
+              2%-with-Apple-Pay and no-annual-fee as over-correction checks. The
+              earlier "6/6 across both engines" note was true when written and is
+              left out rather than updated, because a verification date that
+              outlives the thing it verified is worse than none. */}
           <div className="fact-check-teach">
             <p className="fact-check-teach-lead">
               All three read the same page — <code>apple.com/apple-card</code> — and get three different answers.
