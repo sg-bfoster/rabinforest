@@ -19,6 +19,55 @@ export const scrollBelowChrome = (el, { behavior = 'smooth', block = 'start' } =
 };
 
 /**
+ * Smooth-scroll to the top, then run `onArrived`.
+ *
+ * Used when Clear should ride the existing page up and only THEN unmount the
+ * thread. Deleting first shrinks the document and the viewport snaps — which
+ * is the jump. `scrollend` fires when the animation finishes; iOS Safari
+ * older than 16.4 never emits it, so we also watch scrollTop and give up
+ * after 1.5s.
+ */
+export const scrollToPageTopThen = (onArrived) => {
+  const scroller = document.scrollingElement || document.documentElement;
+  const y = () => scroller.scrollTop || window.scrollY || 0;
+  if (y() < 2) {
+    onArrived();
+    return;
+  }
+
+  const startedY = y();
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    window.removeEventListener('scrollend', finish);
+    window.removeEventListener('scroll', onScroll);
+    clearInterval(poll);
+    clearTimeout(nudge);
+    clearTimeout(stuck);
+    onArrived();
+  };
+  const onScroll = () => {
+    if (y() < 2) finish();
+  };
+
+  window.addEventListener('scrollend', finish, { once: true });
+  window.addEventListener('scroll', onScroll, { passive: true });
+  const poll = setInterval(onScroll, 50);
+  // iOS sometimes eats smooth scrollTo. If nothing moved, jump, then arrive.
+  const nudge = setTimeout(() => {
+    if (finished || y() < startedY - 8) return;
+    scroller.scrollTo(0, 0);
+    window.scrollTo(0, 0);
+    finish();
+  }, 400);
+  const stuck = setTimeout(finish, 5000);
+
+  scroller.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+};
+
+/**
  * Jump the window to the top. Instant, not smooth: iOS cancels a smooth
  * scrollTo when the document then shrinks (Clear unmounts a thread), and
  * often ignores `behavior: 'smooth'` once the click handler has returned.

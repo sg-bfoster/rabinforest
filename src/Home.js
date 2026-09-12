@@ -1,6 +1,6 @@
 import axios from 'axios';
-import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
-import { scrollToPageTop } from './utils/scroll';
+import React, { useState, useEffect, useRef } from 'react';
+import { scrollToPageTopThen } from './utils/scroll';
 import { openModal } from './features/modalSlice';
 import { useDispatch } from 'react-redux';
 import { addLink } from './features/assistantSlice';
@@ -112,7 +112,8 @@ const Home = () => {
         return storedMessages ? JSON.parse(storedMessages) : [];
     });
     const askCardRef = useRef(null);
-    const pendingPageTop = useRef(false);
+    const stickToBottom = useRef(true);
+    const clearingRef = useRef(false);
     const dispatch = useDispatch();
 
     /**
@@ -439,30 +440,25 @@ const Home = () => {
     useEffect(() => stopSpeaking, []);
 
     const handleResetChat = () => {
-        localStorage.removeItem('assistantMessages');
-        const newConversationId = generateConversationId();
-        localStorage.setItem('conversationId', newConversationId);
-        setConversationId(newConversationId);
-        setMessages([]);
-        setPrompt('');
-        setIsLoading(false);
+        if (clearingRef.current) return;
+        clearingRef.current = true;
+        // Stop pinning the composer so the ride to the top isn't fought.
+        stickToBottom.current = false;
         stopSpeaking();
-        setSuggested(pickQuestions(QUESTION_POOL, 3));
-        // Scroll after the thread unmounts. Same-tick smooth scrollTo is
-        // cancelled on iOS when the document height then collapses, and the
-        // browser clamps to the new max — hero still off-screen.
-        pendingPageTop.current = true;
+        // Ride the existing thread to the top, THEN unmount it. Deleting
+        // first collapses the page and the viewport snaps — that's the jump.
+        scrollToPageTopThen(() => {
+            localStorage.removeItem('assistantMessages');
+            const newConversationId = generateConversationId();
+            localStorage.setItem('conversationId', newConversationId);
+            setConversationId(newConversationId);
+            setMessages([]);
+            setPrompt('');
+            setIsLoading(false);
+            setSuggested(pickQuestions(QUESTION_POOL, 3));
+            clearingRef.current = false;
+        });
     };
-
-    useLayoutEffect(() => {
-        if (!pendingPageTop.current) return;
-        pendingPageTop.current = false;
-        scrollToPageTop();
-    }, [messages]);
-
-    // Stick to the bottom while an answer streams in, but stop fighting the
-    // user the moment they scroll up to re-read something.
-    const stickToBottom = useRef(true);
 
     // Nudge the assistant's prefix cache as soon as someone lands, so the box
     // is usually warm by the time they finish reading and type a question.
