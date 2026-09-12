@@ -3,6 +3,7 @@ import axios from 'axios';
 import { API_ENDPOINTS } from './config/api';
 import { FEATURES } from './config/features';
 import { Hero, ScreenBody } from './components/Hero';
+import { scrollToPageTop } from './utils/scroll';
 
 /**
  * Three bots, one topic. Gemini and OpenAI are cloud models; RabinAI is the
@@ -468,7 +469,7 @@ const AIChatBots = () => {
                                 className="btn btn-primary"
                                 onClick={() => {
                                     resetConversation("");
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    requestAnimationFrame(() => requestAnimationFrame(scrollToPageTop));
                                 }}
                             >
                                 New topic

@@ -17,3 +17,17 @@ export const scrollBelowChrome = (el, { behavior = 'smooth', block = 'start' } =
   }
   el.scrollIntoView({ behavior, block });
 };
+
+/**
+ * Jump the window to the top. Instant, not smooth: iOS cancels a smooth
+ * scrollTo when the document then shrinks (Clear unmounts a thread), and
+ * often ignores `behavior: 'smooth'` once the click handler has returned.
+ *
+ * Call this after that unmount has committed (useLayoutEffect), not in the
+ * same tick as the setState.
+ */
+export const scrollToPageTop = () => {
+  const el = document.scrollingElement || document.documentElement;
+  el.scrollTo(0, 0);
+  window.scrollTo(0, 0);
+};

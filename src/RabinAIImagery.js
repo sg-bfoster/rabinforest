@@ -3,7 +3,7 @@ import API_BASE_URL from './config/api';
 import { useDispatch } from 'react-redux';
 import { addLink } from './features/assistantSlice';
 import { storeImageLink } from './utils/imageLinkStore';
-import { scrollBelowChrome } from './utils/scroll';
+import { scrollBelowChrome, scrollToPageTop } from './utils/scroll';
 import { Hero, ScreenBody } from './components/Hero';
 
 /**
@@ -144,7 +144,7 @@ const RabinAIImagery = () => {
     setImage(null);
     setMeta(null);
     setErrorMsg('');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    requestAnimationFrame(() => requestAnimationFrame(scrollToPageTop));
   };
 
   // Bring the console into view when a render starts.

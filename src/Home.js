@@ -1,5 +1,6 @@
 import axios from 'axios';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { scrollToPageTop } from './utils/scroll';
 import { openModal } from './features/modalSlice';
 import { useDispatch } from 'react-redux';
 import { addLink } from './features/assistantSlice';
@@ -111,6 +112,7 @@ const Home = () => {
         return storedMessages ? JSON.parse(storedMessages) : [];
     });
     const askCardRef = useRef(null);
+    const pendingPageTop = useRef(false);
     const dispatch = useDispatch();
 
     /**
@@ -446,8 +448,17 @@ const Home = () => {
         setIsLoading(false);
         stopSpeaking();
         setSuggested(pickQuestions(QUESTION_POOL, 3));
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Scroll after the thread unmounts. Same-tick smooth scrollTo is
+        // cancelled on iOS when the document height then collapses, and the
+        // browser clamps to the new max — hero still off-screen.
+        pendingPageTop.current = true;
     };
+
+    useLayoutEffect(() => {
+        if (!pendingPageTop.current) return;
+        pendingPageTop.current = false;
+        scrollToPageTop();
+    }, [messages]);
 
     // Stick to the bottom while an answer streams in, but stop fighting the
     // user the moment they scroll up to re-read something.
