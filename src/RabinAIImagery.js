@@ -3,7 +3,7 @@ import API_BASE_URL from './config/api';
 import { useDispatch } from 'react-redux';
 import { addLink } from './features/assistantSlice';
 import { storeImageLink } from './utils/imageLinkStore';
-import { scrollBelowChrome, scrollToPageTop } from './utils/scroll';
+import { scrollBelowChrome, scrollToPageTopThen } from './utils/scroll';
 import { Hero, ScreenBody } from './components/Hero';
 
 /**
@@ -124,6 +124,7 @@ const RabinAIImagery = () => {
   const [preview, setPreview] = useState(null);
   const consoleRef = useRef(null);
   const resultRef = useRef(null);
+  const clearingRef = useRef(false);
 
   // Clear a finished render and hand the page back for another go.
   //
@@ -137,14 +138,20 @@ const RabinAIImagery = () => {
   // cleared, so the button is absent while phase is 'running' rather than
   // disabled, and the stream is never cancelled underneath itself.
   const reset = () => {
-    setPrompt('');
-    setPhase('idle');
-    setFrames([]);
-    setPreview(null);
-    setImage(null);
-    setMeta(null);
-    setErrorMsg('');
-    requestAnimationFrame(() => requestAnimationFrame(scrollToPageTop));
+    if (clearingRef.current) return;
+    clearingRef.current = true;
+    // Ride the existing image to the top, THEN unmount it. Deleting first
+    // collapses the page and the viewport snaps — same jump as assistant Clear.
+    scrollToPageTopThen(() => {
+      setPrompt('');
+      setPhase('idle');
+      setFrames([]);
+      setPreview(null);
+      setImage(null);
+      setMeta(null);
+      setErrorMsg('');
+      clearingRef.current = false;
+    });
   };
 
   // Bring the console into view when a render starts.
