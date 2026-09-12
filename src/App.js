@@ -16,6 +16,7 @@ import RabinAIImagery from './RabinAIImagery';
 import Modal from './Modal';
 import Home from './Home';
 import Resume from './Resume';
+import Contact from './Contact';
 import Explore from './Explore';
 import EmmaSplashPage from './EmmaSplashPage';
 import Admin from './Admin';
@@ -90,6 +91,7 @@ const AppContent = () => {
             </Route>
             <Route path="/explore" element={<Explore />} />
             <Route path="/resume" element={<Resume />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/admin" element={<Admin />} />
           </Routes>
         </main>

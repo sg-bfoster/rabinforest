@@ -98,6 +98,9 @@ const Header = () => {
           <NavLink to="/resume" className={navClass}>
             Resume
           </NavLink>
+          <NavLink to="/contact" className={navClass}>
+            Contact
+          </NavLink>
           {/* A different SITE, not another page — rabinforest.com is Brian's
               portfolio, rabinai.com is the machine that answers on it. So this
               is an <a>, not a NavLink: it can never be "active", it opens in a

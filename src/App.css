@@ -363,6 +363,21 @@
 .panel-row { display: flex; gap: 12px; align-items: stretch; }
 .fact-check-panel { display: grid; gap: 18px; padding: 24px; }
 
+.contact-panel { padding: 24px; }
+.contact-form { display: grid; gap: var(--space-3); }
+.contact-actions { display: flex; justify-content: flex-end; }
+.contact-thanks {
+  margin: 0;
+  font-size: 16px;
+  color: var(--ink-2);
+}
+
+.site-footer a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+.site-footer a:hover { color: var(--glow); }
+
 /* ── footer ───────────────────────────────────────────────────────────── */
 .site-footer {
   position: fixed;

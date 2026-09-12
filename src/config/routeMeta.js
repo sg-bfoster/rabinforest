@@ -81,6 +81,13 @@ const PAGES = {
     canonical: `${SITE}/resume`,
     robots: 'index, follow',
   },
+  '/contact': {
+    title: 'Contact | Rabin Forest',
+    description:
+      'Leave Brian Foster a comment or question. Name and email are optional if you want a reply.',
+    canonical: `${SITE}/contact`,
+    robots: 'index, follow',
+  },
   '/admin': {
     title: 'Admin | Rabin Forest',
     description: DEFAULT.description,
