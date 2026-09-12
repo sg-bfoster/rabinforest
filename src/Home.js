@@ -12,7 +12,7 @@ import { Hero, ScreenBody } from './components/Hero';
 import { NavLink } from 'react-router-dom';
 import { PLAYGROUND_FACT_CHECK } from './playgroundRoutes';
 
-// Three are drawn at random per load, so this pool is the site's shop window:
+// Four are drawn at random per load, so this pool is the site's shop window:
 // whatever is in here is what a visitor is most likely to ask first.
 //
 // The first group deliberately points at the knowledge base's strongest
@@ -63,6 +63,13 @@ const QUESTION_POOL = [
     'Is he open to remote work?',
     'Does he have a design background?',
     'Which consumer sites has he shipped?',
+    // Added 2026-09-12. People-management is the question recruiters actually
+    // ask and the KB answers it cleanly; RabinAI Images and the architecture
+    // write-ups are on the site but a visitor on this page would not guess to
+    // ask about either.
+    'Does he manage people?',
+    'Can this site generate images?',
+    'Has he written architecture docs?',
 ];
 
 const pickQuestions = (pool, n) => {
@@ -95,7 +102,7 @@ const Home = () => {
     // Milliseconds the box has been building, straight from the stream's
     // heartbeat. Null when nothing is pending, or once text starts arriving.
     const [waitingMs, setWaitingMs] = useState(null);
-    const [suggested, setSuggested] = useState(() => pickQuestions(QUESTION_POOL, 3));
+    const [suggested, setSuggested] = useState(() => pickQuestions(QUESTION_POOL, 4));
     const [conversationId, setConversationId] = useState(() => {
         // Get or create conversation ID from localStorage
         const storedId = localStorage.getItem('conversationId');
@@ -455,7 +462,7 @@ const Home = () => {
             setMessages([]);
             setPrompt('');
             setIsLoading(false);
-            setSuggested(pickQuestions(QUESTION_POOL, 3));
+            setSuggested(pickQuestions(QUESTION_POOL, 4));
             clearingRef.current = false;
         });
     };
