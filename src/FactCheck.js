@@ -13,6 +13,12 @@ const VERDICT_LABELS = {
   cant_tell: "Can't tell",
 };
 
+const ENGINE_LABELS = {
+  rabinai: 'RabinAI',
+  gemini: 'Gemini',
+  openai: 'OpenAI',
+};
+
 // Four of each verdict. Four are drawn at random per load — same empty-box
 // treatment as the imagery chips. Each carries its flow, shown while the
 // example is loaded untouched.
@@ -543,9 +549,19 @@ const FactCheck = () => {
             >
               Gemini <span className="fact-check-engine-note">Google's cloud · ~1-3s</span>
             </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={engine === 'openai'}
+              className={`fact-check-engine-btn${engine === 'openai' ? ' is-on' : ''}`}
+              disabled={isChecking}
+              onClick={() => setEngine('openai')}
+            >
+              OpenAI <span className="fact-check-engine-note">OpenAI's cloud · ~1-3s</span>
+            </button>
           </div>
           <p className="fact-check-step-hint">
-            Same claim, same source, same rules — only the model changes. Both are
+            Same claim, same source, same rules — only the model changes. All three are
             judged at temperature 0, reading nothing but the source you supply.
           </p>
         </div>
@@ -814,7 +830,7 @@ const FactCheck = () => {
               </span>
               {result.engine && (
                 <span className="fact-check-engine-tag">
-                  judged by {result.engine === 'rabinai' ? 'RabinAI' : 'Gemini'}
+                  judged by {ENGINE_LABELS[result.engine] || result.engine}
                   {typeof result.ms === 'number' && ` · ${(result.ms / 1000).toFixed(1)}s`}
                 </span>
               )}
@@ -849,7 +865,7 @@ const FactCheck = () => {
           <figcaption>
             The dashed boundary is what ships on npm: the drift engine (deterministic) and the verify
             pipeline (empty stage slots). Golden regression evals are deliberately left to promptfoo
-            or your own harness. The one red box — the Gemini judge — lives in the host app and is
+            or your own harness. The one red box — the judge — lives in the host app and is
             plugged into a slot only for jobs that need reading comprehension.
           </figcaption>
         </figure>
