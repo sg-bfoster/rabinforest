@@ -295,6 +295,9 @@
   flex: none;
   margin-left: auto;
 }
+.ask-card-restart {
+  margin: 0 0 14px;
+}
 .ask-card-thread {
   display: flex;
   flex-direction: column;

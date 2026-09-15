@@ -240,6 +240,7 @@ const Home = () => {
             // once RabinAI is actually answering, so the engine tag can show
             // from the first token instead of waiting for the finished reply.
             const onDelta = (sofar, engine) => {
+                if (clearingRef.current) return;
                 setWaitingMs(null); // text is arriving; the counter has done its job
                 setMessages([...newMessages, { role: 'model', parts: [{ text: sofar }], streaming: true, engine }]);
             };
@@ -247,6 +248,7 @@ const Home = () => {
             const response = await fetchResponse(
                 currentPrompt, messages, conversationId, onDelta, setWaitingMs,
             );
+            if (clearingRef.current) return;
             const mockResponse = {
                 role: 'model',
                 parts: [{ text: response.text }],
@@ -261,13 +263,14 @@ const Home = () => {
             }
             setMessages([...newMessages, mockResponse]);
         } catch (error) {
+            if (clearingRef.current) return;
             console.error('Assistant request failed:', error);
             setMessages([
                 ...newMessages,
                 { role: 'model', parts: [{ text: 'Something went wrong reaching the assistant. Please try again.' }] },
             ]);
         } finally {
-            setIsLoading(false);
+            if (!clearingRef.current) setIsLoading(false);
         }
     };
 
@@ -517,6 +520,14 @@ const Home = () => {
                 <form onSubmit={handleSubmit} className="ask-form">
                     <div ref={askCardRef} className={`ask-card${messages.length > 0 ? ' ask-card--live' : ''}`}>
                         {messages.length > 0 && (
+                            <>
+                            <button
+                                type="button"
+                                className="btn btn-ghost ask-card-restart"
+                                onClick={handleResetChat}
+                            >
+                                Start Over
+                            </button>
                             <div className="ask-card-thread">
                                 {messages.map((msg, index) => {
                                     const isAssistantMessage = msg.role === 'model';
@@ -621,6 +632,7 @@ const Home = () => {
                                     </div>
                                 )}
                             </div>
+                            </>
                         )}
                         <div className="ask-card-composer">
                             <textarea
@@ -638,11 +650,6 @@ const Home = () => {
                             <div className="ask-card-footer">
                                 <span>Enter to send · Shift+Enter for a new line</span>
                                 <div className="ask-card-actions">
-                                    {messages.length > 0 && (
-                                        <button type="button" className="btn btn-ghost" onClick={handleResetChat}>
-                                            Clear
-                                        </button>
-                                    )}
                                     <button type="submit" className="btn btn-primary" disabled={isLoading}>
                                         {isLoading ? <span className="spinner" /> : <>Send <span aria-hidden="true">↑</span></>}
                                     </button>
