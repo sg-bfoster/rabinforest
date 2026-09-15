@@ -650,6 +650,11 @@ const Home = () => {
                             <div className="ask-card-footer">
                                 <span>Enter to send · Shift+Enter for a new line</span>
                                 <div className="ask-card-actions">
+                                    {messages.length > 0 && (
+                                        <button type="button" className="btn btn-ghost" onClick={handleResetChat}>
+                                            Clear
+                                        </button>
+                                    )}
                                     <button type="submit" className="btn btn-primary" disabled={isLoading}>
                                         {isLoading ? <span className="spinner" /> : <>Send <span aria-hidden="true">↑</span></>}
                                     </button>
