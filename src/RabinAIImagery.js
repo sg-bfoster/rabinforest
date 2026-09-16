@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import API_BASE_URL from './config/api';
+import { FEATURES } from './config/features';
+import LookAtIt from './LookAtIt';
 import { useDispatch } from 'react-redux';
 import { addLink } from './features/assistantSlice';
 import { storeImageLink } from './utils/imageLinkStore';
@@ -118,6 +120,9 @@ const RabinAIImagery = () => {
   const [frames, setFrames] = useState([]);
   const [image, setImage] = useState(null);
   const [meta, setMeta] = useState(null);     // { ms, seed }
+  // Short-lived reference to the render the SERVER is still holding, so the
+  // box can be asked what it sees without the image ever being uploaded back.
+  const [lookToken, setLookToken] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [ideas] = useState(() => pickIdeas(IDEA_POOL, 5));
   // Latest denoise preview frame (a small JPEG data-URI from the box).
@@ -138,6 +143,7 @@ const RabinAIImagery = () => {
   // cleared, so the button is absent while phase is 'running' rather than
   // disabled, and the stream is never cancelled underneath itself.
   const reset = () => {
+    setLookToken(null);
     if (clearingRef.current) return;
     clearingRef.current = true;
     // Ride the existing image to the top, THEN unmount it. Deleting first
@@ -265,6 +271,7 @@ const RabinAIImagery = () => {
             setImage(d.image);
             setPreview(null); // the finished image supersedes the last preview
             setMeta({ ms: d.ms, seed: d.seed });
+            setLookToken(d.lookToken || null);
             setPhase('done');
             // Bring the finished image into view once React has painted it.
             // rAF alone aims at the pre-image layout (the AI-Chat-Bots page
@@ -407,6 +414,15 @@ const RabinAIImagery = () => {
             page won't remember it. It has been added to your links.
           </figcaption>
         </figure>
+      )}
+
+      {/* The loop closing: SDXL drew it, the vision model looks at it, the
+          read-aloud route speaks the answer. Directly under the render and
+          above Save/Clear, because it is about THIS picture — a panel that
+          lives anywhere else is a different product, which is what the
+          curated-sample version it replaced felt like. */}
+      {phase === 'done' && lookToken && (
+        <LookAtIt token={lookToken} canSpeak={FEATURES.readAloud} />
       )}
 
       {/* Save / clear. Present once a render has settled — done or failed —

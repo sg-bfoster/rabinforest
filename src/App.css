@@ -2150,3 +2150,36 @@
     margin-top: 4px;
   }
 }
+
+/* ── ASK THE BOX WHAT IT SEES ───────────────────────────────────────────
+   The loop closing: the machine that drew the picture looks at it and says
+   what it sees, then reads that aloud. Sits under the finished render, not
+   as a separate section — it is about THIS image, and placing it anywhere
+   else would make it a different product. */
+.look {
+  margin: 18px auto 0; max-width: 560px;
+  padding: 16px 18px; border-radius: 12px;
+  background: var(--surface, #fff); border: 1px solid var(--hairline, #e2e7ec);
+}
+.look-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.look-title { margin: 0; font-size: 16px; font-weight: 600; }
+.look-sub { margin: 4px 0 0; font-size: 13.5px; color: var(--muted, #667); line-height: 1.5; }
+.look-actions { display: flex; gap: 8px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
+
+.look-text {
+  margin: 14px 0 0; font-size: 15.5px; line-height: 1.6; color: var(--ink-2, #23303c);
+}
+/* The engine tags. Same habit as the assistant: every answer says which
+   machine produced it, so "local" is a checkable claim rather than a boast. */
+.look-tags { margin: 10px 0 0; display: flex; gap: 8px; flex-wrap: wrap; }
+.look-tag {
+  font-family: ui-monospace, Menlo, monospace; font-size: 11.5px;
+  padding: 3px 8px; border-radius: 999px;
+  background: var(--field, #f4f7f9); color: var(--muted, #667);
+}
+.look-note { margin: 12px 0 0; font-size: 13.5px; color: var(--muted, #667); line-height: 1.5; }
+.look-error { margin: 12px 0 0; font-size: 13.5px; color: #b23; line-height: 1.5; }
+
+@media (max-width: 640px) {
+  .look-actions .btn { width: 100%; }
+}

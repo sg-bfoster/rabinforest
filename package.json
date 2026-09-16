@@ -1,6 +1,6 @@
 {
   "name": "rabinforest",
-  "version": "0.4.96",
+  "version": "0.4.97",
   "private": true,
   "dependencies": {
     "@reduxjs/toolkit": "^2.11.2",
