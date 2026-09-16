@@ -31,6 +31,7 @@ const LookAtIt = ({ token, canSpeak }) => {
   const [ms, setMs] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [calm, setCalm] = useState(false);
+  const [steps, setSteps] = useState([]); // what the box is doing, as it does it
   const [speaking, setSpeaking] = useState(false);
   const [voice, setVoice] = useState(null); // which engine actually spoke
   const audioRef = useRef(null);
@@ -44,6 +45,7 @@ const LookAtIt = ({ token, canSpeak }) => {
     setMs(null);
     setErrorMsg('');
     setVoice(null);
+    setSteps([]);
   }, [token]);
 
   // Never leave audio playing into a page that has moved on.
@@ -57,22 +59,54 @@ const LookAtIt = ({ token, canSpeak }) => {
     setPhase('looking');
     setErrorMsg('');
     setCalm(false);
+    setSteps([]);
     try {
       const res = await fetch(`${API_BASE_URL}/ai/imagery/describe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token }),
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setErrorMsg(REASONS[data.error] || FALLBACK);
-        setCalm(CALM.has(data.error));
-        setPhase('error');
-        return;
+      if (!res.body) throw new Error('no stream');
+
+      // Same SSE grammar the render speaks — step / done / error — so the
+      // box can say what it is doing while it does it. Before this the panel
+      // sat silent for up to fifteen seconds and then produced an answer,
+      // which reads as a hang however good the answer is.
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '';
+      let settled = false;
+
+      while (!settled) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split('\n');
+        buf = lines.pop();
+
+        let event = null;
+        for (const line of lines) {
+          if (line.startsWith('event: ')) { event = line.slice(7).trim(); continue; }
+          if (!line.startsWith('data: ')) continue;
+          let d;
+          try { d = JSON.parse(line.slice(6)); } catch { continue; }
+
+          if (event === 'step') {
+            setSteps((prev) => [...prev, `${(d.ms / 1000).toFixed(1)}s · ${d.label}`]);
+          } else if (event === 'done') {
+            setText(d.text);
+            setMs(d.ms);
+            setPhase('done');
+            settled = true;
+          } else if (event === 'error') {
+            setErrorMsg(REASONS[d.error] || FALLBACK);
+            setCalm(CALM.has(d.error));
+            setPhase('error');
+            settled = true;
+          }
+        }
       }
-      setText(data.text);
-      setMs(data.ms);
-      setPhase('done');
+      if (!settled) throw new Error('stream ended without an answer');
     } catch {
       setErrorMsg(FALLBACK);
       setCalm(false);
@@ -129,6 +163,18 @@ const LookAtIt = ({ token, canSpeak }) => {
       </div>
 
       <div aria-live="polite">
+        {/* The box narrating itself. Kept visible after the answer arrives:
+            "6.2s waking the vision model" is the most interesting thing on
+            the panel — it is the machine admitting what it had to do. */}
+        {steps.length > 0 && (
+          <ul className="look-steps">
+            {steps.map((line, i) => (
+              <li key={i} className={i === steps.length - 1 && phase === 'looking' ? 'is-current' : ''}>
+                {line}
+              </li>
+            ))}
+          </ul>
+        )}
         {phase === 'done' && <p className="look-text">{text}</p>}
         {phase === 'done' && (
           <p className="look-tags">

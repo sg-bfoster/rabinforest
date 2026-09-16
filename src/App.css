@@ -2166,6 +2166,22 @@
 .look-sub { margin: 4px 0 0; font-size: 13.5px; color: var(--muted, #667); line-height: 1.5; }
 .look-actions { display: flex; gap: 8px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
 
+/* The box narrating itself while it works. Mono, like the render console —
+   it is the same machine reporting the same way, and a visitor who has just
+   watched 50s of denoise steps already reads this dialect. */
+.look-steps {
+  list-style: none; margin: 14px 0 0; padding: 0;
+  font-family: ui-monospace, Menlo, monospace; font-size: 12.5px;
+  color: var(--muted, #667); display: grid; gap: 3px;
+}
+.look-steps li.is-current::after {
+  content: '…'; animation: look-ellipsis 1.2s steps(4, end) infinite;
+}
+@keyframes look-ellipsis { 0% { opacity: .3 } 50% { opacity: 1 } 100% { opacity: .3 } }
+@media (prefers-reduced-motion: reduce) {
+  .look-steps li.is-current::after { animation: none; }
+}
+
 .look-text {
   margin: 14px 0 0; font-size: 15.5px; line-height: 1.6; color: var(--ink-2, #23303c);
 }
