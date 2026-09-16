@@ -133,7 +133,25 @@ const LookAtIt = ({ token, canSpeak }) => {
         {phase === 'done' && (
           <p className="look-tags">
             <span className="look-tag">described on the box · {(ms / 1000).toFixed(1)}s</span>
-            {voice && <span className="look-tag">spoken by {voice}</span>}
+            {voice && (
+              <span className="look-tag">
+                {voice === 'kokoro' ? 'spoken on the box' : `spoken by ${voice}`}
+              </span>
+            )}
+          </p>
+        )}
+        {/* WHEN THE VOICE CAME FROM THE CLOUD, SAY WHY.
+            The box speaks when it can; when it is asleep or busy, the cloud
+            covers. That is the same arrangement the assistant has always had
+            with Gemini, and the honest move is to name it rather than let a
+            visitor assume every word came from the basement. Shown only on
+            the fallback — when Kokoro spoke, the tag already says so and a
+            note would be noise. */}
+        {voice && voice !== 'kokoro' && (
+          <p className="look-note">
+            The box could not speak just then — it may be asleep or busy — so
+            the cloud read it instead. Everything you see above still came
+            from the machine: it drew the picture and described it.
           </p>
         )}
         {phase === 'error' && (
