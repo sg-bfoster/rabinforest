@@ -2204,12 +2204,32 @@
   color: var(--muted, #667); display: grid; gap: 3px;
 }
 .look-steps--settled { opacity: 0.65; }
+
+/* THE LIVE STEP BREATHES. A pulsing '…' alone was too small to register —
+   on a wake that ran 33.8s the panel read as frozen, which is the exact
+   impression the step list exists to prevent. The whole line now shifts
+   between the muted grey and the body ink, so peripheral vision catches it.
+
+   Colour, not opacity: fading a line toward the background reads as it
+   leaving, and slow is the point here — 1.8s is a breath, while anything
+   quicker reads as an error blinking for attention. */
+.look-steps li.is-current {
+  animation: look-step-pulse 1.8s ease-in-out infinite;
+}
+@keyframes look-step-pulse {
+  0%, 100% { color: var(--muted, #5d6773); }
+  50%      { color: var(--ink, #101418); }
+}
 .look-steps li.is-current::after {
   content: '…'; animation: look-ellipsis 1.2s steps(4, end) infinite;
 }
 @keyframes look-ellipsis { 0% { opacity: .3 } 50% { opacity: 1 } 100% { opacity: .3 } }
 @media (prefers-reduced-motion: reduce) {
+  .look-steps li.is-current,
   .look-steps li.is-current::after { animation: none; }
+  /* Still distinguish the live line without motion — it is the one piece of
+     information this list carries, so it cannot depend on animation alone. */
+  .look-steps li.is-current { color: var(--ink, #101418); }
 }
 
 /* The answer, not another log line. The steps above are the machine

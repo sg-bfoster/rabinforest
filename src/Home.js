@@ -11,38 +11,7 @@ import { LinkedText } from './utils/linkedText';
 import { Hero, ScreenBody } from './components/Hero';
 import { NavLink } from 'react-router-dom';
 import { PLAYGROUND_FACT_CHECK } from './playgroundRoutes';
-
-/**
- * READ-ALOUD ICONS.
- *
- * These replace the 🔊 and ◼ emoji, which were set at 12px and unreadable.
- * An emoji is a full-colour glyph rendered by the OS: it carries detail that
- * turns to mush at small sizes, it cannot inherit the button's colour, and it
- * looks different on every platform. A two-shape SVG stays legible and draws
- * in currentColor, so the existing hover and focus rules keep working with no
- * extra CSS.
- *
- * ONE arc, not the two or three a speaker icon usually has. At 16px the extra
- * arcs merge into a smudge; a single one still reads unmistakably as sound.
- */
-const SpeakerIcon = () => (
-  <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
-    <path d="M3 6h2.6L9.4 2.8v10.4L5.6 10H3z" fill="currentColor" />
-    <path
-      d="M11.6 5.6a3.4 3.4 0 0 1 0 4.8"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-    />
-  </svg>
-);
-
-const StopIcon = () => (
-  <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
-    <rect x="4" y="4" width="8" height="8" rx="1.5" fill="currentColor" />
-  </svg>
-);
+import { SpeakerIcon, StopIcon } from './components/SpeakerIcons';
 
 // Four are drawn at random per load, so this pool is the site's shop window:
 // whatever is in here is what a visitor is most likely to ask first.

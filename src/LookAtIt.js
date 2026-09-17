@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import API_BASE_URL from './config/api';
+import { SpeakerIcon, StopIcon } from './components/SpeakerIcons';
 
 /**
  * ASK THE BOX WHAT IT SEES — the loop closing on the visitor's own picture.
@@ -114,8 +115,19 @@ const LookAtIt = ({ token, canSpeak }) => {
     }
   };
 
+  /** Stop playback. Exists so the stop icon is honest: showing a square the
+   *  visitor cannot click is worse than showing no control at all. */
+  const stopSpeaking = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    setSpeaking(false);
+  };
+
   const speak = async () => {
-    if (speaking || !text) return;
+    if (!text) return;
+    if (speaking) return stopSpeaking(); // same button, both directions
     setSpeaking(true);
     try {
       const res = await fetch(`${API_BASE_URL}/ai/readaloud`, {
@@ -155,9 +167,19 @@ const LookAtIt = ({ token, canSpeak }) => {
         <button type="button" className="btn btn-primary" onClick={look} disabled={phase === 'looking'}>
           {phase === 'looking' ? 'Looking…' : 'Describe it'}
         </button>
+        {/* The SAME control the chat uses for the same job (Home.js, via
+            components/SpeakerIcons) — one speaker in the product, not two
+            that are almost alike. It is icon-only for that reason: a text
+            button here and a round icon there is the drift worth avoiding. */}
         {phase === 'done' && canSpeak && (
-          <button type="button" className="btn" onClick={speak} disabled={speaking}>
-            {speaking ? 'Reading…' : 'Read it aloud'}
+          <button
+            type="button"
+            className="read-aloud-btn"
+            onClick={speak}
+            aria-label={speaking ? 'Stop reading' : 'Read this description aloud'}
+            title={speaking ? 'Stop reading' : 'Read this description aloud'}
+          >
+            {speaking ? <StopIcon /> : <SpeakerIcon />}
           </button>
         )}
       </div>
