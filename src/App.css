@@ -2279,36 +2279,3 @@
 @media (max-width: 640px) {
   .look-actions .btn { width: 100%; }
 }
-
-/* ── Read every answer aloud ───────────────────────────────────────────────
-   One switch for the conversation, instead of a decision on every answer.
-   It reads as a control rather than an action: the label states the current
-   behaviour ("Reading answers"), not the thing a click would do, because a
-   toggle that describes its own effect is ambiguous the moment it is on. */
-.auto-read { display: flex; flex-direction: column; gap: 6px; margin: 0 0 10px; }
-.auto-read-toggle {
-  display: inline-flex; align-items: center; gap: 8px; align-self: flex-start;
-  background: none; border: 1px solid rgba(47, 109, 153, 0.3);
-  color: var(--muted, #5d6773);
-  border-radius: 999px; padding: 6px 14px 6px 10px;
-  font-size: 13px; line-height: 1; cursor: pointer;
-}
-.auto-read-toggle svg { display: block; flex: 0 0 auto; }
-.auto-read-toggle:hover, .auto-read-toggle:focus-visible {
-  color: var(--cool, #2f6d99); border-color: var(--cool, #2f6d99);
-}
-/* ON is a filled state, not a brighter outline. A visitor glancing at the
-   thread should be able to tell whether the next answer will speak without
-   reading the label. */
-.auto-read-toggle.is-on {
-  background: var(--cool, #2f6d99); border-color: var(--cool, #2f6d99); color: #fff;
-}
-.auto-read-toggle.is-on:hover, .auto-read-toggle.is-on:focus-visible {
-  background: var(--ink, #101418); border-color: var(--ink, #101418); color: #fff;
-}
-/* Why it switched itself off. Calm, not an error: the box being asleep is a
-   normal state of a machine in a basement, and the visitor caused none of it. */
-.auto-read-note {
-  margin: 0; max-width: 52ch;
-  font-size: 12.5px; line-height: 1.45; color: var(--muted, #5d6773);
-}

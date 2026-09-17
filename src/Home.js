@@ -289,20 +289,6 @@ const Home = () => {
     const [loadingSpeechIndex, setLoadingSpeechIndex] = useState(null);
 
     /**
-     * READ EVERY ANSWER, until told otherwise. Survives navigation because a
-     * setting that resets on every page change is not a setting.
-     */
-    const [autoRead, setAutoRead] = useState(() => {
-        try {
-            return window.localStorage.getItem('rf.autoRead') === '1';
-        } catch {
-            return false; // private mode, or storage blocked
-        }
-    });
-    /** Why auto-read switched itself off, shown once beside the toggle. */
-    const [autoReadNote, setAutoReadNote] = useState('');
-
-    /**
      * Has this visitor ever asked for speech? Gates speculative prefetching.
      *
      * Most visitors never press the speaker, and prefetching for them spends
@@ -404,13 +390,6 @@ const Home = () => {
     const speechCacheRef = useRef(new Map());
     const SPEECH_CACHE_MAX = 60;
 
-    /**
-     * Which engine last spoke. The server sends X-TTS-Engine on every reply
-     * ('kokoro' when Brian's box answered, 'openai' when it was asleep and the
-     * cloud covered). Auto-read watches this — see the effect below.
-     */
-    const lastEngineRef = useRef(null);
-
     /** One chunk of speech as a blob URL, or null if the run was cancelled. */
     const fetchSpeech = async (chunk, run) => {
         const key = chunk.slice(0, 4096);
@@ -429,7 +408,6 @@ const Home = () => {
             body: JSON.stringify({ prompt: key }),
         });
         if (!res.ok) throw new Error(`read aloud failed: ${res.status}`);
-        lastEngineRef.current = res.headers.get('X-TTS-Engine') || null;
 
         const blob = await res.blob();
         // Insertion order is age order, so the first key is the oldest.
@@ -537,97 +515,44 @@ const Home = () => {
     useEffect(() => stopSpeaking, []);
 
     /**
-     * WHEN A NEW ANSWER FINISHES: read it, or quietly get ready to.
+     * WARM THE FIRST CHUNK of a new answer, for someone who has already shown
+     * they want speech.
      *
-     * Two behaviours, one trigger, deliberately separate in cost:
+     * Speech stays OPT-IN per answer (Brian, 2026-09-17: a universal toggle
+     * was built and rejected — the per-answer button is the control). This
+     * does not change that; it only removes the wait from the click.
      *
-     *   auto-read ON   → speak the whole answer now
-     *   auto-read OFF  → synthesise only the FIRST chunk, and only if this
-     *                    visitor has pressed the speaker at least once
+     * Why just the first chunk, and not the whole answer: most answers are
+     * never played, each synthesis costs the box ~14% of the assistant's
+     * generation speed while it runs, and on the cloud fallback it costs real
+     * money. handleReadAloud already pipelines every later chunk behind
+     * playback, so the first chunk IS the perceived latency — warming it buys
+     * effectively all of the speed-up for one short request.
      *
-     * The second is the answer to "why does it generate every time I click".
-     * It does not pre-generate whole answers: most are never played, and each
-     * one costs the box ~14% of the assistant's generation speed while it
-     * runs, or real money when the box is asleep and the cloud covers. One
-     * short chunk makes the click feel instant for a tenth of the spend, and
-     * the pipeline in handleReadAloud already hides the rest behind playback.
+     * And only once hasUsedSpeechRef is set, so a visitor who never presses
+     * the speaker never costs anything at all.
      *
-     * Keyed on the index of the last message, not on its text: an answer that
-     * is still streaming must not be spoken in pieces.
+     * Keyed on the index of the last message, not its text: an answer still
+     * streaming must not be synthesised in pieces.
      */
-    const lastSpokenIndexRef = useRef(-1);
+    const lastWarmedIndexRef = useRef(-1);
     useEffect(() => {
         if (!FEATURES.readAloud) return;
+        if (!hasUsedSpeechRef.current) return;
         const index = messages.length - 1;
         const msg = messages[index];
         if (!msg || msg.role !== 'model' || msg.streaming) return;
-        if (lastSpokenIndexRef.current === index) return; // already handled
+        if (lastWarmedIndexRef.current === index) return; // already warmed
 
-        const html = msg.parts?.[0]?.text || '';
-        const text = spokenTextFor(html);
+        const text = spokenTextFor(msg.parts?.[0]?.text || '');
         if (!text) return;
-        lastSpokenIndexRef.current = index;
-
-        if (autoRead) {
-            handleReadAloud(index, html);
-        } else if (hasUsedSpeechRef.current) {
-            prefetchSpeech(chunkForSpeech(text)[0] || '');
-        }
-        // handleReadAloud and its helpers are recreated every render; depending
-        // on them would re-fire this for the same answer. The index guard above
-        // is what makes it idempotent.
+        lastWarmedIndexRef.current = index;
+        prefetchSpeech(chunkForSpeech(text)[0] || '');
+        // The helpers are recreated every render; depending on them would
+        // re-fire this for the same answer. The index guard is what makes it
+        // idempotent.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [messages, autoRead]);
-
-    /**
-     * AUTO-READ STOPS ITSELF WHEN THE BOX IS ASLEEP.
-     *
-     * Brian's decision, 2026-09-17. With auto-read on, every answer is
-     * synthesised — and if the box is down, every one of those is an OpenAI
-     * charge for audio the visitor did not individually ask for. Reading one
-     * reply from the cloud is a courtesy; reading an entire conversation from
-     * it, silently, is a bill nobody agreed to.
-     *
-     * So the fallback is honoured once and then the toggle turns itself off
-     * and says why. The per-answer button still works — it is opt-in, which
-     * is exactly the difference.
-     */
-    useEffect(() => {
-        if (!autoRead) return;
-        if (!lastEngineRef.current || lastEngineRef.current === 'kokoro') return;
-        setAutoRead(false);
-        setAutoReadNote(
-            'The box is asleep, so that one was read by the cloud. I have turned ' +
-                'reading off — press the speaker on any answer to hear it anyway.',
-        );
-    }, [autoRead, speakingIndex]);
-
-    /** Persist the toggle. Failure is silent: a blocked store is not an error
-     *  worth showing, it just means the setting lasts one visit. */
-    useEffect(() => {
-        try {
-            window.localStorage.setItem('rf.autoRead', autoRead ? '1' : '0');
-        } catch {
-            /* private mode */
-        }
-    }, [autoRead]);
-
-    /**
-     * Turning it ON is a click, which is the only moment the browser will
-     * grant this page permission to play audio it did not ask for. Claim it
-     * here or the first auto-read is silently blocked — see unlockAudio.
-     */
-    const toggleAutoRead = () => {
-        setAutoReadNote('');
-        if (!autoRead) {
-            unlockAudio();
-            hasUsedSpeechRef.current = true;
-            setAutoRead(true);
-        } else {
-            setAutoRead(false);
-            stopSpeaking();
-        }
-    };
+    }, [messages]);
 
     const handleResetChat = () => {
         if (clearingRef.current) return;
@@ -712,27 +637,6 @@ const Home = () => {
                                 than a decision per answer. aria-pressed is the
                                 honest role here: it is a toggle, not a command,
                                 and a screen reader should say so. */}
-                            {FEATURES.readAloud && (
-                                <div className="auto-read">
-                                    <button
-                                        type="button"
-                                        className={`auto-read-toggle${autoRead ? ' is-on' : ''}`}
-                                        onClick={toggleAutoRead}
-                                        aria-pressed={autoRead}
-                                        title={
-                                            autoRead
-                                                ? 'Stop reading answers aloud'
-                                                : 'Read every answer aloud as it arrives'
-                                        }
-                                    >
-                                        <SpeakerIcon />
-                                        <span>{autoRead ? 'Reading answers' : 'Read answers aloud'}</span>
-                                    </button>
-                                    {autoReadNote && (
-                                        <p className="auto-read-note" role="status">{autoReadNote}</p>
-                                    )}
-                                </div>
-                            )}
                             <div className="ask-card-thread">
                                 {messages.map((msg, index) => {
                                     const isAssistantMessage = msg.role === 'model';
