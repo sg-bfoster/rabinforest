@@ -2174,6 +2174,7 @@
   font-family: ui-monospace, Menlo, monospace; font-size: 12.5px;
   color: var(--muted, #667); display: grid; gap: 3px;
 }
+.look-steps--settled { opacity: 0.65; }
 .look-steps li.is-current::after {
   content: '…'; animation: look-ellipsis 1.2s steps(4, end) infinite;
 }
@@ -2182,8 +2183,38 @@
   .look-steps li.is-current::after { animation: none; }
 }
 
+/* The answer, not another log line. The steps above are the machine
+   reporting; this is what it saw. A left rule in the engine colour and a
+   field fill pull it out of the mono list, and the flash is the same beat
+   as the finished-image splash — without it the paragraph just appears
+   and reads as the next step. */
 .look-text {
-  margin: 14px 0 0; font-size: 15.5px; line-height: 1.6; color: var(--ink-2, #23303c);
+  margin: 16px 0 0;
+  padding: 14px 16px 14px 18px;
+  font-size: 16.5px;
+  line-height: 1.65;
+  color: var(--ink);
+  background: var(--field);
+  border-radius: 12px;
+  border-left: 3px solid var(--cool);
+  animation: look-flash 900ms ease-out;
+}
+@keyframes look-flash {
+  0% {
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(47, 109, 153, 0.38);
+  }
+  22% {
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(47, 109, 153, 0.38);
+  }
+  100% {
+    background: var(--field);
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .look-text { animation: none; }
 }
 /* The engine tags. Same habit as the assistant: every answer says which
    machine produced it, so "local" is a checkable claim rather than a boast. */

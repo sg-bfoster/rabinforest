@@ -167,7 +167,7 @@ const LookAtIt = ({ token, canSpeak }) => {
             "6.2s waking the vision model" is the most interesting thing on
             the panel — it is the machine admitting what it had to do. */}
         {steps.length > 0 && (
-          <ul className="look-steps">
+          <ul className={`look-steps${phase === 'done' ? ' look-steps--settled' : ''}`}>
             {steps.map((line, i) => (
               <li key={i} className={i === steps.length - 1 && phase === 'looking' ? 'is-current' : ''}>
                 {line}
