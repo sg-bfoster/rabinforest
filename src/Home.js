@@ -657,45 +657,52 @@ const Home = () => {
                                         : msg.engine === 'rabinai' ? 'RabinAI'
                                         : null;
 
+                                    const canSpeak =
+                                        FEATURES.readAloud && !isStreaming && !!messageText.trim();
+
                                     return (
                                         <div key={index} className="msg-assistant">
-                                            {engineLabel && (
-                                                <span
-                                                    className={`engine-tag engine-${msg.engine}`}
-                                                    title={
-                                                        msg.engine === 'rabinai'
-                                                            ? `Answered by Brian's home inference box${msg.model ? ` running ${msg.model}` : ''}`
-                                                            : `Answered by Google Gemini (RabinAI was offline or busy)${msg.model ? ` — ${msg.model}` : ''}`
-                                                    }
-                                                >
-                                                    <span className="engine-tag-dot" aria-hidden="true" />
-                                                    {engineLabel}
-                                                    {msg.model && (
-                                                        // Which model, not just which engine. The box can be
-                                                        // swapped and Gemini can fall back to a different
-                                                        // version, so the engine alone no longer identifies
-                                                        // what actually answered.
-                                                        <span className="engine-tag-model">{shortModel(msg.model)}</span>
+                                            {(engineLabel || canSpeak) && (
+                                                <div className="msg-meta">
+                                                    {engineLabel && (
+                                                        <span
+                                                            className={`engine-tag engine-${msg.engine}`}
+                                                            title={
+                                                                msg.engine === 'rabinai'
+                                                                    ? `Answered by Brian's home inference box${msg.model ? ` running ${msg.model}` : ''}`
+                                                                    : `Answered by Google Gemini (RabinAI was offline or busy)${msg.model ? ` — ${msg.model}` : ''}`
+                                                            }
+                                                        >
+                                                            <span className="engine-tag-dot" aria-hidden="true" />
+                                                            {engineLabel}
+                                                            {msg.model && (
+                                                                // Which model, not just which engine. The box can be
+                                                                // swapped and Gemini can fall back to a different
+                                                                // version, so the engine alone no longer identifies
+                                                                // what actually answered.
+                                                                <span className="engine-tag-model">{shortModel(msg.model)}</span>
+                                                            )}
+                                                        </span>
                                                     )}
-                                                </span>
-                                            )}
-                                            {FEATURES.readAloud && !isStreaming && messageText.trim() && (
-                                                <button
-                                                    type="button"
-                                                    className={`read-aloud-btn${
-                                                        loadingSpeechIndex === index ? ' is-loading' : ''
-                                                    }`}
-                                                    onClick={() => handleReadAloud(index, messageText)}
-                                                    disabled={loadingSpeechIndex === index}
-                                                    aria-label={
-                                                        speakingIndex === index ? 'Stop reading' : 'Read this answer aloud'
-                                                    }
-                                                    title={
-                                                        speakingIndex === index ? 'Stop reading' : 'Read this answer aloud'
-                                                    }
-                                                >
-                                                    {speakingIndex === index ? <StopIcon /> : <SpeakerIcon />}
-                                                </button>
+                                                    {canSpeak && (
+                                                        <button
+                                                            type="button"
+                                                            className={`read-aloud-btn${
+                                                                loadingSpeechIndex === index ? ' is-loading' : ''
+                                                            }`}
+                                                            onClick={() => handleReadAloud(index, messageText)}
+                                                            disabled={loadingSpeechIndex === index}
+                                                            aria-label={
+                                                                speakingIndex === index ? 'Stop reading' : 'Read this answer aloud'
+                                                            }
+                                                            title={
+                                                                speakingIndex === index ? 'Stop reading' : 'Read this answer aloud'
+                                                            }
+                                                        >
+                                                            {speakingIndex === index ? <StopIcon /> : <SpeakerIcon />}
+                                                        </button>
+                                                    )}
+                                                </div>
                                             )}
                                             <span className="msg-text">
                                                 <LinkedText text={messageText} />

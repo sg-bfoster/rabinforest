@@ -497,6 +497,17 @@
   white-space: pre-wrap;
 }
 
+/* Engine pill and speaker share one row. They used to be sibling grid
+   items on .msg-assistant, so the 14px gap stacked them — a speaker that
+   belongs to the answer sitting under the model that produced it, instead
+   of next to it. */
+.msg-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .engine-tag {
   display: inline-flex;
   align-items: center;
@@ -546,9 +557,9 @@
   justify-content: center;
   width: 30px;
   height: 30px;
-  /* Hold the circle. The button sits in a flex row beside the answer text,
+  /* Hold the circle. The button sits in .msg-meta beside the engine pill,
      and a flex item defaults to shrinking — which squashed the 30px circle
-     into an ellipse as soon as the text next to it needed the room. Caught in
+     into an ellipse as soon as the pill next to it needed the room. Caught in
      the preview, and it would have shipped: every real message is this
      layout. */
   flex: 0 0 auto;
