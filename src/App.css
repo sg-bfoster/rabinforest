@@ -536,22 +536,51 @@
 }
 .engine-tag.engine-rabinai { color: var(--cool); }
 
+/* An ICON button, not a text pill. It used to be a 12px emoji inside 4px of
+   padding, which gave a ~20px target carrying a glyph too detailed to read at
+   that size. Now a 16px SVG centred in a 30px circle: comfortably above the
+   24px minimum for a pointer target, and legible at a glance. */
 .read-aloud-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  /* Hold the circle. The button sits in a flex row beside the answer text,
+     and a flex item defaults to shrinking — which squashed the 30px circle
+     into an ellipse as soon as the text next to it needed the room. Caught in
+     the preview, and it would have shipped: every real message is this
+     layout. */
+  flex: 0 0 auto;
+  padding: 0;
   background: none;
   border: 1px solid rgba(47, 109, 153, 0.3);
   color: var(--cool);
   border-radius: 999px;
-  font-size: 12px;
-  line-height: 1;
-  padding: 4px 10px;
+  line-height: 0;
   cursor: pointer;
 }
+/* The SVG draws in currentColor, so colour transitions handle both at once. */
+.read-aloud-btn svg { display: block; }
 .read-aloud-btn:hover:not(:disabled),
 .read-aloud-btn:focus-visible {
   color: var(--action);
   border-color: var(--action);
 }
-.read-aloud-btn:disabled { cursor: progress; opacity: 0.6; }
+.read-aloud-btn:disabled { cursor: progress; }
+
+/* Waiting on audio. The icon stays the speaker and pulses, rather than being
+   swapped for an ellipsis — a shape change reads as "something else now",
+   when the truthful signal is "same thing, not ready yet". */
+.read-aloud-btn.is-loading { opacity: 0.55; }
+.read-aloud-btn.is-loading svg { animation: read-aloud-pulse 1.1s ease-in-out infinite; }
+@keyframes read-aloud-pulse {
+  0%, 100% { opacity: 0.45; }
+  50%      { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .read-aloud-btn.is-loading svg { animation: none; }
+}
 
 .bot-label {
   font-size: 11.5px;
