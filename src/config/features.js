@@ -13,16 +13,23 @@ export const FEATURES = {
   /**
    * Read-aloud button on assistant answers (POST /ai/readaloud).
    *
-   * OFF while narration waits on Kokoro. The path works end to end on the
-   * OpenAI fallback — chunked, ~2.3s to first audio — but on that engine every
-   * click spends real money for a feature nobody asked for yet, and the box
-   * that makes it cheap and fast is not serving TTS yet (home-ai-box guide
-   * §10a). Flip to true once KOKORO_URL is set and answering.
+   * ON as of 2026-09-17. Kokoro serves it from the box through
+   * tts.rabinai.com, behind the same Access service token as llm and
+   * rabinai-img. Verified before flipping, not after: production
+   * /ai/readaloud answered 200 with X-TTS-Engine: kokoro, and a synthesis
+   * straight through the tunnel returned 145KB of valid mp3 in 3.0s.
    *
-   * The backend endpoint stays live either way: it is origin-gated, and it is
-   * what you will test against when turning this on.
+   * This waited on the box on purpose. The path worked on the OpenAI fallback
+   * for weeks, but shipping it then would have meant a button presented as
+   * the machine's own voice that was really the cloud's — and every click
+   * would have spent money on a feature nobody had asked for.
+   *
+   * The fallback REMAINS, deliberately: when the box is asleep or busy the
+   * cloud covers, and LookAtIt.js reads X-TTS-Engine and says so rather than
+   * letting a visitor assume. The page's claim is "the box speaks when it
+   * can", which is checkable instead of asserted — that tag is how you check.
    */
-  readAloud: false,
+  readAloud: true,
 
   /**
    * Chat Bots: let the visitor choose which model fills the local seat.
