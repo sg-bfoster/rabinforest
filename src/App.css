@@ -2290,3 +2290,16 @@
 @media (max-width: 640px) {
   .look-actions .btn { width: 100%; }
 }
+
+/* The contact honeypot. Positioned off-screen rather than display:none or
+   visibility:hidden: the cheaper bots skip fields they can tell will not
+   render, and the whole point is that this one looks fillable. It stays in
+   the layout at zero size so it cannot push anything around. */
+.contact-trap {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}

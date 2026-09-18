@@ -5,12 +5,21 @@ import { API_ENDPOINTS } from './config/api';
 import { Hero, ScreenBody } from './components/Hero';
 import { version } from '../package.json';
 
+/**
+ * HONEYPOT. A field no person can see, so anything arriving in it came from
+ * a bot filling every input it found. The server drops those submissions and
+ * reports success anyway — see server/rabin-contact.js for why answering the
+ * bot normally is the point. This name must match HONEYPOT_FIELD there.
+ */
+const HONEYPOT_FIELD = 'company';
+
 const Contact = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState('idle');
   const [errorMsg, setErrorMsg] = useState('');
+  const [trap, setTrap] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,6 +35,9 @@ const Contact = () => {
           email: email.trim() || undefined,
           message: message.trim(),
           version,
+          // Always sent, normally empty. Sending it only when filled would
+          // make its presence in the payload the tell.
+          [HONEYPOT_FIELD]: trap,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -59,6 +71,26 @@ const Contact = () => {
             <p className="contact-thanks">Thanks — your message was sent.</p>
           ) : (
             <form className="contact-form" onSubmit={handleSubmit}>
+              {/* THE TRAP. Off-screen rather than display:none or
+                  type="hidden" — the cheaper bots skip anything obviously
+                  unrenderable, and this needs to look like a field worth
+                  filling. aria-hidden and tabIndex={-1} keep it away from
+                  screen readers and the tab order, so it is invisible to
+                  every real visitor including the ones not using a mouse.
+                  autoComplete="off" stops a browser helpfully filling it in
+                  and getting a genuine person silently dropped. */}
+              <div className="contact-trap" aria-hidden="true">
+                <label htmlFor="contact-company">Company</label>
+                <input
+                  id="contact-company"
+                  name={HONEYPOT_FIELD}
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={trap}
+                  onChange={(e) => setTrap(e.target.value)}
+                />
+              </div>
               <div className="field">
                 <label htmlFor="contact-name">Name (optional)</label>
                 <input
