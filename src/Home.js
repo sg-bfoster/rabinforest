@@ -237,9 +237,10 @@ const Home = () => {
         setWaitingMs(null);
 
         try {
-            // Render partial text in place as it streams in. SSE only opens
-            // once RabinAI is actually answering, so the engine tag can show
-            // from the first token instead of waiting for the finished reply.
+            // Render partial text in place as it streams in. The engine/model
+            // pill waits until the reply is finished and sits under the text —
+            // appending the model name to a tag at the top of a long answer is
+            // invisible to anyone who followed the stream.
             const onDelta = (sofar, engine) => {
                 if (clearingRef.current) return;
                 setWaitingMs(null); // text is arriving; the counter has done its job
@@ -662,7 +663,33 @@ const Home = () => {
 
                                     return (
                                         <div key={index} className="msg-assistant">
-                                            {(engineLabel || canSpeak) && (
+                                            <span className="msg-text">
+                                                <LinkedText text={messageText} />
+                                            </span>
+                                            {detectedSites.length > 0 && (
+                                                <div className="site-thumbnails-container">
+                                                    {detectedSites.map((site) => (
+                                                        <button
+                                                            key={site.key}
+                                                            type="button"
+                                                            className={`site-thumbnail${site.imageFit === 'contain' ? ' site-thumbnail--contain' : ''}`}
+                                                            onClick={() => handleThumbnailClick(site)}
+                                                            title={`View ${site.displayName}`}
+                                                        >
+                                                            <img
+                                                                src={site.screenshotPath}
+                                                                alt=""
+                                                                className="site-thumbnail-image"
+                                                            />
+                                                            <span className="site-thumbnail-label">
+                                                                {site.displayName}
+                                                                <span> · {site.chipSuffix || 'screenshot'}</span>
+                                                            </span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {!isStreaming && (engineLabel || canSpeak) && (
                                                 <div className="msg-meta">
                                                     {engineLabel && (
                                                         <span
@@ -702,32 +729,6 @@ const Home = () => {
                                                             {speakingIndex === index ? <StopIcon /> : <SpeakerIcon />}
                                                         </button>
                                                     )}
-                                                </div>
-                                            )}
-                                            <span className="msg-text">
-                                                <LinkedText text={messageText} />
-                                            </span>
-                                            {detectedSites.length > 0 && (
-                                                <div className="site-thumbnails-container">
-                                                    {detectedSites.map((site) => (
-                                                        <button
-                                                            key={site.key}
-                                                            type="button"
-                                                            className={`site-thumbnail${site.imageFit === 'contain' ? ' site-thumbnail--contain' : ''}`}
-                                                            onClick={() => handleThumbnailClick(site)}
-                                                            title={`View ${site.displayName}`}
-                                                        >
-                                                            <img
-                                                                src={site.screenshotPath}
-                                                                alt=""
-                                                                className="site-thumbnail-image"
-                                                            />
-                                                            <span className="site-thumbnail-label">
-                                                                {site.displayName}
-                                                                <span> · {site.chipSuffix || 'screenshot'}</span>
-                                                            </span>
-                                                        </button>
-                                                    ))}
                                                 </div>
                                             )}
                                         </div>

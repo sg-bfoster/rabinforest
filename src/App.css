@@ -497,10 +497,9 @@
   white-space: pre-wrap;
 }
 
-/* Engine pill and speaker share one row. They used to be sibling grid
-   items on .msg-assistant, so the 14px gap stacked them — a speaker that
-   belongs to the answer sitting under the model that produced it, instead
-   of next to it. */
+/* Engine pill and speaker share one row under the finished answer. They
+   used to sit above the text, so the model id arriving at stream-end was
+   off-screen for anyone who followed the tokens. Hidden while streaming. */
 .msg-meta {
   display: flex;
   align-items: center;
