@@ -286,17 +286,12 @@ const Home = () => {
     // Bumped on every stop/start. An in-flight chunk fetch checks it before
     // playing, so audio from a cancelled answer can never jump the queue.
     const speechRunRef = useRef(0);
+    // The same idea for background synthesis: bumped when a newer answer
+    // arrives or the page goes away, so a warm for a superseded answer stops
+    // between chunks instead of running to the end.
+    const warmRunRef = useRef(0);
     const [speakingIndex, setSpeakingIndex] = useState(null);
     const [loadingSpeechIndex, setLoadingSpeechIndex] = useState(null);
-
-    /**
-     * Has this visitor ever asked for speech? Gates speculative prefetching.
-     *
-     * Most visitors never press the speaker, and prefetching for them spends
-     * Brian's box (or his OpenAI bill) on audio nobody hears. One click is
-     * enough evidence of intent to start warming the next answer.
-     */
-    const hasUsedSpeechRef = useRef(false);
 
     // Answers carry anchor markup (LinkedText renders it), and a speech engine
     // would happily read "a href equals https colon" out loud. Strip to the
@@ -391,32 +386,59 @@ const Home = () => {
     const speechCacheRef = useRef(new Map());
     const SPEECH_CACHE_MAX = 60;
 
+    /**
+     * Requests currently in the air, keyed the same way as the cache.
+     *
+     * The background warm and a click on the speaker walk the SAME chunks in
+     * the SAME order, so without this a visitor who clicks while the warm is
+     * still running issues a second request for a sentence already being
+     * synthesised — doubling the load on the box for audio it is about to
+     * hand over anyway. Joining the in-flight promise makes the click free
+     * whenever the warm has merely started on that chunk, not just finished.
+     */
+    const speechInflightRef = useRef(new Map());
+
+    /** The synthesised Blob for one chunk, fetched at most once. */
+    const speechBlobFor = async (key) => {
+        const cached = speechCacheRef.current.get(key);
+        if (cached) return cached;
+
+        const existing = speechInflightRef.current.get(key);
+        if (existing) return existing;
+
+        const request = (async () => {
+            const res = await fetch(API_ENDPOINTS.READ_ALOUD, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                // The server rejects anything longer, so trim here rather than
+                // trading a spoken answer for a 400.
+                body: JSON.stringify({ prompt: key }),
+            });
+            if (!res.ok) throw new Error(`read aloud failed: ${res.status}`);
+
+            const blob = await res.blob();
+            // Insertion order is age order, so the first key is the oldest.
+            speechCacheRef.current.set(key, blob);
+            while (speechCacheRef.current.size > SPEECH_CACHE_MAX) {
+                speechCacheRef.current.delete(speechCacheRef.current.keys().next().value);
+            }
+            return blob;
+        })();
+
+        speechInflightRef.current.set(key, request);
+        try {
+            return await request;
+        } finally {
+            // Clear on failure too: a chunk that failed once must be
+            // retryable, or a transient 502 would mute it for the session.
+            speechInflightRef.current.delete(key);
+        }
+    };
+
     /** One chunk of speech as a blob URL, or null if the run was cancelled. */
     const fetchSpeech = async (chunk, run) => {
-        const key = chunk.slice(0, 4096);
-        const cached = speechCacheRef.current.get(key);
-        if (cached) {
-            // A cancelled run must not resurrect audio, cached or not.
-            if (run !== undefined && speechRunRef.current !== run) return null;
-            return URL.createObjectURL(cached);
-        }
-
-        const res = await fetch(API_ENDPOINTS.READ_ALOUD, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            // The server rejects anything longer, so trim here rather than
-            // trading a spoken answer for a 400.
-            body: JSON.stringify({ prompt: key }),
-        });
-        if (!res.ok) throw new Error(`read aloud failed: ${res.status}`);
-
-        const blob = await res.blob();
-        // Insertion order is age order, so the first key is the oldest.
-        speechCacheRef.current.set(key, blob);
-        while (speechCacheRef.current.size > SPEECH_CACHE_MAX) {
-            speechCacheRef.current.delete(speechCacheRef.current.keys().next().value);
-        }
-
+        const blob = await speechBlobFor(chunk.slice(0, 4096));
+        // A cancelled run must not resurrect audio, cached or not.
         if (run !== undefined && speechRunRef.current !== run) return null;
         return URL.createObjectURL(blob);
     };
@@ -428,12 +450,12 @@ const Home = () => {
      */
     const prefetchSpeech = async (chunk) => {
         const key = chunk.slice(0, 4096);
-        if (!key || speechCacheRef.current.has(key)) return;
+        if (!key) return;
         try {
-            const url = await fetchSpeech(key);
-            // fetchSpeech hands back a URL; the cache holds the Blob, so this
-            // one is surplus and would leak if we kept it.
-            if (url) URL.revokeObjectURL(url);
+            // Deliberately no URL: the cache holds Blobs, and a URL made here
+            // would have to be revoked or it pins its buffer for the life of
+            // the page.
+            await speechBlobFor(key);
         } catch {
             /* speculative work; the click path will try again and report */
         }
@@ -469,9 +491,6 @@ const Home = () => {
 
         // Must happen before the first await, or the gesture is already gone.
         const audio = unlockAudio();
-        // Evidence of intent: from here on, warming the next answer's first
-        // chunk is spending on something this visitor demonstrably wants.
-        hasUsedSpeechRef.current = true;
         const run = speechRunRef.current;
         const chunks = chunkForSpeech(text);
 
@@ -512,34 +531,55 @@ const Home = () => {
         }
     };
 
-    // Leaving the page mid-sentence should not keep talking.
-    useEffect(() => stopSpeaking, []);
+    // Leaving the page mid-sentence should not keep talking — and should not
+    // keep synthesising the rest of an answer nobody is there to hear.
+    useEffect(
+        () => () => {
+            warmRunRef.current += 1;
+            stopSpeaking();
+        },
+        [],
+    );
 
     /**
-     * WARM THE FIRST CHUNK of a new answer, for someone who has already shown
-     * they want speech.
+     * SYNTHESISE THE WHOLE ANSWER in the background as soon as it is finished.
      *
      * Speech stays OPT-IN per answer (Brian, 2026-09-17: a universal toggle
      * was built and rejected — the per-answer button is the control). This
-     * does not change that; it only removes the wait from the click.
+     * does not change that. It changes only WHEN the work happens: the button
+     * used to render at the end of the animation and then start a ~3s
+     * synthesis on click, so the speaker was a button that visibly did
+     * nothing for a beat. Building the audio while the visitor is still
+     * reading means the click plays immediately.
      *
-     * Why just the first chunk, and not the whole answer: most answers are
-     * never played, each synthesis costs the box ~14% of the assistant's
-     * generation speed while it runs, and on the cloud fallback it costs real
-     * money. handleReadAloud already pipelines every later chunk behind
-     * playback, so the first chunk IS the perceived latency — warming it buys
-     * effectively all of the speed-up for one short request.
+     * Supersedes the earlier version, which warmed only the first chunk and
+     * only after a visitor had already clicked the speaker once (Brian,
+     * 2026-09-20: warm every answer, whole). The cost of that is real and
+     * accepted — every answer is now synthesised whether or not it is played,
+     * on the box when it is awake and on the OpenAI fallback when it is not.
      *
-     * And only once hasUsedSpeechRef is set, so a visitor who never presses
-     * the speaker never costs anything at all.
+     * SEQUENTIAL, not parallel. Nothing is waiting on this, and a burst of
+     * concurrent requests would take the box away from the job the next
+     * visitor IS waiting on — generation. One chunk at a time still finishes
+     * far ahead of anyone finishing the reading.
      *
      * Keyed on the index of the last message, not its text: an answer still
      * streaming must not be synthesised in pieces.
      */
-    const lastWarmedIndexRef = useRef(-1);
+    // Starts at the last RESTORED message, so reopening the tab does not
+    // re-synthesise an answer the visitor read yesterday. Only answers this
+    // session produced are warmed.
+    const lastWarmedIndexRef = useRef(messages.length - 1);
+
+    const warmAnswer = async (chunks, run) => {
+        for (const chunk of chunks) {
+            if (warmRunRef.current !== run) return;
+            await prefetchSpeech(chunk);
+        }
+    };
+
     useEffect(() => {
         if (!FEATURES.readAloud) return;
-        if (!hasUsedSpeechRef.current) return;
         const index = messages.length - 1;
         const msg = messages[index];
         if (!msg || msg.role !== 'model' || msg.streaming) return;
@@ -548,7 +588,8 @@ const Home = () => {
         const text = spokenTextFor(msg.parts?.[0]?.text || '');
         if (!text) return;
         lastWarmedIndexRef.current = index;
-        prefetchSpeech(chunkForSpeech(text)[0] || '');
+        warmRunRef.current += 1;
+        warmAnswer(chunkForSpeech(text), warmRunRef.current);
         // The helpers are recreated every render; depending on them would
         // re-fire this for the same answer. The index guard is what makes it
         // idempotent.
