@@ -60,6 +60,10 @@ export const API_ENDPOINTS = {
   CONTACT: `${API_BASE_URL}/ai/contact`,
   READ_ALOUD: `${API_BASE_URL}/ai/readaloud`,
   CONVERSATION_LOGS: `${API_BASE_URL}/ai/conversation-logs`,
+  // AskGWINnett operator queue: sources the freshness watchdog has confirmed
+  // unreachable, plus the by-hand work each one needs. Admin-gated server
+  // side with the same X-Admin-Key this file already sends.
+  MANUAL_TASKS: `${API_BASE_URL}/askgwinnett/admin/manual-tasks`,
   DELETE_CONVERSATION: (conversationId) =>
     `${API_BASE_URL}/ai/conversation-logs/${conversationId}`,
 };

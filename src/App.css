@@ -2302,3 +2302,127 @@
   height: 1px;
   overflow: hidden;
 }
+
+/* ── Admin: intake queue ─────────────────────────────────────────────
+   The operator checklist for sources that must be collected by hand.
+   Deliberately plain: this is a worklist Brian reads while doing
+   something else, not a dashboard. */
+.intake-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+}
+.intake-intro { margin: 0; opacity: 0.8; max-width: 60ch; }
+
+.intake-city {
+    border: 1px solid var(--rule, rgba(128, 128, 128, 0.3));
+    border-radius: 10px;
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+}
+/* Finished work should recede rather than disappear — the list is still
+   the record of what was done this cycle. */
+.intake-city.is-done { opacity: 0.62; }
+
+.intake-city-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+}
+.intake-city-name { margin: 0 0 4px; font-size: 1.05rem; }
+.intake-city-meta { margin: 0; font-size: 0.85rem; opacity: 0.75; }
+.intake-city-err {
+    margin: 6px 0 0;
+    font-size: 0.8rem;
+    opacity: 0.7;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    word-break: break-word;
+}
+.intake-progress {
+    font-variant-numeric: tabular-nums;
+    font-size: 0.9rem;
+    opacity: 0.8;
+    white-space: nowrap;
+}
+
+.intake-steps { margin: 0; padding-left: 1.2em; }
+.intake-steps > li { margin-bottom: var(--space-4); }
+.intake-step-head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+}
+
+.intake-links, .intake-cmds { list-style: none; margin: 6px 0 0; padding: 0; }
+.intake-links li, .intake-cmds li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    padding: 3px 0;
+}
+.intake-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.intake-check code, .intake-cmd code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.82rem;
+    word-break: break-all;
+}
+.intake-link { font-size: 0.8rem; white-space: nowrap; }
+
+.intake-cmd {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: 6px;
+    flex-wrap: wrap;
+}
+.intake-copy {
+    font-size: 0.75rem;
+    padding: 3px 9px;
+    border-radius: 6px;
+    border: 1px solid var(--rule, rgba(128, 128, 128, 0.35));
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.intake-copy:hover { border-color: currentColor; }
+.intake-note { font-size: 0.8rem; opacity: 0.7; margin: 8px 0 0; }
+
+.intake-city-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+}
+.intake-done-tag { font-size: 0.8rem; opacity: 0.75; }
+.intake-reset {
+    margin-left: auto;
+    font-size: 0.78rem;
+    background: none;
+    border: none;
+    color: inherit;
+    opacity: 0.6;
+    cursor: pointer;
+    text-decoration: underline;
+}
+.intake-reset:hover { opacity: 1; }
+
+@media (max-width: 560px) {
+    .intake-head, .intake-city-head { flex-direction: column; }
+    .intake-progress { align-self: flex-start; }
+}
