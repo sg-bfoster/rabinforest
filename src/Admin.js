@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { API_ENDPOINTS, ADMIN_KEY_STORAGE, getAdminHeaders, clearAdminSession } from './config/api';
-import IntakeQueue from './components/IntakeQueue';
 import axios from 'axios';
 import { useDispatch } from 'react-redux';
 import { openModal, closeModal } from './features/modalSlice';
@@ -291,18 +290,7 @@ const Admin = () => {
                 >
                     Conversation Logs
                 </button>
-                <button
-                    className={`admin-tab${activeSection === 'intake' ? ' active' : ''}`}
-                    onClick={() => setActiveSection('intake')}
-                >
-                    Intake Queue
-                </button>
             </div>
-
-            {/* Intake Queue — blocked sources and the by-hand work they need.
-                Mounted only when selected so it does not fetch on every visit
-                to the content tab. */}
-            {activeSection === 'intake' && <IntakeQueue />}
 
             {/* Content Section */}
             {activeSection === 'content' && (
