@@ -398,6 +398,17 @@ const Home = () => {
      */
     const speechInflightRef = useRef(new Map());
 
+    /**
+     * Which engine spoke last, straight from X-TTS-Engine: 'kokoro' is the
+     * box, 'openai' is the paid fallback, null means nothing has spoken yet
+     * this session.
+     *
+     * This is the only FIRST-HAND evidence the client gets about whether the
+     * box's TTS is serving, and it costs nothing to collect — the server
+     * already tags every response and already exposes the header to fetch().
+     */
+    const ttsEngineRef = useRef(null);
+
     /** The synthesised Blob for one chunk, fetched at most once. */
     const speechBlobFor = async (key) => {
         const cached = speechCacheRef.current.get(key);
@@ -415,6 +426,9 @@ const Home = () => {
                 body: JSON.stringify({ prompt: key }),
             });
             if (!res.ok) throw new Error(`read aloud failed: ${res.status}`);
+            // Recorded on EVERY synthesis, warm or click, so the warm path
+            // always has a current reading of which engine is answering.
+            ttsEngineRef.current = res.headers.get('X-TTS-Engine') || ttsEngineRef.current;
 
             const blob = await res.blob();
             // Insertion order is age order, so the first key is the oldest.
@@ -554,9 +568,21 @@ const Home = () => {
      *
      * Supersedes the earlier version, which warmed only the first chunk and
      * only after a visitor had already clicked the speaker once (Brian,
-     * 2026-09-20: warm every answer, whole). The cost of that is real and
-     * accepted — every answer is now synthesised whether or not it is played,
-     * on the box when it is awake and on the OpenAI fallback when it is not.
+     * 2026-09-20: warm every answer, whole).
+     *
+     * ONLY WHEN THE BOX IS AWAKE. Warming unconditionally would turn a
+     * per-click cost into a per-answer OpenAI bill across all traffic, for
+     * audio most visitors never play — the free path is the only one worth
+     * spending speculatively. The gate is the answer's OWN engine tag: the
+     * LLM and Kokoro run on the same machine behind the same tunnel, so an
+     * answer that came back 'rabinai' is proof the box was up seconds ago,
+     * and it costs nothing to read because it is already on the message.
+     *
+     * That tag is evidence about the BOX, not about Kokoro specifically, so
+     * warmAnswer double-checks X-TTS-Engine as it goes and abandons the rest
+     * the moment the cloud turns out to be answering. The exposure in the
+     * box-up-Kokoro-down case is therefore one short chunk per answer, and it
+     * heals itself the moment Kokoro comes back.
      *
      * SEQUENTIAL, not parallel. Nothing is waiting on this, and a burst of
      * concurrent requests would take the box away from the job the next
@@ -574,6 +600,13 @@ const Home = () => {
     const warmAnswer = async (chunks, run) => {
         for (const chunk of chunks) {
             if (warmRunRef.current !== run) return;
+            // The cloud answered the last chunk, so Kokoro is the part that
+            // is down even though the box took the question. Every further
+            // chunk would be OpenAI money spent on audio nobody asked for.
+            // Stop here: the click path still works and still falls back, it
+            // just does so on demand, which is what it did before any of
+            // this warming existed.
+            if (ttsEngineRef.current === 'openai') return;
             await prefetchSpeech(chunk);
         }
     };
@@ -584,10 +617,18 @@ const Home = () => {
         const msg = messages[index];
         if (!msg || msg.role !== 'model' || msg.streaming) return;
         if (lastWarmedIndexRef.current === index) return; // already warmed
+        // Gemini answered, or this is the error message (no engine at all):
+        // either way the box is asleep or busy and speech would cost money.
+        if (msg.engine !== 'rabinai') return;
 
         const text = spokenTextFor(msg.parts?.[0]?.text || '');
         if (!text) return;
         lastWarmedIndexRef.current = index;
+        // A fresh answer FROM THE BOX is fresh evidence the machine is up, so
+        // an 'openai spoke' reading from earlier in the session does not mute
+        // warming for good. warmAnswer re-checks on the first chunk and backs
+        // out again if Kokoro is still the part that is down.
+        ttsEngineRef.current = null;
         warmRunRef.current += 1;
         warmAnswer(chunkForSpeech(text), warmRunRef.current);
         // The helpers are recreated every render; depending on them would
