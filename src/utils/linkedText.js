@@ -1,6 +1,40 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const ANCHOR_RE = /<a\s+([^>]*?)>([\s\S]*?)<\/a>/gi;
+
+/**
+ * Hosts that are THIS site, so a link to one is navigation and not an exit.
+ *
+ * Listed rather than read from window.location because this module renders
+ * during the prerender too, where there is no window — and because a visitor
+ * arriving on the apex domain should still get in-app routing for a link the
+ * assistant wrote with the www host.
+ */
+const OWN_HOSTS = new Set(['www.rabinforest.com', 'rabinforest.com']);
+
+/**
+ * The in-app path for a same-site URL, or null if the link leaves the site.
+ *
+ * WHY THIS EXISTS. Every link used to render as `target="_blank"`, including
+ * links to our own pages. The assistant answers "you can try it at
+ * https://www.rabinforest.com/playground/fact-check" and the visitor got a
+ * whole new browser window, a cold boot of the app, and a landing at the top
+ * of a tall hero with the content below the fold — which reads as a broken
+ * page rather than a page they have not scrolled yet. For a link to another
+ * room in the same house, the right behaviour is to walk there.
+ *
+ * Query and hash are preserved; a bare origin becomes '/'.
+ */
+const internalPathFor = (href) => {
+  try {
+    const url = new URL(href);
+    if (!OWN_HOSTS.has(url.hostname)) return null;
+    return `${url.pathname}${url.search}${url.hash}` || '/';
+  } catch {
+    return null;
+  }
+};
 
 const hrefFromAttrs = (attrs) => {
   const match = attrs.match(/href\s*=\s*(?:'([^']*)'|"([^"]*)"|([^\s>]+))/i);
@@ -139,13 +173,22 @@ export const LinkedText = ({ text }) => {
   const chunks = splitLinkedText(text);
   if (chunks.length === 0) return null;
 
-  return chunks.map((chunk, index) =>
-    chunk.type === 'link' ? (
+  return chunks.map((chunk, index) => {
+    if (chunk.type !== 'link') {
+      return <React.Fragment key={index}>{renderFormatted(chunk.value, index)}</React.Fragment>;
+    }
+    const internal = internalPathFor(chunk.href);
+    // Same site: route in place. No new window, no cold boot, and the
+    // scroll-to-top the router already does lands the visitor on the page
+    // rather than on the hero above it.
+    return internal ? (
+      <Link key={index} to={internal}>
+        {renderFormatted(chunk.value, index)}
+      </Link>
+    ) : (
       <a key={index} href={chunk.href} target="_blank" rel="noopener noreferrer">
         {renderFormatted(chunk.value, index)}
       </a>
-    ) : (
-      <React.Fragment key={index}>{renderFormatted(chunk.value, index)}</React.Fragment>
-    )
-  );
+    );
+  });
 };
