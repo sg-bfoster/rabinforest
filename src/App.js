@@ -60,22 +60,25 @@ const AppContent = () => {
           {/* One console line: what the box is running and doing. */}
           <BoxStrip />
         </div>
-        <div className="hero-shell">
-          <div className="hero-layers" aria-hidden="true">
-            <div className="hero-sky">
-              <img
-                className="hero-photo"
-                src="/forest-space-background.png"
-                alt=""
-              />
-              <SynapseCanvas />
-              <div className="hero-vignette" />
-            </div>
-            <div className="hero-hairline" />
-          </div>
-          <HeroSlot />
-        </div>
+        {/* Hero lives inside main so the h1 and the assistant are the page's
+            primary landmark, not a sibling of it. The portal target is still
+            HeroSlot; only the wrapper moved. */}
         <main className="page">
+          <div className="hero-shell">
+            <div className="hero-layers" aria-hidden="true">
+              <div className="hero-sky">
+                <img
+                  className="hero-photo"
+                  src="/forest-space-background.png"
+                  alt=""
+                />
+                <SynapseCanvas />
+                <div className="hero-vignette" />
+              </div>
+              <div className="hero-hairline" />
+            </div>
+            <HeroSlot />
+          </div>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/playground" element={<Playground />}>

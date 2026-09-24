@@ -1,7 +1,7 @@
 // src/components/Modal.js
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { selectModal, closeModal, openModal } from './features/modalSlice';
+import { selectModal, closeModal } from './features/modalSlice';
 import axios from 'axios';
 import { API_ENDPOINTS, getAdminHeaders, clearAdminSession } from './config/api';
 import { LinkedText } from './utils/linkedText';
@@ -117,10 +117,20 @@ const ConversationLogContent = ({ payload, onClose, dispatch }) => {
     );
 };
 
+const FOCUSABLE =
+    'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 const Modal = () => {
     const dispatch = useDispatch();
     const { isVisible, type, title, payload } = useSelector(selectModal);
     const [galleryIndex, setGalleryIndex] = useState(0);
+    const dialogRef = useRef(null);
+    const closeBtnRef = useRef(null);
+    const lastFocusRef = useRef(null);
+
+    const handleClose = useCallback(() => {
+        dispatch(closeModal());
+    }, [dispatch]);
 
     const screenshotPaths = useMemo(() => {
         if (type !== 'screenshot') return [];
@@ -138,12 +148,56 @@ const Modal = () => {
         setGalleryIndex(0);
     }, [type, payload?.screenshotPath, payload?.screenshotPaths]);
 
+    useEffect(() => {
+        if (!isVisible) return undefined;
+        lastFocusRef.current = document.activeElement instanceof HTMLElement
+            ? document.activeElement
+            : null;
+
+        const focusClose = requestAnimationFrame(() => {
+            closeBtnRef.current?.focus();
+        });
+
+        const onKey = (e) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                handleClose();
+                return;
+            }
+            if (e.key !== 'Tab') return;
+            const root = dialogRef.current;
+            if (!root) return;
+            const nodes = [...root.querySelectorAll(FOCUSABLE)].filter(
+                (el) => !el.disabled && el.getClientRects().length > 0,
+            );
+            if (nodes.length === 0) {
+                e.preventDefault();
+                return;
+            }
+            const first = nodes[0];
+            const last = nodes[nodes.length - 1];
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        };
+
+        document.addEventListener('keydown', onKey);
+        return () => {
+            cancelAnimationFrame(focusClose);
+            document.removeEventListener('keydown', onKey);
+            const prev = lastFocusRef.current;
+            if (prev && document.contains(prev) && typeof prev.focus === 'function') {
+                prev.focus();
+            }
+        };
+    }, [isVisible, handleClose]);
+
     // IMPORTANT: Do not return early before hooks run, or hook order changes between renders.
     if (!isVisible) return null;
-
-    const handleClose = () => {
-        dispatch(closeModal());
-    };
 
     const renderContent = () => {
         switch (type) {
@@ -260,11 +314,25 @@ const Modal = () => {
     };
 
     return (
-        <div className="modal-overlay" onClick={handleClose} aria-modal="true" role="dialog">
-            <div className={`modal-content ${type === 'screenshot' ? 'modal-screenshot' : 'modal-regular'}`} onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay" onClick={handleClose}>
+            <div
+                ref={dialogRef}
+                className={`modal-content ${type === 'screenshot' ? 'modal-screenshot' : 'modal-regular'}`}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={title ? 'rf-modal-title' : undefined}
+                aria-label={title ? undefined : 'Dialog'}
+                onClick={(e) => e.stopPropagation()}
+            >
                 <div className="modal-header">
-                    {title && <h2 className="modal-title">{title}</h2>}
-                    <button className="modal-close-button" onClick={handleClose} aria-label="Close Modal">
+                    {title && <h2 id="rf-modal-title" className="modal-title">{title}</h2>}
+                    <button
+                        ref={closeBtnRef}
+                        type="button"
+                        className="modal-close-button"
+                        onClick={handleClose}
+                        aria-label="Close"
+                    >
                         ×
                     </button>
                 </div>

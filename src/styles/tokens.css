@@ -8,7 +8,11 @@
   --ink: #101418;
   --ink-2: #23303c;
   --muted: #5d6773;
-  --muted-2: #8b95a1;
+  /* Floor for small text on --bg / --surface. The previous #8b95a1 was 2.5:1
+     on the page and failed WCAG 1.4.3 everywhere it was used as copy. There
+     is no gray that clears 4.5:1 on both --bg and the dark console — box-strip
+     labels override this. */
+  --muted-2: #5a6470;
   --hairline: #e2e7ec;
   --hairline-2: #dfe5ea;
   --hairline-3: #eef2f5;
@@ -16,8 +20,8 @@
   --console: #0a0f15;
   --glow: #cfe2f2;
   --cool: #2f6d99;
-  --action: #ec3013;
-  --action-hover: #d3290e;
+  --action: #c42812;
+  --action-hover: #a81a09;
   --ok: #4ec27f;
   --verdict-supported: #1f7a45;
   --verdict-not: #b8240c;

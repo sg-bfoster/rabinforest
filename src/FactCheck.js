@@ -765,8 +765,10 @@ const FactCheck = () => {
             type="submit"
             className="btn btn-primary"
             disabled={isChecking || !claim.trim() || !source.trim()}
+            aria-busy={isChecking}
           >
-            {isChecking ? <span className="spinner" /> : 'Check'}
+            {isChecking && <span className="spinner" aria-hidden="true" />}
+            Check
           </button>
         </div>
       </form>

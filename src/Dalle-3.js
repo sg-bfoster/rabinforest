@@ -109,7 +109,7 @@ const ComparisonPanel = ({ engine, aspect, image, error, isGenerating, onViewIma
     <p className="engine-label">{ENGINE_LABELS[engine]}</p>
     <div className={`imagery-frame aspect-${aspect}`}>
       {!image && !error && !isGenerating && <span className="imagery-empty">Awaiting prompt</span>}
-      {isGenerating && !image && !error && <span className="spinner" />}
+      {isGenerating && !image && !error && <span className="spinner" aria-hidden="true" />}
       {error && !image && <span className="imagery-error">{error}</span>}
       {image && (
         <button
@@ -306,8 +306,9 @@ const AiImageryForm = () => {
             ]}
           />
           <span className="spacer" />
-          <button type="submit" className="btn btn-primary" disabled={isGenerating}>
-            {isGenerating ? <span className="spinner" /> : 'Generate'}
+          <button type="submit" className="btn btn-primary" disabled={isGenerating} aria-busy={isGenerating}>
+            {isGenerating && <span className="spinner" aria-hidden="true" />}
+            Generate
           </button>
           <button
             type="button"

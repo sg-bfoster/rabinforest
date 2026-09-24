@@ -856,8 +856,14 @@ const Home = () => {
                                             Clear
                                         </button>
                                     )}
-                                    <button type="submit" className="btn btn-primary" disabled={isLoading}>
-                                        {isLoading ? <span className="spinner" /> : <>Send <span aria-hidden="true">↑</span></>}
+                                    <button
+                                        type="submit"
+                                        className="btn btn-primary"
+                                        disabled={isLoading}
+                                        aria-busy={isLoading}
+                                    >
+                                        {isLoading && <span className="spinner" aria-hidden="true" />}
+                                        Send {isLoading ? '' : <span aria-hidden="true">↑</span>}
                                     </button>
                                 </div>
                             </div>
