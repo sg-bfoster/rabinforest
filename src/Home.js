@@ -71,6 +71,15 @@ const QUESTION_POOL = [
     'Does he manage people?',
     'Can this site generate images?',
     'Has he written architecture docs?',
+    // Added 2026-09-24. Sponsorship and a first-time-manager read are
+    // recruiter questions the KB answers in one sentence and that a visitor
+    // would not guess to click. The box question is the self-hosting thesis
+    // rather than another "what's RabinAI?" spec dump. Mentoring is what he
+    // actually does with people, as distinct from the direct-reports no.
+    'Does he need visa sponsorship?',
+    'Would he consider a manager role?',
+    'Why did he build his own AI server?',
+    'Does he mentor other developers?',
 ];
 
 const pickQuestions = (pool, n) => {
