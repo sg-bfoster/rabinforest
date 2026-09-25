@@ -30,9 +30,17 @@ const BOTS = [
 // sequentially, so a fourth speaker would add ~33% to every round, undoing the
 // turn/token tuning. Swapping the local seat shows the same thing — the box
 // runs more than one model — at no cost to conversation length.
+//
+// KEYED BY MODEL SINCE 2026-09-25. This was { primary, alt }, and "Alternate"
+// does not survive a third model — there is no third alternate. Two of these
+// name a model; `auto` names the SEAT, and is the default because the box
+// holds one resident model at a time: a named pick the box isn't running is
+// refused by the server rather than answered by the wrong model, so `auto` is
+// the only option that always works.
 const LOCAL_MODELS = {
-    primary: { label: 'Primary' },
-    alt: { label: 'Alternate' },
+    auto: { label: "Whatever's loaded" },
+    qwen: { label: 'Qwen3 30B' },
+    'gpt-oss': { label: 'GPT-OSS 20B' },
 };
 
 // One line of steering each — the tone slot in the panel prompt. Proven by the
@@ -134,7 +142,7 @@ const AIChatBots = () => {
     const [topics] = useState(() => pickTopics(TOPIC_POOL, 4));
     // Mixed defaults on purpose, so a first visit shows the dropdowns matter.
     const [tones, setTones] = useState(['argumentative', 'agreeable', 'skeptical']);
-    const [localModel, setLocalModel] = useState('primary');
+    const [localModel, setLocalModel] = useState('auto');
     const conLength = 9; // multiple of 3 so every bot gets equal turns — 2 substantive rounds + 1 closing round. 12 was tried; the growing history compounds RabinAI's prefill each turn, and 9 keeps the late rounds well clear of the deadline instead of brushing it.
 
     // One history per bot: its own lines are "assistant", everyone else's are
