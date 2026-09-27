@@ -723,7 +723,7 @@ const Home = () => {
                                 className="btn btn-ghost ask-card-restart"
                                 onClick={handleResetChat}
                             >
-                                Start Over
+                                Clear and start over
                             </button>
                             {/* One switch for the whole conversation, rather
                                 than a decision per answer. aria-pressed is the
