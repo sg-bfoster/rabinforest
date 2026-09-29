@@ -46,6 +46,16 @@ const setMeta = (html, selectorAttr, key, value) => {
 
 const escapeAttr = (s) => String(s).replace(/"/g, '&quot;');
 
+/**
+ * JSON for a <script> block. `<` and `&` are escaped as unicode rather than
+ * HTML-encoded: inside a script element the browser does NOT decode entities,
+ * so &lt; would reach the JSON parser literally and break it — while a raw
+ * `</` in any string would close the script tag early. \u003c is valid JSON,
+ * parses back to the same characters, and cannot terminate the element.
+ */
+const jsonLdSafe = (obj) =>
+  JSON.stringify(obj).replace(/</g, '\\u003c').replace(/&/g, '\\u0026');
+
 const escapeText = (s) =>
   String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -122,6 +132,25 @@ const buildPage = (html, meta, route) => {
     /(<link[^>]*rel=["']canonical["'][^>]*href=["'])[^"']*(["'])/i,
     `$1${escapeAttr(meta.canonical)}$2`,
   );
+  // Per-page JSON-LD, appended to the two sitewide blocks index.html already
+  // carries. Baked in here rather than left to the React head component for
+  // the same reason the title is: this is the copy a crawler reads, and it
+  // must be right without anything executing.
+  //
+  // Routes with no `schema` get nothing at all — /admin and the unlisted
+  // playground are noindex, and describing a page that asks not to be indexed
+  // is a contradiction.
+  //
+  // THE id IS LOAD-BEARING. DocumentHead replaces #route-jsonld on every
+  // client-side navigation; without the id here it would find nothing to
+  // replace and APPEND, leaving the prerendered block describing the previous
+  // page next to a new one describing this page.
+  if (meta.schema) {
+    out = out.replace(
+      /<\/head>/i,
+      `  <script id="route-jsonld" type="application/ld+json">${jsonLdSafe(meta.schema)}</script>\n</head>`,
+    );
+  }
   return out;
 };
 

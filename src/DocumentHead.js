@@ -38,7 +38,26 @@ const DocumentHead = () => {
       document.head.appendChild(canonical);
     }
     canonical.setAttribute('href', page.canonical);
-  }, [pathname, page.title, page.description, page.canonical, page.robots]);
+
+    // Keep the page's JSON-LD in step with the rest of the head on a
+    // client-side navigation. The prerendered file is what a crawler reads and
+    // it is already correct; this is for the case where someone (or a renderer
+    // that executes JS) arrives on one route and walks to another, which would
+    // otherwise leave the FIRST page's schema describing the second.
+    //
+    // Only the per-page block is touched. The Person and WebSite blocks in
+    // index.html are sitewide and true on every route — removing and rebuilding
+    // them on every navigation would be churn for no gain.
+    const PER_PAGE_ID = 'route-jsonld';
+    document.getElementById(PER_PAGE_ID)?.remove();
+    if (page.schema) {
+      const el = document.createElement('script');
+      el.id = PER_PAGE_ID;
+      el.type = 'application/ld+json';
+      el.textContent = JSON.stringify(page.schema);
+      document.head.appendChild(el);
+    }
+  }, [pathname, page.title, page.description, page.canonical, page.robots, page.schema]);
 
   return null;
 };
