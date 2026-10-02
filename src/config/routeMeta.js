@@ -17,6 +17,7 @@ import {
   PLAYGROUND_FACT_CHECK,
   PLAYGROUND_RABINAI_IMAGERY,
   PLAYGROUND_STILL_MOVING,
+  PLAYGROUND_RABINAI_FACE,
 } from '../playgroundRoutes.js'; // extension required: Node ESM resolves this file directly at build time, and unlike Vite it does not guess
 
 const SITE = 'https://www.rabinforest.com';
@@ -178,6 +179,15 @@ const PAGES = {
       { about: PERSON },
     ),
     robots: 'index, follow',
+  },
+  // Unlisted until Brian has looked at it: noindex and, per the rule above, no
+  // schema. Flip robots and add schema when it goes in the nav.
+  [PLAYGROUND_RABINAI_FACE]: {
+    title: 'It Looks Back | Rabin Forest',
+    description:
+      'A small RabinAI presence that keeps eye contact and answers your expressions. Face tracking runs in your browser; no video leaves the page.',
+    canonical: `${SITE}${PLAYGROUND_RABINAI_FACE}`,
+    robots: 'noindex, nofollow',
   },
   '/admin': {
     title: 'Admin | Rabin Forest',

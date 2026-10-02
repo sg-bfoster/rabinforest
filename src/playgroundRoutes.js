@@ -5,6 +5,8 @@ export const PLAYGROUND_IMAGERY = '/playground/ai-imagery';
 export const PLAYGROUND_FACT_CHECK = '/playground/fact-check';
 export const PLAYGROUND_RABINAI_IMAGERY = '/playground/rabinai-imagery';
 export const PLAYGROUND_STILL_MOVING = '/playground/still-moving';
+// Unlisted while it's new: not in the nav or sitemap, noindex. See routeMeta.
+export const PLAYGROUND_RABINAI_FACE = '/playground/rabinai-face';
 
 export const VIEW_PATHS = {
   aichat: PLAYGROUND_CHAT_BOTS,

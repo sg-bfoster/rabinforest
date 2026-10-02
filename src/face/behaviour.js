@@ -1,0 +1,173 @@
+/**
+ * RabinAI Face — what the form DOES, as plain rules.
+ *
+ * Perception is a neural net (MediaPipe, in tracker.js). Behaviour is this
+ * file: timers, thresholds and smoothing, no model and no network. Same split
+ * as elder-app — AI for perception, code for behaviour — so every reaction can
+ * be read, tuned and explained. See docs/RABINAI_FACE_PLAN.md §3.
+ *
+ * React, don't mirror. Exact copying reads as mockery or as a bug; delayed,
+ * partial mimicry reads as attention. So a smile is answered 300-600ms later
+ * at ~70% strength, not copied frame for frame.
+ *
+ * update(dt, now, input) -> state
+ *   input: { face: null | { x, y, shapes } }  x,y in 0..1 camera-image coords,
+ *          shapes = { blendshapeName: score }
+ *   state: everything the renderer needs, already smoothed.
+ */
+
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+/** Frame-rate independent ease toward a target. rate ~ "per second". */
+const approach = (cur, target, rate, dt) => cur + (target - cur) * (1 - Math.exp(-rate * dt));
+
+const BLINK_MS = 150;            // whole blink, close + open
+const IDLE_AFTER_MS = 5000;      // no face this long -> idle drift
+
+export function createBehaviour({ reducedMotion = false } = {}) {
+  const s = {
+    gazeX: 0, gazeY: 0,          // pupil offset, -1..1
+    yaw: 0, pitch: 0,            // whole-form turn, radians-ish
+    open: 1,                     // eye openness 0..1 (blinks)
+    happy: 0,                    // eye crescent 0..1
+    widen: 0,                    // eyes wider, form stretches up, 0..1
+    lean: 0,                     // leans in when the visitor talks, 0..1
+    bright: 0.6,                 // glow; dims when idle
+    idle: true,
+  };
+
+  // Targets the smoothing chases.
+  const t = { gazeX: 0, gazeY: 0, happy: 0, widen: 0, lean: 0, bright: 0.6 };
+
+  let nextBlink = 0, blinkStart = -1;
+  let nextSaccade = 0, saccX = 0, saccY = 0;
+  let nextGlance = 0, glanceUntil = 0, glanceX = 0, glanceY = 0;
+  let lastFaceAt = -Infinity;
+  let smileSince = -1, smileAnswerAt = -1, smileStoppedAt = -1;
+  let browSince = -1;
+  let visitorBlinkWas = false, lastBlinkAt = -Infinity;
+  let avertSince = -1, followUntil = 0, followX = 0;
+  let talkLevel = 0;
+  let wanderX = 0, wanderY = 0, nextWander = 0;
+
+  function blink(now) {
+    if (blinkStart >= 0) return;
+    blinkStart = now; lastBlinkAt = now;
+    nextBlink = now + rand(2000, 6000);
+  }
+
+  function update(dt, now, input) {
+    const f = input?.face ?? null;
+    const sh = f?.shapes ?? {};
+    if (f) lastFaceAt = now;
+    const hasFace = !!f;
+    const idle = now - lastFaceAt > IDLE_AFTER_MS;
+    s.idle = idle;
+
+    // --- Blinks: its own schedule, and sometimes WITH the visitor. ---
+    if (!nextBlink) nextBlink = now + rand(1500, 4000);
+    if (now >= nextBlink) blink(now);
+    const theyBlink = ((sh.eyeBlinkLeft ?? 0) + (sh.eyeBlinkRight ?? 0)) / 2 > 0.5;
+    if (theyBlink && !visitorBlinkWas && now - lastBlinkAt > 1000 && Math.random() < 0.3) {
+      blinkStart = -1; nextBlink = now + 80;     // a beat after theirs reads as attention
+    }
+    visitorBlinkWas = theyBlink;
+    if (blinkStart >= 0) {
+      const p = (now - blinkStart) / BLINK_MS;
+      // Close fast (40%), open slower (60%): that is how eyelids move.
+      s.open = p < 0.4 ? 1 - p / 0.4 : p < 1 ? (p - 0.4) / 0.6 : 1;
+      if (p >= 1) { blinkStart = -1; s.open = 1; }
+    }
+
+    // --- Where to look. ---
+    if (hasFace) {
+      // Toward the visitor. The camera image is not mirrored: a visitor who
+      // moves to THEIR left shows up on the image's right, and the form, which
+      // faces them, has to look to the screen's left to keep eye contact.
+      let gx = clamp((0.5 - f.x) * 2.2, -1, 1);
+      let gy = clamp((0.5 - f.y) * 2.0, -1, 1);
+
+      // Micro-saccades: tiny darts every 0.5-2s. A dead-still gaze is a stare.
+      if (now >= nextSaccade) {
+        const amp = reducedMotion ? 0.02 : 0.07;
+        saccX = rand(-amp, amp); saccY = rand(-amp, amp);
+        nextSaccade = now + rand(500, 2000);
+      }
+      gx += saccX; gy += saccY;
+
+      // They look away -> it follows their gaze briefly, then comes back.
+      const theirLook = (((sh.eyeLookOutLeft ?? 0) + (sh.eyeLookInRight ?? 0))
+        - ((sh.eyeLookInLeft ?? 0) + (sh.eyeLookOutRight ?? 0))) / 2;
+      if (Math.abs(theirLook) > 0.35) {
+        if (avertSince < 0) avertSince = now;
+        if (now - avertSince > 700 && now > followUntil) {
+          followUntil = now + 1000; followX = theirLook > 0 ? -0.8 : 0.8;
+        }
+      } else avertSince = -1;
+      if (now < followUntil) { gx = followX; gy = 0.1; }
+
+      // Glance away on its own every 8-20s. Constant staring is the uncanny part.
+      if (!nextGlance) nextGlance = now + rand(8000, 20000);
+      if (now >= nextGlance) {
+        glanceUntil = now + rand(600, 1200);
+        glanceX = rand(0.5, 0.9) * (Math.random() < 0.5 ? -1 : 1); glanceY = rand(-0.4, 0.3);
+        nextGlance = now + rand(8000, 20000);
+      }
+      if (now < glanceUntil && now >= followUntil) { gx = glanceX; gy = glanceY; }
+
+      t.gazeX = gx; t.gazeY = gy;
+    } else {
+      // Nobody there: look around, slowly.
+      if (now >= nextWander) {
+        wanderX = rand(-0.7, 0.7); wanderY = rand(-0.4, 0.4);
+        nextWander = now + rand(1800, 4000);
+      }
+      t.gazeX = idle ? wanderX : t.gazeX * 0.98;
+      t.gazeY = idle ? wanderY : t.gazeY * 0.98;
+    }
+
+    // --- Smile back: sustained 0.5s, answered after 300-600ms, at ~70%. ---
+    const smile = ((sh.mouthSmileLeft ?? 0) + (sh.mouthSmileRight ?? 0)) / 2;
+    if (smile > 0.45) {
+      smileStoppedAt = -1;
+      if (smileSince < 0) smileSince = now;
+      if (now - smileSince > 500 && smileAnswerAt < 0) smileAnswerAt = now + rand(300, 600);
+      if (smileAnswerAt >= 0 && now >= smileAnswerAt) t.happy = clamp(smile * 0.7, 0, 0.7);
+    } else {
+      smileSince = -1;
+      if (smileStoppedAt < 0) smileStoppedAt = now;
+      // Hold the smile a moment after theirs fades; dropping it instantly reads as cold.
+      if (now - smileStoppedAt > 400) { t.happy = 0; smileAnswerAt = -1; }
+    }
+
+    // --- Brows up -> eyes widen, smaller and a beat later. ---
+    const brow = ((sh.browInnerUp ?? 0) + ((sh.browOuterUpLeft ?? 0) + (sh.browOuterUpRight ?? 0)) / 2) / 2;
+    if (brow > 0.4) {
+      if (browSince < 0) browSince = now;
+      t.widen = now - browSince > 200 ? clamp(brow * 0.6, 0, 0.6) : t.widen;
+    } else { browSince = -1; t.widen = 0; }
+
+    // --- They're talking -> lean in and listen. jawOpen flickers while
+    //     speaking, so average it rather than react to each frame. ---
+    talkLevel = approach(talkLevel, (sh.jawOpen ?? 0) > 0.2 ? 1 : 0, 3, dt);
+    t.lean = talkLevel > 0.5 ? 0.6 : 0;
+
+    t.bright = idle ? 0.5 : hasFace ? 1 : 0.8;
+    if (!hasFace) { t.happy = 0; t.widen = 0; t.lean = 0; }
+
+    // --- Smoothing. Eyes are quick, the body follows slower: that lag is
+    //     what makes it read as one creature rather than a sticker. ---
+    const eyeRate = reducedMotion ? 6 : 14;
+    s.gazeX = approach(s.gazeX, t.gazeX, eyeRate, dt);
+    s.gazeY = approach(s.gazeY, t.gazeY, eyeRate, dt);
+    s.yaw = approach(s.yaw, t.gazeX * 0.35, 3, dt);
+    s.pitch = approach(s.pitch, -t.gazeY * 0.2, 3, dt);
+    s.happy = approach(s.happy, t.happy, 5, dt);
+    s.widen = approach(s.widen, t.widen, 6, dt);
+    s.lean = approach(s.lean, t.lean, 2.5, dt);
+    s.bright = approach(s.bright, t.bright, 1.5, dt);
+    return s;
+  }
+
+  return { update, state: s };
+}
