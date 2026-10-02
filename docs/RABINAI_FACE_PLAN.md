@@ -7,6 +7,11 @@
   by label only.
 - **An abstract RabinAI presence, not a human face** (§3a). No uncanny valley
   to fall into, and it belongs to the brand instead of imitating a person.
+- **Lives in rabinforest**, as a new route alongside `LookAtIt.js`.
+- **One RabinAI voice:** the same Kokoro `af_heart` as read-aloud.
+- **It only responds; it never speaks first.** It looks, reacts and waits.
+  The visitor holding something up (or answering) is the only thing that
+  makes it talk.
 
 A RabinAI presence on the page that looks back at the visitor, reacts to their expressions,
 and — the RabinAI part — notices what they hold up and asks about it, out loud,
@@ -130,11 +135,13 @@ All of this is ordinary code over the 52 blendshape values and the head pose.
 
 ### Triggers — the only times the slow loop fires
 
+It only responds (decided 2026-10-02), so there are just two, and the visitor
+causes both. No "arrived" greeting and no unprompted comments on the room:
+an arrival gets eye contact and a reaction, not words.
+
 | Trigger | Detected by (browser) | What the box receives |
 | --- | --- | --- |
 | Object held up | Object Detector class ∉ {person} with box overlapping a hand (Hand Landmarker) and near the face, held ≥ 1s | `{"event":"held_up","label":"cup","confidence":0.82}` |
-| New visitor | Face appears after ≥ 10s with none | `{"event":"arrived"}` |
-| Room glance | 30s quiet, object labels present in the background | `{"event":"room","labels":["laptop","potted plant","book"]}` |
 | Visitor answers | Browser speech recognition (Web Speech API), opt-in | `{"event":"reply","text":"…"}` (capped at 200 chars) |
 
 The detector knows the 80 COCO classes (cup, book, phone, banana, scissors,
@@ -160,7 +167,7 @@ safety property** — see §5.
    §6 of VISION_MODEL_PLAN stands.
 2. **It talks about things, never about people.** `person` is not a label the
    box is ever sent. The model's JSON `about` must equal the label it was given
-   (or one of them, for a room glance); anything else is rejected.
+; anything else is rejected.
 3. **Pattern gate on every question before it is spoken.** A readable deny-list
    in the style of `moderate.js`: bodies, faces, age, weight, skin, ethnicity,
    gender, attractiveness, health, and second-person appearance phrasings
@@ -206,10 +213,12 @@ safety property** — see §5.
 - **Not exact mirroring.** Copying reads as mockery or as a bug.
 - **No image to the box, ever** (unless §0 is reversed on purpose).
 - **No comments on people.** Not "you look happy", not "nice shirt" — clothing
-  is on the person; v1 keeps to held objects and the room.
+  is on the person; v1 keeps to held objects.
 - **No open conversation.** One question, at most one follow-up, then back to
   just looking. The same reasoning that removed elder-app's open chat: open
   chat is where unbounded cost and unbounded output live.
+- **Never speaks first.** No greeting, no remarks on the room. Silence until
+  the visitor shows it something.
 - **No recording, no gallery, no "share your session".**
 - **Not a product for kids**, and the consent copy shouldn't pretend otherwise:
   expect them anyway, which is why §5 is code.
@@ -236,10 +245,8 @@ Each phase is usable on its own; stop wherever it stops being worth it.
 2. ~~**Stylised how?**~~ **Decided 2026-10-02: abstract RabinAI presence (§3a).** Original question: Cartoon, sculpted/clay, abstract (a glowing orb with eyes)?
    An abstract "RabinAI" presence dodges the uncanny valley entirely and might
    suit the brand better than a human face.
-3. **Where does it live?** A new route in rabinforest next to `LookAtIt.js`, or
-   the rabinai-web site?
-4. **Voice:** the same Kokoro `af_heart` as read-aloud, so RabinAI has one
-   voice? (Recommended.)
-5. **Should it ever speak first,** before the visitor holds anything up
-   ("arrived" trigger), or only respond? Speaking first is more magical and
-   more startling.
+3. ~~**Where does it live?**~~ **Decided 2026-10-02: rabinforest**, a new route next to `LookAtIt.js`.
+4. ~~**Voice?**~~ **Decided 2026-10-02: the same Kokoro `af_heart` as read-aloud.** RabinAI has one voice.
+5. ~~**Should it ever speak first?**~~ **Decided 2026-10-02: no, it only responds.** The "arrived" and "room glance" triggers are cut (§4).
+
+All five answered; nothing open blocks phase 1.
