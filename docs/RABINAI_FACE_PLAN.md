@@ -2,7 +2,13 @@
 
 **Status:** scope only, 2026-10-02. Nothing is built. Build when Brian says build.
 
-A face on the page that looks back at the visitor, reacts to their expressions,
+**Decided (Brian, 2026-10-02):**
+- **VISION_MODEL_PLAN §6 stands.** No camera pixel reaches the box. v1 notices
+  by label only.
+- **An abstract RabinAI presence, not a human face** (§3a). No uncanny valley
+  to fall into, and it belongs to the brand instead of imitating a person.
+
+A RabinAI presence on the page that looks back at the visitor, reacts to their expressions,
 and — the RabinAI part — notices what they hold up and asks about it, out loud,
 in the box's voice.
 
@@ -24,9 +30,9 @@ decision**, not by this plan. Everything below keeps that rule intact:
 **No camera pixel ever reaches the box.** The browser looks; the box only ever
 receives *words*.
 
-Reversing §6 is possible, but it is a decision about legal exposure on a
-machine in the house, not a feature toggle. It is open question 1, not an
-assumption.
+Reversing §6 was considered and declined (2026-10-02). If richer noticing is
+ever wanted, frames go to Gemini, never to the box — and that would be a new
+decision, not a tweak.
 
 ---
 
@@ -68,6 +74,38 @@ perception, code for behaviour.**
 | Pattern-based output gate | `bfoster-services/server/imagery/moderate.js` — "the trigger is a readable pattern list, never the AI's judgment" |
 | Box with cloud fallback | Every RabinAI feature today (`X-TTS-Engine`, Gemini fallback) |
 
+## 3a. The form: abstract, not human
+
+Not a human face, so nothing to get almost-right. A RabinAI presence: a soft
+glowing form (orb or rounded blob) with **two eyes and a mouth-line**, rendered
+in Three.js with a shader, in the RabinAI palette.
+
+Why this works better than a human face:
+- **Eyes carry nearly all of it.** Gaze, blinks, squints and lids do the
+  emotional work in character animation (Pixar's lamp, WALL·E, BB-8 have no
+  face at all). Two eyes that hold your gaze read as alive.
+- **No uncanny valley.** Nobody expects an orb to look human, so small errors
+  read as personality, not as wrongness.
+- **Cheap to render, easy on phones.** One mesh and a shader, not a rigged head
+  with 52 morph targets.
+- **It's RabinAI, not a stand-in person.** The same presence can live on other
+  pages later (thinking during a render, speaking read-aloud).
+
+How the 52 blendshapes map onto it — a handful, not all 52:
+
+| Visitor signal | Form's response |
+| --- | --- |
+| `mouthSmile*` | eyes curve into crescents; form brightens and lifts slightly |
+| `browInnerUp`, `browOuterUp*` | eyes widen, form stretches upward |
+| `eyeBlink*` | form blinks (sometimes with them, see §3) |
+| `jawOpen` (visitor talking) | form leans in, glow pulses gently — "listening" |
+| head pose | whole form tilts and turns toward them |
+| no face | dims, drifts, eyes wander — idle |
+| own speech (Kokoro audio) | mouth-line opens with loudness; glow pulses with it |
+
+Inspiration to look at before designing it: Apple's Siri orb, Pi's breathing
+dot, BB-8's head, the "Eyes" in Cozmo/Vector robots.
+
 ## 3. What the face does (deterministic, browser only)
 
 All of this is ordinary code over the 52 blendshape values and the head pose.
@@ -84,9 +122,9 @@ All of this is ordinary code over the 52 blendshape values and the head pose.
   - No face for 5s → idle: looks around, small breathing motion.
 - **Thinking state** while the slow loop is out: eyes up-left, slight squint,
   head tilt. A 2–4s wait then reads as consideration, not lag.
-- **Talking:** jaw/mouth from a Web Audio `AnalyserNode` on Kokoro's audio
-  (loudness → `jawOpen`, plus a little `mouthFunnel` jitter). Real visemes are a
-  v2 nicety; loudness is convincing at this size.
+- **Talking:** the mouth-line and glow follow a Web Audio `AnalyserNode` on
+  Kokoro's audio (loudness → opening and pulse). An abstract form needs no
+  visemes at all.
 
 ## 4. What the box does (text in, words and audio out)
 
@@ -157,9 +195,9 @@ safety property** — see §5.
 | --- | --- |
 | Run cost, box path | ~$0 (electricity) |
 | Run cost, fallback | Gemini text + OpenAI TTS per question; pennies per visitor, capped by §5.7 |
-| Build: silent face (§3) | ~a weekend with a stock VRM avatar |
+| Build: silent face (§3, §3a) | ~a weekend: one shader-driven form, eyes, MediaPipe |
 | Build: notice-and-ask (§4–5) | 2–3 weekends; backend is small because readaloud + fallback exist |
-| Build: art | **the unknown.** A custom face that suits RabinAI is most of the polish, and it's art time, not code time |
+| Build: art | Smaller than a human face would be — one form and a pair of eyes — but tuning how the eyes *feel* is still most of the polish |
 
 ## 8. Anti-goals
 
@@ -178,24 +216,24 @@ safety property** — see §5.
 
 ## 9. Phases
 
-1. **Silent face.** Stock VRM, MediaPipe Face Landmarker, §3 rules, idle state
+1. **Silent face.** The §3a form, MediaPipe Face Landmarker, §3 rules, idle state
    with camera declined. Ships alone; it's already a page.
 2. **Notices.** Object + hand detection in browser, the caption ("you held up:
    cup"), but canned questions only — no box yet. Proves triggers feel right.
 3. **Asks.** `/ai/face/notice`, box LLM, safety gate, Kokoro, fallback.
 4. **Listens** (opt-in): Web Speech API reply → one follow-up.
-5. **Polish:** custom face, visemes, phone performance pass.
+5. **Polish:** tune the eyes and glow, phone performance pass.
 
 Each phase is usable on its own; stop wherever it stops being worth it.
 
 ## 10. Open questions for Brian
 
-1. **Keep VISION_MODEL_PLAN §6?** This plan assumes yes. If you want richer
+1. ~~**Keep VISION_MODEL_PLAN §6?**~~ **Decided 2026-10-02: yes, §6 stands.** The note below is kept for if it is ever revisited. If you want richer
    noticing than 80 labels ("that's a signed baseball"), the least-bad route is
    frames to **Gemini** (Google's safety stack and legal posture, not your
    basement), *never* to the box — and it costs per frame. My recommendation:
    ship label-only and see if anyone misses the richness.
-2. **Stylised how?** Cartoon, sculpted/clay, abstract (a glowing orb with eyes)?
+2. ~~**Stylised how?**~~ **Decided 2026-10-02: abstract RabinAI presence (§3a).** Original question: Cartoon, sculpted/clay, abstract (a glowing orb with eyes)?
    An abstract "RabinAI" presence dodges the uncanny valley entirely and might
    suit the brand better than a human face.
 3. **Where does it live?** A new route in rabinforest next to `LookAtIt.js`, or
