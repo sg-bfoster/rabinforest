@@ -1,0 +1,207 @@
+# RabinAI Face — scope plan
+
+**Status:** scope only, 2026-10-02. Nothing is built. Build when Brian says build.
+
+A face on the page that looks back at the visitor, reacts to their expressions,
+and — the RabinAI part — notices what they hold up and asks about it, out loud,
+in the box's voice.
+
+---
+
+## 0. The constraint this plan is shaped around
+
+`bfoster-services/docs/VISION_MODEL_PLAN.md` §6:
+
+> **NO UPLOAD.** The box describes ONLY images it just drew. Accepting
+> arbitrary images means someone eventually sends something illegal for a
+> machine in Brian's basement to process … this one is not negotiable for a
+> portfolio piece.
+
+A webcam frame is the most arbitrary image there is. So the obvious design —
+stream snapshots to Qwen2.5-VL on the box — is **ruled out by an existing
+decision**, not by this plan. Everything below keeps that rule intact:
+
+**No camera pixel ever reaches the box.** The browser looks; the box only ever
+receives *words*.
+
+Reversing §6 is possible, but it is a decision about legal exposure on a
+machine in the house, not a feature toggle. It is open question 1, not an
+assumption.
+
+---
+
+## 1. The idea in one picture
+
+```
+ BROWSER (every frame, ~30/s, nothing leaves)          BOX (only when something happens)
+ ─────────────────────────────────────────────         ─────────────────────────────────
+ webcam ──► MediaPipe Face Landmarker                   
+              • 52 expression values (blendshapes)      
+              • head pose, gaze target                  
+         ──► MediaPipe Object Detector                  
+              • "cup, 0.82, held up near face"  ──────► text event ──► LLM: one short question
+                                                                       ──► code safety gate
+ 3D face ◄── deterministic behaviour rules                              ──► Kokoro: speak it
+   • eye contact, blinks, glances                       ◄────────────── audio + the question text
+   • reacts (doesn't copy) to expressions
+   • "thinking" face while waiting
+   • mouth driven by the audio's loudness
+```
+
+Two loops at two speeds, which is the same split elder-app uses: **AI for
+perception, code for behaviour.**
+
+- **Fast loop (browser):** perception models are small neural nets running
+  on the visitor's device. Everything the face *does* is hand-written rules.
+  No server, no cost, works with the box off.
+- **Slow loop (box):** fires on events, not on a timer stream. Receives a
+  short text description of the event, never an image.
+
+## 2. Lineage — none of this is invented here
+
+| Piece | Established pattern it comes from |
+| --- | --- |
+| Face → avatar | ARKit/Animoji blendshapes; VTuber rigs (VSeeFace); Kalidokit (MediaPipe → VRM); MediaPipe's own Three.js avatar demo |
+| Looks-back gaze | Eye-contact / gaze-following in social robotics (Kismet, Jibo): track the face, aim eyes and head, add saccades |
+| React, don't mirror | Social robotics again: delayed, partial mimicry reads as empathy; exact mirroring reads as mockery or as broken |
+| Cheap detector gates expensive model | Cascade detection; Frigate NVR (object detector on every frame, GenAI description only per event) |
+| Pattern-based output gate | `bfoster-services/server/imagery/moderate.js` — "the trigger is a readable pattern list, never the AI's judgment" |
+| Box with cloud fallback | Every RabinAI feature today (`X-TTS-Engine`, Gemini fallback) |
+
+## 3. What the face does (deterministic, browser only)
+
+All of this is ordinary code over the 52 blendshape values and the head pose.
+
+- **Eye contact.** Aim eyes, then head (lagging, damped), at the visitor's face
+  position in frame. Micro-saccades every 0.5–2s. Glance away every 8–20s and
+  come back — constant staring is the uncanny part.
+- **Blink** on its own schedule (2–6s, randomised), and occasionally *with* the
+  visitor (when their `eyeBlink*` fires), which reads as attention.
+- **React, not mirror.**
+  - Visitor smiles ≥ 0.5s → face smiles back after 300–600ms, at ~70% strength.
+  - Brows up → brows up, smaller.
+  - Visitor looks away → face follows their gaze briefly, then returns.
+  - No face for 5s → idle: looks around, small breathing motion.
+- **Thinking state** while the slow loop is out: eyes up-left, slight squint,
+  head tilt. A 2–4s wait then reads as consideration, not lag.
+- **Talking:** jaw/mouth from a Web Audio `AnalyserNode` on Kokoro's audio
+  (loudness → `jawOpen`, plus a little `mouthFunnel` jitter). Real visemes are a
+  v2 nicety; loudness is convincing at this size.
+
+## 4. What the box does (text in, words and audio out)
+
+### Triggers — the only times the slow loop fires
+
+| Trigger | Detected by (browser) | What the box receives |
+| --- | --- | --- |
+| Object held up | Object Detector class ∉ {person} with box overlapping a hand (Hand Landmarker) and near the face, held ≥ 1s | `{"event":"held_up","label":"cup","confidence":0.82}` |
+| New visitor | Face appears after ≥ 10s with none | `{"event":"arrived"}` |
+| Room glance | 30s quiet, object labels present in the background | `{"event":"room","labels":["laptop","potted plant","book"]}` |
+| Visitor answers | Browser speech recognition (Web Speech API), opt-in | `{"event":"reply","text":"…"}` (capped at 200 chars) |
+
+The detector knows the 80 COCO classes (cup, book, phone, banana, scissors,
+teddy bear, laptop…). That is a real limit: a vinyl record or a cat-shaped mug
+comes through as its nearest class or not at all. **That limit is also the
+safety property** — see §5.
+
+### Pipeline per event
+
+1. `POST /ai/face/notice` (bfoster-services) with the event JSON. No image field
+   exists in the schema; the route rejects any body over 2KB.
+2. LLM on the box (the resident assistant model) writes **one** short, curious
+   question, as JSON: `{"about":"cup","question":"Is that coffee or tea?"}`.
+3. **Safety gate in code** (§5). Fail → a canned line for that event.
+4. Kokoro speaks it via the existing `/ai/readaloud` path; `X-TTS-Engine` comes
+   back as today.
+5. Box off or busy → Gemini writes the question (text only), OpenAI TTS speaks
+   it — the same fallback the page already discloses.
+
+## 5. Safety rules — code, not prompt
+
+1. **The box never sees pixels.** No image field, no upload route, body ≤ 2KB.
+   §6 of VISION_MODEL_PLAN stands.
+2. **It talks about things, never about people.** `person` is not a label the
+   box is ever sent. The model's JSON `about` must equal the label it was given
+   (or one of them, for a room glance); anything else is rejected.
+3. **Pattern gate on every question before it is spoken.** A readable deny-list
+   in the style of `moderate.js`: bodies, faces, age, weight, skin, ethnicity,
+   gender, attractiveness, health, and second-person appearance phrasings
+   ("you look", "your face", "your hair"). Over-blocks on purpose; a miss
+   becomes a canned line ("What's that you've got there?"), never silence that
+   looks broken.
+4. **Consent is two-step.** Camera on → face tracking only, nothing leaves the
+   browser, and the page says exactly that. Voice questions are a second,
+   explicit opt-in, and even then only words leave.
+5. **Nothing stored.** Events are not persisted; logs record the event type,
+   the label and whether the gate passed — never reply text from the visitor.
+6. **Visible when it's "noticing".** The face shows a looking state, and a
+   small caption shows the exact words sent ("you held up: cup").
+7. **Rate limits.** ≤ 1 box call per visitor per 8s, ≤ 20 per session; a global
+   queue so ten visitors can't starve the assistant. Over the limit → the face
+   just reacts, no question.
+
+## 6. Capacity on the box
+
+- Text-only means **no VLM**, so the "any two of three" residency rule is not
+  touched: this rides on the already-resident assistant model plus Kokoro.
+  SDXL renders are unaffected. (A VLM design would have kept Qwen2.5-VL loaded
+  for the length of every visit and locked out renders.)
+- Prompt is tiny (~300 tokens incl. system prompt) and the system prompt is a
+  stable prefix, so it hits the prefix cache (0.1s, build-log 2026-09-13). The
+  cost is generation: ~20 tokens at ~25–30 tok/s ≈ 1s, plus Kokoro.
+- Expected question latency: **~1.5–3s** box-warm. The thinking face covers it.
+
+## 7. Cost
+
+| | Estimate |
+| --- | --- |
+| Run cost, box path | ~$0 (electricity) |
+| Run cost, fallback | Gemini text + OpenAI TTS per question; pennies per visitor, capped by §5.7 |
+| Build: silent face (§3) | ~a weekend with a stock VRM avatar |
+| Build: notice-and-ask (§4–5) | 2–3 weekends; backend is small because readaloud + fallback exist |
+| Build: art | **the unknown.** A custom face that suits RabinAI is most of the polish, and it's art time, not code time |
+
+## 8. Anti-goals
+
+- **Not photoreal.** Uncanny valley, and a realistic animated face needs a GPU
+  per visitor (LivePortrait-class) that neither the box nor a static site has.
+- **Not exact mirroring.** Copying reads as mockery or as a bug.
+- **No image to the box, ever** (unless §0 is reversed on purpose).
+- **No comments on people.** Not "you look happy", not "nice shirt" — clothing
+  is on the person; v1 keeps to held objects and the room.
+- **No open conversation.** One question, at most one follow-up, then back to
+  just looking. The same reasoning that removed elder-app's open chat: open
+  chat is where unbounded cost and unbounded output live.
+- **No recording, no gallery, no "share your session".**
+- **Not a product for kids**, and the consent copy shouldn't pretend otherwise:
+  expect them anyway, which is why §5 is code.
+
+## 9. Phases
+
+1. **Silent face.** Stock VRM, MediaPipe Face Landmarker, §3 rules, idle state
+   with camera declined. Ships alone; it's already a page.
+2. **Notices.** Object + hand detection in browser, the caption ("you held up:
+   cup"), but canned questions only — no box yet. Proves triggers feel right.
+3. **Asks.** `/ai/face/notice`, box LLM, safety gate, Kokoro, fallback.
+4. **Listens** (opt-in): Web Speech API reply → one follow-up.
+5. **Polish:** custom face, visemes, phone performance pass.
+
+Each phase is usable on its own; stop wherever it stops being worth it.
+
+## 10. Open questions for Brian
+
+1. **Keep VISION_MODEL_PLAN §6?** This plan assumes yes. If you want richer
+   noticing than 80 labels ("that's a signed baseball"), the least-bad route is
+   frames to **Gemini** (Google's safety stack and legal posture, not your
+   basement), *never* to the box — and it costs per frame. My recommendation:
+   ship label-only and see if anyone misses the richness.
+2. **Stylised how?** Cartoon, sculpted/clay, abstract (a glowing orb with eyes)?
+   An abstract "RabinAI" presence dodges the uncanny valley entirely and might
+   suit the brand better than a human face.
+3. **Where does it live?** A new route in rabinforest next to `LookAtIt.js`, or
+   the rabinai-web site?
+4. **Voice:** the same Kokoro `af_heart` as read-aloud, so RabinAI has one
+   voice? (Recommended.)
+5. **Should it ever speak first,** before the visitor holds anything up
+   ("arrived" trigger), or only respond? Speaking first is more magical and
+   more startling.
