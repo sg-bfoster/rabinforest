@@ -13,6 +13,7 @@
  * update(dt, now, input) -> state
  *   input: { face: null | { x, y, roll, shapes } }  x,y in 0..1 camera-image coords,
  *          roll = their head tilt in radians (negative = toward their right shoulder),
+ *          yaw = their head turn, -1..1 (+ = turned to their left),
  *          shapes = { blendshapeName: score }
  *          speak = 0..1 loudness of its OWN voice (phase 3, Kokoro); omit until then
  *          heard = { speaking, question } from the microphone (ears.js), if it's on
@@ -193,8 +194,14 @@ export function createBehaviour({ reducedMotion = false } = {}) {
       gx += saccX; gy += saccY;
 
       // They look away -> it follows their gaze briefly, then comes back.
-      const theirLook = (((sh.eyeLookOutLeft ?? 0) + (sh.eyeLookInRight ?? 0))
+      // WHERE THEY'RE LOOKING = head turn + eyes-in-head. The eye scores alone
+      // were the bug: turn your head left while still watching the screen and
+      // your eyes rotate RIGHT in their sockets to stay on it, so it "followed"
+      // a glance to the right that never happened. Head and eyes cancel then,
+      // as they should. (+ = toward their left, for both terms.)
+      const eyesInHead = (((sh.eyeLookOutLeft ?? 0) + (sh.eyeLookInRight ?? 0))
         - ((sh.eyeLookInLeft ?? 0) + (sh.eyeLookOutRight ?? 0))) / 2;
+      const theirLook = eyesInHead + (f.yaw ?? 0) * 1.2;
       if (Math.abs(theirLook) > 0.35) {
         if (avertSince < 0) avertSince = now;
         if (now - avertSince > 700 && now > followUntil) {
@@ -433,7 +440,11 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     const eyeRate = reducedMotion ? 6 : 14;
     s.gazeX = approach(s.gazeX, t.gazeX, eyeRate, dt);
     s.gazeY = approach(s.gazeY, t.gazeY, eyeRate, dt);
-    baseYaw = approach(baseYaw, (t.gazeX + earTurn * 2.2) * 0.35 + earTurn, 3, dt);
+    // Plus their head turn, mirrored at ~30%, like the tilt: turn to your left
+    // and it turns toward the screen's left with you. Not while following a
+    // finger or a direction, which are about where IT should look.
+    const mirrorYaw = hasFace && !pt && !anyAct ? -clamp(f.yaw ?? 0, -1, 1) * 0.3 : 0;
+    baseYaw = approach(baseYaw, (t.gazeX + earTurn * 2.2) * 0.35 + earTurn + mirrorYaw, 3, dt);
     basePitch = approach(basePitch, -t.gazeY * 0.2, 3, dt);
     // A nod is a quick dip and return, ~380ms each, the second one smaller.
     let nodOff = 0;

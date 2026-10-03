@@ -163,7 +163,9 @@ export default function RabinAIFace() {
     if (!(import.meta.env.DEV && DEBUG)) return undefined;
     const id = setInterval(() => {
       const f = lastFaceRef.current;
-      setDebugRows(f ? DEBUG_SHAPES.map((k) => [k, f.shapes?.[k] ?? 0]).concat([['roll', f.roll ?? 0]]) : []);
+      // faceX/headYaw too: if it ever looks the wrong way, these say whether
+      // the camera is mirrored (faceX should RISE as you move to your left).
+      setDebugRows(f ? [['faceX', f.x ?? 0], ['headYaw', f.yaw ?? 0], ['roll', f.roll ?? 0]].concat(DEBUG_SHAPES.map((k) => [k, f.shapes?.[k] ?? 0])) : []);
     }, 200);
     return () => clearInterval(id);
   }, []);

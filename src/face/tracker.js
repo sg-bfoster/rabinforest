@@ -21,7 +21,7 @@ const HAND_MODEL_URL =
 
 /**
  * Start the camera and the landmarker. Resolves to { read(), stop() }.
- * read() returns the latest face ({ x, y, roll, shapes }) or null; it never blocks.
+ * read() returns the latest face ({ x, y, roll, yaw, shapes }) or null; it never blocks.
  * Throws a DOMException named NotAllowedError when the visitor says no.
  */
 export async function startTracker(video) {
@@ -127,8 +127,15 @@ export async function startTracker(video) {
     const a = pts[33], b = pts[263];
     const roll = a && b
       ? Math.atan2((b.y - a.y) * video.videoHeight, (b.x - a.x) * video.videoWidth) : 0;
+    // Head turn (yaw): where the nose tip (1) sits between the two cheek edges
+    // (234 = the visitor's right, image left; 454 = their left, image right).
+    // Facing the camera it's halfway; turned to THEIR left the nose moves toward
+    // the image's right. + = turned to their left, roughly -1..1.
+    const nose = pts[1], cR = pts[234], cL = pts[454];
+    const span = cL && cR ? cL.x - cR.x : 0;
+    const yaw = nose && Math.abs(span) > 1e-3 ? ((nose.x - cR.x) / span - 0.5) * 2 : 0;
     try { shapes.tongueColour = tongueColour(pts); } catch { shapes.tongueColour = 0; }
-    latest = { x: sx / pts.length, y: sy / pts.length, roll, shapes };
+    latest = { x: sx / pts.length, y: sy / pts.length, roll, yaw, shapes };
     return latest;
   }
 
