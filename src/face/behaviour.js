@@ -33,13 +33,14 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     open: 1,                     // eye openness 0..1 (blinks)
     happy: 0,                    // eye crescent 0..1
     widen: 0,                    // eyes wider, form stretches up, 0..1
+    squint: 0,                   // eyes narrowed, 0..1
     lean: 0,                     // leans in when the visitor talks, 0..1
     bright: 0.6,                 // glow; dims when idle
     idle: true,
   };
 
   // Targets the smoothing chases.
-  const t = { gazeX: 0, gazeY: 0, happy: 0, widen: 0, lean: 0, bright: 0.6 };
+  const t = { gazeX: 0, gazeY: 0, happy: 0, widen: 0, squint: 0, lean: 0, bright: 0.6 };
 
   let nextBlink = 0, blinkStart = -1;
   let nextSaccade = 0, saccX = 0, saccY = 0;
@@ -47,6 +48,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
   let lastFaceAt = -Infinity;
   let smileSince = -1, smileAnswerAt = -1, smileStoppedAt = -1;
   let browSince = -1;
+  let narrowSince = -1;
   let visitorBlinkWas = false, lastBlinkAt = -Infinity;
   let avertSince = -1, followUntil = 0, followX = 0;
   let talkLevel = 0;
@@ -72,7 +74,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     if (!nextBlink) nextBlink = now + rand(1500, 4000);
     if (now >= nextBlink) blink(now);
     const theyBlink = ((sh.eyeBlinkLeft ?? 0) + (sh.eyeBlinkRight ?? 0)) / 2 > 0.5;
-    if (theyBlink && !visitorBlinkWas && now - lastBlinkAt > 1000 && Math.random() < 0.3) {
+    if (theyBlink && !visitorBlinkWas && narrowSince < 0 && now - lastBlinkAt > 1000 && Math.random() < 0.3) {
       blinkStart = -1; nextBlink = now + 80;     // a beat after theirs reads as attention
     }
     visitorBlinkWas = theyBlink;
@@ -171,6 +173,20 @@ export function createBehaviour({ reducedMotion = false } = {}) {
       if (now - smileStoppedAt > 400) { t.happy = 0; smileAnswerAt = -1; }
     }
 
+    // --- They squint -> it squints back, a beat later and a little less. ---
+    // MediaPipe reports narrowed eyes as eyeSquint* AND as a partly closed
+    // eyeBlink*, often more strongly the second way, so either counts. Held for
+    // 300ms first: a real blink is ~150ms and must not read as a squint.
+    // Not while smiling — a real smile narrows the eyes too, and the smile
+    // already has its answer (the crescent).
+    const sq = ((sh.eyeSquintLeft ?? 0) + (sh.eyeSquintRight ?? 0)) / 2;
+    const half = ((sh.eyeBlinkLeft ?? 0) + (sh.eyeBlinkRight ?? 0)) / 2;
+    const narrow = Math.max(sq, half < 0.65 ? half : 0);
+    if (narrow > 0.35 && smile < 0.3) {
+      if (narrowSince < 0) narrowSince = now;
+      if (now - narrowSince > 300) t.squint = clamp((narrow - 0.25) * 1.5, 0, 0.7);
+    } else { narrowSince = -1; t.squint = 0; }
+
     // --- Brows up -> eyes widen, smaller and a beat later. ---
     const brow = ((sh.browInnerUp ?? 0) + ((sh.browOuterUpLeft ?? 0) + (sh.browOuterUpRight ?? 0)) / 2) / 2;
     if (brow > 0.4) {
@@ -184,7 +200,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     t.lean = talkLevel > 0.5 ? 0.6 : 0;
 
     t.bright = idle ? 0.5 : hasFace ? 1 : 0.8;
-    if (!hasFace) { t.happy = 0; t.widen = 0; t.lean = 0; }
+    if (!hasFace) { t.happy = 0; t.widen = 0; t.squint = 0; t.lean = 0; }
 
     // --- Smoothing. Eyes are quick, the body follows slower: that lag is
     //     what makes it read as one creature rather than a sticker. ---
@@ -196,6 +212,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     s.roll = approach(s.roll, reducedMotion ? tiltTarget * 0.5 : tiltTarget, 2.5, dt);
     s.happy = approach(s.happy, t.happy, 5, dt);
     s.widen = approach(s.widen, t.widen, 6, dt);
+    s.squint = approach(s.squint, t.squint, 6, dt);
     s.lean = approach(s.lean, t.lean, 2.5, dt);
     s.bright = approach(s.bright, t.bright, 1.5, dt);
     return s;

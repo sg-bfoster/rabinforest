@@ -65,16 +65,24 @@ const UV_VERT = /* glsl */ `
 // One eye. uv centred to -1..1. Openness squashes it, happy carves a crescent
 // out of the bottom, widen makes it taller, the pupil slides with the gaze.
 const EYE_FRAG = /* glsl */ `
-  uniform float uOpen, uHappy, uWiden, uBright;
+  uniform float uOpen, uHappy, uWiden, uSquint, uBright;
   uniform vec2 uPupil;
   uniform vec3 uGlow;
   varying vec2 vUv;
   float ellipse(vec2 p, vec2 r) { return length(p / r); }
   void main() {
     vec2 p = vUv * 2.0 - 1.0;
-    float ry = 0.62 * (1.0 + uWiden * 0.35) * max(uOpen, 0.04);
-    float e = ellipse(p, vec2(0.48, ry));
+    float ry = 0.62 * (1.0 + uWiden * 0.35) * (1.0 - uSquint * 0.55) * max(uOpen, 0.04);
+    // A squint raises the lower lid more than it lowers the upper, so the
+    // narrowed eye sits a little higher.
+    p.y -= uSquint * 0.1;
+    float e = ellipse(p, vec2(0.48 * (1.0 + uSquint * 0.1), ry));
     float eye = 1.0 - smoothstep(0.92, 1.0, e);
+    // And the upper lid comes down FLAT across the top, over part of the
+    // pupil. Narrowing alone just reads as smaller eyes; the flat lid is what
+    // says "squint".
+    float lid = ry * (1.0 - uSquint * 0.75);
+    eye *= 1.0 - smoothstep(lid - 0.03, lid + 0.01, p.y) * step(0.01, uSquint);
     // Crescent: a disc rises from below and eats the lower half of the eye.
     float cut = length(p - vec2(0.0, mix(-1.6, -0.42, uHappy))) ;
     eye *= smoothstep(0.86, 0.94, cut);
@@ -121,7 +129,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
 
   const eyes = [-1, 1].map((side) => {
     const u = {
-      uOpen: { value: 1 }, uHappy: { value: 0 }, uWiden: { value: 0 }, uBright: { value: 0.6 },
+      uOpen: { value: 1 }, uHappy: { value: 0 }, uWiden: { value: 0 }, uSquint: { value: 0 }, uBright: { value: 0.6 },
       uPupil: { value: new THREE.Vector2() }, uGlow: { value: GLOW },
     };
     const m = new THREE.Mesh(
@@ -170,6 +178,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
       e.u.uOpen.value = s.open;
       e.u.uHappy.value = s.happy;
       e.u.uWiden.value = s.widen;
+      e.u.uSquint.value = s.squint;
       e.u.uBright.value = s.bright;
       e.u.uPupil.value.set(s.gazeX, s.gazeY);
       // A little parallax: the eyes themselves drift toward the gaze too.
