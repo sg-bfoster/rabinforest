@@ -21,6 +21,7 @@ import { earsMode, earsSupported } from './face/ears';
 // import.meta.env.DEV is false in a production build, so this is compiled out.
 // ?demo cycles through everything; ?demo=smile (or brows, squint, talk, tilt, away) holds one.
 // ?demo=listen talks for 3s, pauses 1.5s, repeat: watch for the ear and the nods.
+// ?demo=finger circles a fingertip (cross-eyed for 2s in every 8);
 // ?demo=wink, ?demo=tongue and ?demo=ooh loop those; ?demo=angry glares for 5s
 // (watch it match, then soften to concerned), relaxes 2s, repeats.
 // ?debug (dev only, with the camera on) lists the live expression scores, for
@@ -90,6 +91,9 @@ export default function RabinAIFace() {
   const behaviourRef = useRef(null);
   // What the render loop reads each frame: is someone talking, are they asking.
   const heardRef = useRef({ speaking: false, question: false });
+  // The pointer (mouse or touch) over the stage, in gaze terms, and when it last moved.
+  const pointerRef = useRef(null);
+  const stageRef = useRef(null);
   const [debugRows, setDebugRows] = useState(null);
 
   // The form runs from the moment the page opens — idle, looking around — so
@@ -124,7 +128,21 @@ export default function RabinAIFace() {
         // or a covered lens doesn't look like the page ignoring them.
         const missing = !!trackerRef.current && now - lastFaceSeen > 3000;
         if (missing !== flagged) { flagged = missing; setNoFace(missing); }
-        form.render(behaviour.update(dt, now, { face, heard: heardRef.current }), now);
+        // What to follow instead of the face, if anything. The pointer is the
+        // more deliberate gesture, so it wins; it lets go 1.2s after it stops.
+        let point = null;
+        const p = pointerRef.current;
+        if (p && now - p.at < 1200) point = p;
+        else if (import.meta.env.DEV && DEMO_PARAM === 'finger') {
+          const a = now / 1200;
+          point = { gx: Math.cos(a) * 0.8, gy: Math.sin(a * 2) * 0.4, near: (now / 1000) % 8 > 6 ? 0.6 : 0 };
+        } else {
+          // A fingertip from the camera maps like the face: the image isn't
+          // mirrored, so the visitor's right is the image's left.
+          const h = trackerRef.current?.readHand?.();
+          if (h) point = { gx: (0.5 - h.x) * 2.2, gy: (0.5 - h.y) * 2.0, near: h.size };
+        }
+        form.render(behaviour.update(dt, now, { face, heard: heardRef.current, point }), now);
         raf = requestAnimationFrame(tick);
       };
       raf = requestAnimationFrame(tick);
@@ -265,7 +283,22 @@ export default function RabinAIFace() {
 
       <ScreenBody width="links">
         <div className="rabinai-face">
-          <div className="rabinai-face-stage">
+          <div
+            className="rabinai-face-stage"
+            ref={stageRef}
+            // Mouse or finger on the stage: the eyes follow it. Screen coords,
+            // so no mirroring: point right and it looks right.
+            onPointerMove={(e) => {
+              const r = stageRef.current?.getBoundingClientRect();
+              if (!r) return;
+              pointerRef.current = {
+                gx: ((e.clientX - r.left) / r.width - 0.5) * 2,
+                gy: (0.5 - (e.clientY - r.top) / r.height) * 2,
+                near: 0, at: performance.now(),
+              };
+            }}
+            onPointerLeave={() => { pointerRef.current = null; }}
+          >
             {renderFailed ? (
               <p className="rabinai-face-fallback">This browser can't draw it — WebGL is off or unavailable.</p>
             ) : (

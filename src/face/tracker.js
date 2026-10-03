@@ -16,6 +16,8 @@
 const WASM_BASE = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm';
 const MODEL_URL =
   'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
+const HAND_MODEL_URL =
+  'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
 
 /**
  * Start the camera and the landmarker. Resolves to { read(), stop() }.
@@ -33,8 +35,9 @@ export async function startTracker(video) {
   await video.play();
 
   let landmarker;
+  let hands = null;
   try {
-    const { FaceLandmarker, FilesetResolver } = await import('@mediapipe/tasks-vision');
+    const { FaceLandmarker, HandLandmarker, FilesetResolver } = await import('@mediapipe/tasks-vision');
     const fileset = await FilesetResolver.forVisionTasks(WASM_BASE);
     const opts = (delegate) => ({
       baseOptions: { modelAssetPath: MODEL_URL, delegate },
@@ -46,12 +49,21 @@ export async function startTracker(video) {
     // refuse, and CPU is still comfortably real time for one face.
     try { landmarker = await FaceLandmarker.createFromOptions(fileset, opts('GPU')); }
     catch { landmarker = await FaceLandmarker.createFromOptions(fileset, opts('CPU')); }
+    // Hands, for following a pointing finger. Optional: if it fails to load,
+    // the face still works and the finger just isn't followed.
+    try {
+      const hopts = (delegate) => ({ baseOptions: { modelAssetPath: HAND_MODEL_URL, delegate }, runningMode: 'VIDEO', numHands: 1 });
+      try { hands = await HandLandmarker.createFromOptions(fileset, hopts('GPU')); }
+      catch { hands = await HandLandmarker.createFromOptions(fileset, hopts('CPU')); }
+    } catch (err) { console.warn('[face] hand tracker unavailable', err); hands = null; }
   } catch (err) {
     stream.getTracks().forEach((tr) => tr.stop());
     throw err;
   }
 
   let latest = null;
+  let latestHand = null;
+  let frame = 0;
   let lastVideoTime = -1;
   let stopped = false;
 
@@ -94,6 +106,11 @@ export async function startTracker(video) {
     if (stopped || video.readyState < 2) return latest;
     if (video.currentTime === lastVideoTime) return latest;
     lastVideoTime = video.currentTime;
+    // Hands on every other camera frame: following a finger at 15/s is smooth
+    // after the eye easing, and it halves the extra cost on a phone.
+    if (hands && (frame++ & 1) === 0) {
+      try { latestHand = pointingFinger(hands.detectForVideo(video, performance.now())); } catch { latestHand = null; }
+    }
     const r = landmarker.detectForVideo(video, performance.now());
     const pts = r.faceLandmarks?.[0];
     if (!pts) { latest = null; return null; }
@@ -120,7 +137,27 @@ export async function startTracker(video) {
     stream.getTracks().forEach((tr) => tr.stop());   // the camera light goes out
     video.srcObject = null;
     landmarker?.close();
+    hands?.close();
   }
 
-  return { read, stop };
+  /**
+   * A raised, POINTING index finger, or null. Only pointing counts, so a hand
+   * resting in shot (on a chin, holding a mug) doesn't steal its attention.
+   * x,y = the fingertip in 0..1 camera-image coords (not mirrored, like the
+   * face); size = hand scale, so a finger right up at the lens reads as near.
+   */
+  function pointingFinger(r) {
+    const h = r?.landmarks?.[0];
+    if (!h) return null;
+    const d = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+    const wrist = h[0], pip = h[6], tip = h[8];
+    const extended = d(wrist, tip) > d(wrist, pip) * 1.25;
+    // The other fingers curled: their tips nearer the wrist than their middle joints.
+    const curled = [[12, 10], [16, 14], [20, 18]].filter(([t, j]) => d(wrist, h[t]) < d(wrist, h[j]) * 1.1).length >= 2;
+    if (!extended || !curled) return null;
+    return { x: tip.x, y: tip.y, size: d(wrist, h[9]) };
+  }
+  const readHand = () => latestHand;
+
+  return { read, readHand, stop };
 }

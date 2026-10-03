@@ -16,6 +16,8 @@
  *          shapes = { blendshapeName: score }
  *          speak = 0..1 loudness of its OWN voice (phase 3, Kokoro); omit until then
  *          heard = { speaking, question } from the microphone (ears.js), if it's on
+ *          point = { gx, gy, near } something to follow instead of the face (a
+ *                  fingertip or the pointer), already in gaze terms (-1..1)
  *   act(name, now) plays a direction it was given out loud (commands.js)
  *   state: everything the renderer needs, already smoothed.
  */
@@ -87,6 +89,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     angry: 0,                    // grumpy pout: lids slant down to the middle, frown, 0..1
     worry: 0,                    // concerned: lids slant UP to the middle, 0..1
     slant: 0,                    // for the renderer: angry - worry
+    converge: 0,                 // cross-eyed, for a finger right up close, 0..1
     mouthLips: 0,                // lip fullness for the renderer, 0..1
     lean: 0,                     // leans in when the visitor talks, 0..1
     bright: 0.6,                 // glow; dims when idle
@@ -125,6 +128,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
   // Directions it was asked to follow: name -> time the move ends.
   const acts = {};
   let shakeStart = -1, nodAmp = 0.15, wasQuestion = false, baseYaw = 0;
+  let pointSince = -1, convergeT = 0;
 
   function blink(now) {
     if (blinkStart >= 0) return;
@@ -395,6 +399,20 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     t.bright = idle ? 0.5 : hasFace ? 1 : 0.8;
     if (!hasFace) { t.happy = 0; t.widen = 0; t.squint = 0; t.lean = input?.heard?.question ? 0.85 : input?.heard?.speaking ? 0.6 : 0; }
 
+    // --- Something to follow: a pointing fingertip, or the pointer. ---
+    // Smooth pursuit, not saccades: eyes track a moving target in one glide,
+    // so the darting and glancing-away above are simply replaced. A new target
+    // gets a brief perk of interest; a finger right up at the lens makes it go
+    // cross-eyed, which is what everyone does to a finger on their nose.
+    const pt = input?.point ?? null;
+    if (pt) {
+      if (pointSince < 0) pointSince = now;
+      t.gazeX = clamp(pt.gx, -1, 1);
+      t.gazeY = clamp(pt.gy, -1, 1);
+      if (now - pointSince < 600) t.widen = Math.max(t.widen, 0.3);
+      convergeT = clamp(((pt.near ?? 0) - 0.25) * 3, 0, 1);
+    } else { pointSince = -1; convergeT = 0; }
+
     // --- Directions it was given. These win over mirroring while they play:
     //     asked to look left, it looks left even though you're in the middle.
     if (doing('smile', now)) t.happy = 0.75;
@@ -449,6 +467,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     s.angry = approach(s.angry, on ? angryT : 0, 5, dt);
     s.worry = approach(s.worry, on ? worryT : 0, 3, dt);
     s.slant = s.angry - s.worry;
+    s.converge = approach(s.converge, convergeT, 6, dt);
     s.lean = approach(s.lean, t.lean, 2.5, dt);
     s.bright = approach(s.bright, t.bright, 1.5, dt);
     // Mouth reads from the SMOOTHED mood, so it moves with the eyes instead

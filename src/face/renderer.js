@@ -270,7 +270,8 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
       e.u.uSquint.value = s.squint;
       e.u.uSlant.value = s.slant ?? 0;
       e.u.uBright.value = s.bright;
-      e.u.uPupil.value.set(s.gazeX, s.gazeY);
+      // Cross-eyed: each pupil slides toward the nose (-side).
+      e.u.uPupil.value.set(s.gazeX - e.side * (s.converge ?? 0) * 0.7, s.gazeY);
       // A little parallax: the eyes themselves drift toward the gaze too.
       e.m.position.x = e.side * 0.3 + s.gazeX * 0.04;
       e.m.position.y = 0.12 + s.gazeY * 0.03;
