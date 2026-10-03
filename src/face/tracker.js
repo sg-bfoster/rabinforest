@@ -55,6 +55,38 @@ export async function startTracker(video) {
   let lastVideoTime = -1;
   let stopped = false;
 
+  // Tongue, by colour. MediaPipe's own tongueOut score barely moves on most
+  // faces, so look at the pixels: when the lips are apart, the gap between
+  // them is normally DARK (the inside of the mouth) or WHITE (teeth). A tongue
+  // fills it with pink-red. Sampling only INSIDE the gap means lipstick and
+  // lip colour never count. A 16x8 sample per frame, in this tab, never sent.
+  const sample = document.createElement('canvas');
+  sample.width = 16; sample.height = 8;
+  const sctx = sample.getContext('2d', { willReadFrequently: true });
+  function tongueColour(pts) {
+    const up = pts[13], lo = pts[14], l = pts[78], r = pts[308], e1 = pts[33], e2 = pts[263];
+    if (!up || !lo || !l || !r || !e1 || !e2) return 0;
+    const W = video.videoWidth, H = video.videoHeight;
+    const eyeSpan = Math.hypot((e2.x - e1.x) * W, (e2.y - e1.y) * H);
+    const gap = (lo.y - up.y) * H;
+    if (gap < eyeSpan * 0.06) return 0;                     // lips together: nothing to see
+    const mouthW = Math.abs(r.x - l.x) * W;
+    const cx = ((up.x + lo.x) / 2) * W, cy = ((up.y + lo.y) / 2) * H;
+    const sw = mouthW * 0.45, sh = gap * 0.7;
+    // The camera image is not mirrored and neither is this sample, so the
+    // coordinates map straight across.
+    sctx.drawImage(video, cx - sw / 2, cy - sh / 2, sw, sh, 0, 0, 16, 8);
+    const d = sctx.getImageData(0, 0, 16, 8).data;
+    let hits = 0;
+    for (let i = 0; i < d.length; i += 4) {
+      const R = d[i], G = d[i + 1], B = d[i + 2];
+      // Tongue-coloured: lit (not the dark cavity), red well above green and
+      // above blue (not white teeth, which are R≈G≈B).
+      if (R > 80 && R - G > 30 && R > G * 1.3 && R > B * 1.1) hits++;
+    }
+    return hits / (d.length / 4);
+  }
+
   // Detect only on a new video frame. The render loop runs at the display's
   // rate (often 120Hz); the camera gives ~30, and re-detecting the same frame
   // is pure waste on a phone.
@@ -78,6 +110,7 @@ export async function startTracker(video) {
     const a = pts[33], b = pts[263];
     const roll = a && b
       ? Math.atan2((b.y - a.y) * video.videoHeight, (b.x - a.x) * video.videoWidth) : 0;
+    try { shapes.tongueColour = tongueColour(pts); } catch { shapes.tongueColour = 0; }
     latest = { x: sx / pts.length, y: sy / pts.length, roll, shapes };
     return latest;
   }

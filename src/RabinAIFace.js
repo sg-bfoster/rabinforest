@@ -25,7 +25,7 @@ import { createBehaviour } from './face/behaviour';
 const DEBUG = import.meta.env.DEV && typeof window !== 'undefined'
   && new URLSearchParams(window.location.search).has('debug');
 const DEBUG_SHAPES = ['jawOpen', 'mouthSmileLeft', 'mouthSmileRight', 'browInnerUp', 'eyeBlinkLeft', 'eyeBlinkRight',
-  'eyeSquintLeft', 'eyeSquintRight', 'mouthFunnel', 'mouthPucker', 'tongueOut'];
+  'eyeSquintLeft', 'eyeSquintRight', 'mouthFunnel', 'mouthPucker', 'tongueOut', 'tongueColour'];
 const DEMO_PARAM = import.meta.env.DEV && typeof window !== 'undefined'
   ? new URLSearchParams(window.location.search).get('demo') : null;
 const DEMO = DEMO_PARAM !== null;

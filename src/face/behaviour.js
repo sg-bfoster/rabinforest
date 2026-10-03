@@ -258,8 +258,11 @@ export function createBehaviour({ reducedMotion = false } = {}) {
 
     // --- Tongue out -> it sticks its tongue out too. Held 250ms, answered
     //     ~300ms later, and it squeezes its eyes a little: the playful "blep".
-    //     MediaPipe's tongueOut score is weak on many faces; ?debug shows it.
-    const tg = sh.tongueOut ?? 0;
+    //     MediaPipe's tongueOut score is weak on most faces, hence the colour
+    //     check; ?debug shows both.
+    // Either MediaPipe's own score, or the colour check in tracker.js (the
+    // share of tongue-coloured pixels between the lips), whichever is sure.
+    const tg = Math.max(sh.tongueOut ?? 0, (sh.tongueColour ?? 0) > 0.35 ? 1 : 0);
     if (tg > 0.3) {
       if (tongueSince < 0) tongueSince = now;
       if (now - tongueSince > 250 && tongueAt < 0) tongueAt = now + 300;
