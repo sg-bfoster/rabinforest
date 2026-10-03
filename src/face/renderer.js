@@ -10,6 +10,7 @@
  * `state` comes from behaviour.js; this file only draws it.
  */
 import * as THREE from 'three';
+import { browsFor } from './behaviour';
 
 // Palette from styles/tokens.css: --hero, --cool, --glow.
 const DEEP = new THREE.Color('#0d2a40');
@@ -108,6 +109,27 @@ const EYE_FRAG = /* glsl */ `
 // The mouth: one stroke along a curve, which can open into a filled shape.
 // Lower edge = the curve pulled down by uOpenM, tapering to the corners, so
 // the same four numbers make a line, a smile, a grin or a small round "o".
+// A brow: one glowing stroke along a curve, tapering at the ends. uSlant
+// drops the INNER end (toward the nose) when positive: grumpy; lifts it when
+// negative: worried. uSide is -1 for the brow on the viewer's left.
+const BROW_FRAG = /* glsl */ `
+  uniform float uArch, uSlant, uSide, uBright;
+  uniform vec3 uGlow;
+  varying vec2 vUv;
+  void main() {
+    vec2 p = vUv * 2.0 - 1.0;
+    float w = 0.72;
+    float xc = clamp(p.x, -w, w);
+    float u = xc / w;
+    float inner = u * -uSide;
+    float y = uArch * 0.4 * (1.0 - u * u) - uSlant * 0.42 * inner - 0.1;
+    float d = length(vec2(p.x - xc, p.y - y));
+    float thick = 0.12 * (1.0 - 0.5 * abs(u));
+    float a = 1.0 - smoothstep(thick * 0.55, thick, d);
+    gl_FragColor = vec4(uGlow * (0.95 + 0.3 * uBright), a * 0.95);
+  }
+`;
+
 const MOUTH_FRAG = /* glsl */ `
   uniform float uCurve, uWidth, uOpenM, uTilt, uTongue, uLips, uBright;
   uniform vec3 uGlow;
@@ -220,6 +242,21 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
     return { m, u, side };
   });
 
+  // Brows: above each eye, drawn on top like the eyes.
+  const brows = [-1, 1].map((side) => {
+    const u = { uArch: { value: 0.35 }, uSlant: { value: 0 }, uSide: { value: side }, uBright: { value: 0.6 }, uGlow: { value: GLOW } };
+    const m = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.44, 0.28),
+      new THREE.ShaderMaterial({ uniforms: u, vertexShader: UV_VERT, fragmentShader: BROW_FRAG, transparent: true, depthWrite: false, depthTest: false }),
+    );
+    m.renderOrder = 1;
+    m.position.set(side * 0.3, 0.42, 0.93);
+    m.rotation.y = side * 0.3;
+    m.rotation.x = -0.25;
+    head.add(m);
+    return { m, u, side };
+  });
+
   const mouthU = {
     uCurve: { value: 0.15 }, uWidth: { value: 0.16 }, uOpenM: { value: 0 }, uTilt: { value: 0 }, uTongue: { value: 0 }, uLips: { value: 0 },
     uBright: { value: 0.6 }, uGlow: { value: GLOW },
@@ -275,6 +312,15 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
       // A little parallax: the eyes themselves drift toward the gaze too.
       e.m.position.x = e.side * 0.3 + s.gazeX * 0.04;
       e.m.position.y = 0.12 + s.gazeY * 0.03;
+    }
+    const bs = browsFor(s);
+    for (const b of brows) {
+      const p = b.side < 0 ? bs.left : bs.right;
+      b.u.uArch.value = p.arch;
+      b.u.uSlant.value = p.slant;
+      b.u.uBright.value = s.bright;
+      b.m.position.y = 0.42 + p.raise * 0.13;
+      b.m.position.x = b.side * 0.3 + s.gazeX * 0.03;
     }
     mouthU.uCurve.value = s.mouthCurve ?? 0.15;
     mouthU.uWidth.value = s.mouthWidth ?? 0.16;

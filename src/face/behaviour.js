@@ -41,6 +41,26 @@ const IDLE_AFTER_MS = 5000;      // no face this long -> idle drift
  *   lean   -> listening: small and closed
  *   idle   -> small and neutral
  */
+/**
+ * The brows for a mood, per side (left = the brow on the viewer's left).
+ * raise: up/down; arch: how curved; slant: + drops the inner end (grumpy),
+ * - lifts it (worried). Like the mouth, derived from the form's own mood.
+ * The one asymmetric move is the quizzical brow: one side up, for thinking
+ * or when the visitor raises one brow at it.
+ */
+export function browsFor(s) {
+  const raise = s.happy * 0.25 + s.widen * 1.1 - s.squint * 0.55 - (s.angry ?? 0) * 0.6 + (s.worry ?? 0) * 0.3;
+  const arch = 0.35 + s.widen * 0.45 + s.happy * 0.2 - (s.angry ?? 0) * 0.35;
+  const slant = s.slant ?? 0;
+  const q = s.quizzical ?? 0, side = s.quizSide ?? 1;
+  const one = (isLeft) => ({
+    raise: raise + (side === (isLeft ? -1 : 1) ? q * 1.0 : -q * 0.15) - (isLeft ? (s.winkLeft ?? 0) : (s.winkRight ?? 0)) * 0.45,
+    arch: arch + (side === (isLeft ? -1 : 1) ? q * 0.25 : 0),
+    slant,
+  });
+  return { left: one(true), right: one(false) };
+}
+
 export function mouthFor(s) {
   let curve = 0.15, width = 0.16, open = 0, tilt = 0;
   curve += s.happy * 0.6;
@@ -92,6 +112,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     worry: 0,                    // concerned: lids slant UP to the middle, 0..1
     slant: 0,                    // for the renderer: angry - worry
     converge: 0,                 // cross-eyed, for a finger right up close, 0..1
+    quizzical: 0, quizSide: 1,   // one brow up (thinking, or theirs raised); side -1 = viewer's left
     mouthLips: 0,                // lip fullness for the renderer, 0..1
     lean: 0,                     // leans in when the visitor talks, 0..1
     bright: 0.6,                 // glow; dims when idle
@@ -131,6 +152,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
   const acts = {};
   let shakeStart = -1, nodAmp = 0.15, wasQuestion = false, baseYaw = 0;
   let pointSince = -1, convergeT = 0;
+  let oneBrowSince = -1, oneBrowSide = 0, quizT = 0;
 
   function blink(now) {
     if (blinkStart >= 0) return;
@@ -436,6 +458,15 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     if (doing('ponder', now)) { t.gazeY = 0.55; t.gazeX = 0.35; }
     // Thinking: eyes up and to one side, drifting a little, a slight squint.
     // Held for as long as the answer takes, so a 3s wait reads as thought.
+    // --- They raise ONE brow -> it raises one back, mirrored side. The outer
+    //     brow scores are per side; one well up, the other not, held 300ms.
+    const bL = sh.browOuterUpLeft ?? 0, bR = sh.browOuterUpRight ?? 0;  // the VISITOR's left/right
+    const oneSide = bL - bR > 0.3 ? -1 : bR - bL > 0.3 ? 1 : 0;         // your left = viewer's left
+    if (oneSide && oneSide === oneBrowSide) {
+      if (now - oneBrowSince > 300) { quizT = 0.8; s.quizSide = oneSide; }
+    } else { oneBrowSide = oneSide; oneBrowSince = now; quizT = 0; }
+    // Thinking (an answer on its way) or the "hmm" after a question: one brow up.
+    if (input?.thinking || doing('ponder', now)) { quizT = 0.75; if (!oneSide) s.quizSide = 1; }
     if (input?.thinking) {
       t.gazeX = 0.35 + Math.sin(now / 700) * 0.12; t.gazeY = 0.5 + Math.sin(now / 1100) * 0.06;
       t.squint = Math.max(t.squint, 0.18);
@@ -486,6 +517,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     s.worry = approach(s.worry, on ? worryT : 0, 3, dt);
     s.slant = s.angry - s.worry;
     s.converge = approach(s.converge, convergeT, 6, dt);
+    s.quizzical = approach(s.quizzical, quizT, 6, dt);
     s.lean = approach(s.lean, t.lean, 2.5, dt);
     s.bright = approach(s.bright, t.bright, 1.5, dt);
     // Mouth reads from the SMOOTHED mood, so it moves with the eyes instead
