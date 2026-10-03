@@ -19,19 +19,24 @@ import { createBehaviour } from './face/behaviour';
 // import.meta.env.DEV is false in a production build, so this is compiled out.
 // ?demo cycles through everything; ?demo=smile (or brows, squint, talk, tilt, away) holds one.
 // ?demo=listen talks for 3s, pauses 1.5s, repeat: watch for the ear and the nods.
-// ?demo=wink, ?demo=tongue and ?demo=ooh loop those.
+// ?demo=wink, ?demo=tongue and ?demo=ooh loop those; ?demo=angry glares for 5s
+// (watch it match, then soften to concerned), relaxes 2s, repeats.
 // ?debug (dev only, with the camera on) lists the live expression scores, for
 // tuning thresholds against a real face instead of guessing.
 const DEBUG = import.meta.env.DEV && typeof window !== 'undefined'
   && new URLSearchParams(window.location.search).has('debug');
 const DEBUG_SHAPES = ['jawOpen', 'mouthSmileLeft', 'mouthSmileRight', 'browInnerUp', 'eyeBlinkLeft', 'eyeBlinkRight',
-  'eyeSquintLeft', 'eyeSquintRight', 'mouthFunnel', 'mouthPucker', 'tongueOut', 'tongueColour'];
+  'eyeSquintLeft', 'eyeSquintRight', 'mouthFunnel', 'mouthPucker', 'browDownLeft', 'browDownRight', 'tongueOut', 'tongueColour'];
 const DEMO_PARAM = import.meta.env.DEV && typeof window !== 'undefined'
   ? new URLSearchParams(window.location.search).get('demo') : null;
 const DEMO = DEMO_PARAM !== null;
 const DEMO_HOLD = { smile: 5, brows: 11, squint: 8.5, talk: 14, tilt: 16.5, away: 19 };
 function demoFace(now) {
   // Wink: the visitor's left eye shuts for 0.4s every 2.5s. Tongue: out 2s, in 1s.
+  if (DEMO_PARAM === 'angry') {
+    const k = (now / 1000) % 7;
+    return { x: 0.5, y: 0.5, roll: 0, shapes: k < 5 ? { browDownLeft: 0.7, browDownRight: 0.7, mouthFrownLeft: 0.5, mouthFrownRight: 0.5 } : {} };
+  }
   if (DEMO_PARAM === 'ooh') {
     const k = (now / 1000) % 3;
     return { x: 0.5, y: 0.5, roll: 0, shapes: { mouthFunnel: k < 2 ? 0.7 : 0, jawOpen: k < 2 ? 0.3 : 0 } };

@@ -36,12 +36,14 @@ const BODY_VERT = /* glsl */ `
 `;
 const BODY_FRAG = /* glsl */ `
   uniform vec3 uDeep, uCool, uGlow;
-  uniform float uBright;
+  uniform float uBright, uWarm;
   varying vec3 vNormal, vView;
   void main() {
     float facing = clamp(dot(normalize(vNormal), normalize(vView)), 0.0, 1.0);
     float rim = pow(1.0 - facing, 2.2);
     vec3 c = mix(uDeep, uCool, facing * 0.8) + uGlow * rim * 0.9;
+    // Grumpy: the rim warms toward a soft ember. A tint, not a red alarm.
+    c += vec3(0.35, -0.05, -0.2) * rim * uWarm;
     gl_FragColor = vec4(c * (0.55 + 0.6 * uBright), 1.0);
   }
 `;
@@ -65,7 +67,7 @@ const UV_VERT = /* glsl */ `
 // One eye. uv centred to -1..1. Openness squashes it, happy carves a crescent
 // out of the bottom, widen makes it taller, the pupil slides with the gaze.
 const EYE_FRAG = /* glsl */ `
-  uniform float uOpen, uHappy, uWiden, uSquint, uBright;
+  uniform float uOpen, uHappy, uWiden, uSquint, uSlant, uSide, uBright;
   uniform vec2 uPupil;
   uniform vec3 uGlow;
   varying vec2 vUv;
@@ -86,6 +88,13 @@ const EYE_FRAG = /* glsl */ `
     // Crescent: a disc rises from below and eats the lower half of the eye.
     float cut = length(p - vec2(0.0, mix(-1.6, -0.42, uHappy))) ;
     eye *= smoothstep(0.86, 0.94, cut);
+    // Slanted lid: + (angry) drops the INNER corner, toward the nose; -
+    // (worried) raises it. uSide is -1 for the eye on the viewer's left.
+    if (abs(uSlant) > 0.01) {
+      float inner = p.x * -uSide;
+      float lidY = ry * (0.9 - 0.3 * abs(uSlant)) - uSlant * 0.6 * inner;
+      eye *= 1.0 - smoothstep(lidY - 0.03, lidY + 0.01, p.y);
+    }
     // Pupil fades out as the eye becomes a crescent (^ ^ has no pupils).
     vec2 pp = p - uPupil * vec2(0.22, 0.2);
     float pupil = (1.0 - smoothstep(0.17, 0.21, length(pp / vec2(1.0, max(uOpen, 0.2))))) * (1.0 - uHappy);
@@ -170,7 +179,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
 
   const bodyU = {
     uTime: { value: 0 }, uStretch: { value: 0 }, uWobble: { value: reducedMotion ? 0.012 : 0.035 },
-    uBright: { value: 0.6 }, uDeep: { value: DEEP }, uCool: { value: COOL }, uGlow: { value: GLOW },
+    uBright: { value: 0.6 }, uWarm: { value: 0 }, uDeep: { value: DEEP }, uCool: { value: COOL }, uGlow: { value: GLOW },
   };
   const body = new THREE.Mesh(
     new THREE.SphereGeometry(1, 96, 96),
@@ -191,7 +200,8 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
 
   const eyes = [-1, 1].map((side) => {
     const u = {
-      uOpen: { value: 1 }, uHappy: { value: 0 }, uWiden: { value: 0 }, uSquint: { value: 0 }, uBright: { value: 0.6 },
+      uOpen: { value: 1 }, uHappy: { value: 0 }, uWiden: { value: 0 }, uSquint: { value: 0 },
+      uSlant: { value: 0 }, uSide: { value: side }, uBright: { value: 0.6 },
       uPupil: { value: new THREE.Vector2() }, uGlow: { value: GLOW },
     };
     const m = new THREE.Mesh(
@@ -240,6 +250,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
     bodyU.uTime.value = t;
     bodyU.uStretch.value = s.widen;
     bodyU.uBright.value = s.bright + s.happy * 0.25;
+    bodyU.uWarm.value = s.angry ?? 0;
     haloU.uBright.value = s.bright + s.happy * 0.3 + s.lean * 0.15 * (0.5 + 0.5 * Math.sin(t * 4));
 
     head.rotation.y = s.yaw;
@@ -257,6 +268,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
       e.u.uHappy.value = Math.max(s.happy, wink);
       e.u.uWiden.value = s.widen;
       e.u.uSquint.value = s.squint;
+      e.u.uSlant.value = s.slant ?? 0;
       e.u.uBright.value = s.bright;
       e.u.uPupil.value.set(s.gazeX, s.gazeY);
       // A little parallax: the eyes themselves drift toward the gaze too.

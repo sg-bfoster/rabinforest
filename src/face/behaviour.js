@@ -49,6 +49,9 @@ export function mouthFor(s) {
   width -= s.lean * 0.05;
   if (s.idle) { width -= 0.03; curve -= 0.05; }
   // Tongue out: mouth a little open and narrower, so the tongue has a gap to come through.
+  // Angry: a downturned pout. Worried: a smaller, gentler frown.
+  curve -= (s.angry ?? 0) * 0.65 + (s.worry ?? 0) * 0.25;
+  width -= (s.angry ?? 0) * 0.04 + (s.worry ?? 0) * 0.03;
   // O face: lips rounded into an O. Narrow, open, and the top arched so it
   // closes into a circle, with fuller lips. Overrides the smile curve: you
   // can't round your lips and grin at once.
@@ -79,6 +82,9 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     winkLeft: 0, winkRight: 0,   // one eye shut, by SCREEN side (left = the eye on the viewer's left), 0..1
     tongue: 0,                   // tongue out, 0..1
     ooh: 0,                      // O face, lips rounded, 0..1
+    angry: 0,                    // grumpy pout: lids slant down to the middle, frown, 0..1
+    worry: 0,                    // concerned: lids slant UP to the middle, 0..1
+    slant: 0,                    // for the renderer: angry - worry
     mouthLips: 0,                // lip fullness for the renderer, 0..1
     lean: 0,                     // leans in when the visitor talks, 0..1
     bright: 0.6,                 // glow; dims when idle
@@ -104,6 +110,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
   let winkSeenSide = 0, winkSeenSince = -1, winkAt = -1, winkSide = 0, winkStart = -1, winkCooldown = 0;
   let tongueSince = -1, tongueAt = -1, tongueT = 0;
   let oohSince = -1, oohT = 0;
+  let angrySince = -1, angryT = 0, worryT = 0;
   let visitorBlinkWas = false, lastBlinkAt = -Infinity;
   let avertSince = -1, followUntil = 0, followX = 0;
   let talkLevel = 0;
@@ -270,6 +277,25 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     tongueT = tongueAt >= 0 && now >= tongueAt ? 1 : 0;
     if (tongueT) t.happy = Math.max(t.happy, 0.45);
 
+    // --- They frown -> it frowns back, then softens. ---
+    // Brows pulled down (browDown*) is the anger signal MediaPipe reads best;
+    // a sneer or pressed, turned-down mouth adds to it. Held 300ms, answered at
+    // ~70% as a grumpy POUT, not a glare. After ~2.5s of it, the form stops
+    // matching and turns concerned instead: briefly matching says "I see you",
+    // glaring back at an angry person indefinitely just escalates.
+    const browDown = ((sh.browDownLeft ?? 0) + (sh.browDownRight ?? 0)) / 2;
+    const mouthMad = Math.max(((sh.mouthFrownLeft ?? 0) + (sh.mouthFrownRight ?? 0)) / 2,
+      ((sh.noseSneerLeft ?? 0) + (sh.noseSneerRight ?? 0)) / 2, ((sh.mouthPressLeft ?? 0) + (sh.mouthPressRight ?? 0)) / 2);
+    const anger = browDown + mouthMad * 0.3;
+    if (anger > 0.4 && smile < 0.3) {
+      if (angrySince < 0) angrySince = now;
+      const held = now - angrySince;
+      const soften = clamp((held - 2500) / 800, 0, 1);       // 0 = matching, 1 = concerned
+      const match = held > 300 ? clamp(anger * 0.9, 0, 0.7) : 0;
+      angryT = match * (1 - soften * 0.75);
+      worryT = soften * 0.6;
+    } else { angrySince = -1; angryT = 0; worryT = 0; }
+
     // --- O face -> it makes one back. MediaPipe reads rounded lips well:
     //     mouthFunnel is the open "oh", mouthPucker the tighter "ooh"/kiss.
     //     Held 200ms, then it answers at about 85% of theirs.
@@ -362,6 +388,9 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     s.squint = approach(s.squint, t.squint, 6, dt);
     s.tongue = approach(s.tongue, hasFace ? tongueT : 0, 7, dt);
     s.ooh = approach(s.ooh, hasFace ? oohT : 0, 7, dt);
+    s.angry = approach(s.angry, hasFace ? angryT : 0, 5, dt);
+    s.worry = approach(s.worry, hasFace ? worryT : 0, 3, dt);
+    s.slant = s.angry - s.worry;
     s.lean = approach(s.lean, t.lean, 2.5, dt);
     s.bright = approach(s.bright, t.bright, 1.5, dt);
     // Mouth reads from the SMOOTHED mood, so it moves with the eyes instead
