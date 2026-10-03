@@ -2345,3 +2345,9 @@
   .rabinai-face-stage { aspect-ratio: 3 / 4; }
   .rabinai-face-hint { white-space: normal; text-align: center; width: calc(100% - 2 * var(--space-4)); }
 }
+/* Dev-only ?debug readout of live expression scores. */
+.rabinai-face-debug {
+  position: absolute; left: var(--space-3); top: var(--space-3); z-index: 1; margin: 0;
+  padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm);
+  background: rgba(10, 15, 21, 0.75); color: var(--glow); font: 12px/1.45 ui-monospace, Menlo, monospace;
+}

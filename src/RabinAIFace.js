@@ -19,11 +19,27 @@ import { createBehaviour } from './face/behaviour';
 // import.meta.env.DEV is false in a production build, so this is compiled out.
 // ?demo cycles through everything; ?demo=smile (or brows, squint, talk, tilt, away) holds one.
 // ?demo=listen talks for 3s, pauses 1.5s, repeat: watch for the ear and the nods.
+// ?demo=wink and ?demo=tongue loop those.
+// ?debug (dev only, with the camera on) lists the live expression scores, for
+// tuning thresholds against a real face instead of guessing.
+const DEBUG = import.meta.env.DEV && typeof window !== 'undefined'
+  && new URLSearchParams(window.location.search).has('debug');
+const DEBUG_SHAPES = ['jawOpen', 'mouthSmileLeft', 'mouthSmileRight', 'browInnerUp', 'eyeBlinkLeft', 'eyeBlinkRight',
+  'eyeSquintLeft', 'eyeSquintRight', 'tongueOut'];
 const DEMO_PARAM = import.meta.env.DEV && typeof window !== 'undefined'
   ? new URLSearchParams(window.location.search).get('demo') : null;
 const DEMO = DEMO_PARAM !== null;
 const DEMO_HOLD = { smile: 5, brows: 11, squint: 8.5, talk: 14, tilt: 16.5, away: 19 };
 function demoFace(now) {
+  // Wink: the visitor's left eye shuts for 0.4s every 2.5s. Tongue: out 2s, in 1s.
+  if (DEMO_PARAM === 'wink') {
+    const k = (now / 1000) % 2.5;
+    return { x: 0.5, y: 0.5, roll: 0, shapes: { eyeBlinkLeft: k < 0.4 ? 0.9 : 0, eyeBlinkRight: 0 } };
+  }
+  if (DEMO_PARAM === 'tongue') {
+    const k = (now / 1000) % 3;
+    return { x: 0.5, y: 0.5, roll: 0, shapes: { tongueOut: k < 2 ? 0.7 : 0, jawOpen: k < 2 ? 0.25 : 0 } };
+  }
   if (DEMO_PARAM === 'listen') {
     const k = (now / 1000) % 4.5;
     return { x: 0.5, y: 0.5, roll: 0, shapes: { jawOpen: k < 3 ? 0.4 : 0 } };
@@ -52,6 +68,8 @@ export default function RabinAIFace() {
   const [showPreview, setShowPreview] = useState(false);
   const [noFace, setNoFace] = useState(false);
   const [renderFailed, setRenderFailed] = useState(false);
+  const lastFaceRef = useRef(null);
+  const [debugRows, setDebugRows] = useState(null);
 
   // The form runs from the moment the page opens — idle, looking around — so
   // declining the camera still leaves something alive on the page.
@@ -79,6 +97,7 @@ export default function RabinAIFace() {
         // here is what lets the build drop demoFace altogether.
         try { face = import.meta.env.DEV && DEMO ? demoFace(now) : trackerRef.current?.read() ?? null; } catch (err) { console.warn('[face] detect', err); }
         if (face) lastFaceSeen = now;
+        lastFaceRef.current = face;
         // "Can't see you" hint after 3s of camera with no face, so a dark room
         // or a covered lens doesn't look like the page ignoring them.
         const missing = !!trackerRef.current && now - lastFaceSeen > 3000;
@@ -96,6 +115,17 @@ export default function RabinAIFace() {
       form?.cleanup?.();
       form?.dispose();
     };
+  }, []);
+
+  // ?debug: refresh the score readout five times a second (not every frame:
+  // re-rendering React at 120Hz to print numbers would cost more than the face).
+  useEffect(() => {
+    if (!(import.meta.env.DEV && DEBUG)) return undefined;
+    const id = setInterval(() => {
+      const f = lastFaceRef.current;
+      setDebugRows(f ? DEBUG_SHAPES.map((k) => [k, f.shapes?.[k] ?? 0]).concat([['roll', f.roll ?? 0]]) : []);
+    }, 200);
+    return () => clearInterval(id);
   }, []);
 
   // Leaving the page turns the camera off. Always.
@@ -148,6 +178,11 @@ export default function RabinAIFace() {
               playsInline
               aria-hidden="true"
             />
+            {import.meta.env.DEV && DEBUG && debugRows && (
+              <pre className="rabinai-face-debug">
+                {debugRows.length ? debugRows.map(([k, v]) => `${k.padEnd(16)} ${v.toFixed(2)}`).join('\n') : 'no face'}
+              </pre>
+            )}
             {camera === 'on' && noFace && (
               <div className="rabinai-face-hint" role="status">I can't see you — is there enough light?</div>
             )}

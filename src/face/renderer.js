@@ -100,7 +100,7 @@ const EYE_FRAG = /* glsl */ `
 // Lower edge = the curve pulled down by uOpenM, tapering to the corners, so
 // the same four numbers make a line, a smile, a grin or a small round "o".
 const MOUTH_FRAG = /* glsl */ `
-  uniform float uCurve, uWidth, uOpenM, uTilt, uBright;
+  uniform float uCurve, uWidth, uOpenM, uTilt, uTongue, uBright;
   uniform vec3 uGlow;
   varying vec2 vUv;
   void main() {
@@ -124,6 +124,22 @@ const MOUTH_FRAG = /* glsl */ `
     float a = max(max(line, rim), inside * step(0.02, uOpenM));
     vec3 lit = uGlow * (1.05 + 0.3 * uBright);
     vec3 col = mix(lit, vec3(0.02, 0.07, 0.12), inside * (1.0 - max(line, rim)));
+    // Tongue: a soft rounded shape hanging from the middle of the top lip,
+    // with a groove down the centre. The one warm colour on the form, so it
+    // reads instantly.
+    if (uTongue > 0.01) {
+      // It hangs OUT: from inside the open mouth to well past the lower lip.
+      float top0 = uCurve * 0.35 * (-0.35);
+      float bot0 = top0 - uOpenM * 0.6;
+      float len = 0.5 * uTongue;
+      vec2 tc = vec2(0.0, bot0 - len * 0.35);
+      float tq = length((p - tc) / vec2(0.21, max(len * 0.65, 0.001)));
+      float tongue = (1.0 - smoothstep(0.9, 1.0, tq)) * step(p.y, top0 + 0.01);
+      float groove = 1.0 - smoothstep(0.008, 0.02, abs(p.x)) * 1.0;
+      vec3 pink = mix(vec3(1.0, 0.56, 0.66), vec3(0.85, 0.36, 0.48), groove * step(p.y, top0 - 0.04));
+      col = mix(col, pink, tongue);
+      a = max(a, tongue);
+    }
     gl_FragColor = vec4(col, a);
   }
 `;
@@ -181,7 +197,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
   });
 
   const mouthU = {
-    uCurve: { value: 0.15 }, uWidth: { value: 0.16 }, uOpenM: { value: 0 }, uTilt: { value: 0 },
+    uCurve: { value: 0.15 }, uWidth: { value: 0.16 }, uOpenM: { value: 0 }, uTilt: { value: 0 }, uTongue: { value: 0 },
     uBright: { value: 0.6 }, uGlow: { value: GLOW },
   };
   const mouth = new THREE.Mesh(
@@ -221,8 +237,10 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
     else head.position.x *= 0.95;
 
     for (const e of eyes) {
+      // A winking eye is drawn as the smile crescent, shut: ^ reads as a wink.
+      const wink = e.side < 0 ? (s.winkLeft ?? 0) : (s.winkRight ?? 0);
       e.u.uOpen.value = s.open;
-      e.u.uHappy.value = s.happy;
+      e.u.uHappy.value = Math.max(s.happy, wink);
       e.u.uWiden.value = s.widen;
       e.u.uSquint.value = s.squint;
       e.u.uBright.value = s.bright;
@@ -235,6 +253,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
     mouthU.uWidth.value = s.mouthWidth ?? 0.16;
     mouthU.uOpenM.value = s.mouthOpen ?? 0;
     mouthU.uTilt.value = s.mouthTilt ?? 0;
+    mouthU.uTongue.value = s.tongue ?? 0;
     mouthU.uBright.value = s.bright;
     mouth.position.x = s.gazeX * 0.03;           // a hint of the same parallax as the eyes
     renderer.render(scene, camera);

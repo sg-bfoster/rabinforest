@@ -48,6 +48,11 @@ export function mouthFor(s) {
   tilt += s.squint * 0.35;
   width -= s.lean * 0.05;
   if (s.idle) { width -= 0.03; curve -= 0.05; }
+  // Tongue out: mouth a little open and narrower, so the tongue has a gap to come through.
+  if (s.tongue > 0.02) { open = Math.max(open, 0.32 * s.tongue); width = Math.min(width, 0.17); curve = Math.max(curve, 0.1); }
+  // A wink pulls the mouth up on the winking side: the smirk.
+  tilt += (s.winkRight - s.winkLeft) * 0.35;
+  curve += Math.max(s.winkLeft, s.winkRight) * 0.2;
   return { curve: clamp(curve, -0.4, 0.8), width: clamp(width, 0.06, 0.26), open: clamp(open, 0, 1), tilt };
 }
 
@@ -60,6 +65,8 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     happy: 0,                    // eye crescent 0..1
     widen: 0,                    // eyes wider, form stretches up, 0..1
     squint: 0,                   // eyes narrowed, 0..1
+    winkLeft: 0, winkRight: 0,   // one eye shut, by SCREEN side (left = the eye on the viewer's left), 0..1
+    tongue: 0,                   // tongue out, 0..1
     lean: 0,                     // leans in when the visitor talks, 0..1
     bright: 0.6,                 // glow; dims when idle
     // The mouth, derived from the form's own mood above — never copied from
@@ -81,6 +88,8 @@ export function createBehaviour({ reducedMotion = false } = {}) {
   let smileSince = -1, smileAnswerAt = -1, smileStoppedAt = -1;
   let browSince = -1;
   let narrowSince = -1;
+  let winkSeenSide = 0, winkSeenSince = -1, winkAt = -1, winkSide = 0, winkStart = -1, winkCooldown = 0;
+  let tongueSince = -1, tongueAt = -1, tongueT = 0;
   let visitorBlinkWas = false, lastBlinkAt = -Infinity;
   let avertSince = -1, followUntil = 0, followX = 0;
   let talkLevel = 0;
@@ -110,7 +119,9 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     // --- Blinks: its own schedule, and sometimes WITH the visitor. ---
     if (!nextBlink) nextBlink = now + rand(1500, 4000);
     if (now >= nextBlink) blink(now);
-    const theyBlink = ((sh.eyeBlinkLeft ?? 0) + (sh.eyeBlinkRight ?? 0)) / 2 > 0.5;
+    const bl = sh.eyeBlinkLeft ?? 0, br = sh.eyeBlinkRight ?? 0;  // the VISITOR's left and right eye
+    const asym = Math.abs(bl - br) > 0.35;                       // one eye shut, the other open: a wink
+    const theyBlink = bl > 0.5 && br > 0.5;                      // both, or it's a wink, not a blink
     if (theyBlink && !visitorBlinkWas && narrowSince < 0 && now - lastBlinkAt > 1000 && Math.random() < 0.3) {
       blinkStart = -1; nextBlink = now + 80;     // a beat after theirs reads as attention
     }
@@ -210,6 +221,38 @@ export function createBehaviour({ reducedMotion = false } = {}) {
       if (now - smileStoppedAt > 400) { t.happy = 0; smileAnswerAt = -1; }
     }
 
+    // --- They wink -> it winks back, a beat later, with a smirk. ---
+    // Mirror sides: your left eye is on your left as you look at it, so it
+    // answers with the eye on the viewer's left. One eye shut and the other
+    // open, held 120ms (a blink is both eyes; a twitch is shorter).
+    const seen = bl > 0.55 && br < 0.3 ? -1 : br > 0.55 && bl < 0.3 ? 1 : 0;
+    if (seen && seen === winkSeenSide) {
+      if (now - winkSeenSince > 120 && winkAt < 0 && winkStart < 0 && now >= winkCooldown) {
+        winkAt = now + rand(250, 400); winkSide = seen;
+      }
+    } else { winkSeenSide = seen; winkSeenSince = now; }
+    if (winkAt >= 0 && now >= winkAt) { winkStart = now; winkAt = -1; winkCooldown = now + 1500; }
+    let wk = 0;
+    if (winkStart >= 0) {
+      // Shut fast (120ms), hold (250ms), open slower (200ms).
+      const e = now - winkStart;
+      wk = e < 120 ? e / 120 : e < 370 ? 1 : e < 570 ? 1 - (e - 370) / 200 : 0;
+      if (e >= 570) winkStart = -1;
+    }
+    s.winkLeft = winkSide < 0 ? wk : 0;
+    s.winkRight = winkSide > 0 ? wk : 0;
+
+    // --- Tongue out -> it sticks its tongue out too. Held 250ms, answered
+    //     ~300ms later, and it squeezes its eyes a little: the playful "blep".
+    //     MediaPipe's tongueOut score is weak on many faces; ?debug shows it.
+    const tg = sh.tongueOut ?? 0;
+    if (tg > 0.3) {
+      if (tongueSince < 0) tongueSince = now;
+      if (now - tongueSince > 250 && tongueAt < 0) tongueAt = now + 300;
+    } else { tongueSince = -1; tongueAt = -1; }
+    tongueT = tongueAt >= 0 && now >= tongueAt ? 1 : 0;
+    if (tongueT) t.happy = Math.max(t.happy, 0.45);
+
     // --- They squint -> it squints back, a beat later and a little less. ---
     // MediaPipe reports narrowed eyes as eyeSquint* AND as a partly closed
     // eyeBlink*, often more strongly the second way, so either counts. Held for
@@ -219,7 +262,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     const sq = ((sh.eyeSquintLeft ?? 0) + (sh.eyeSquintRight ?? 0)) / 2;
     const half = ((sh.eyeBlinkLeft ?? 0) + (sh.eyeBlinkRight ?? 0)) / 2;
     const narrow = Math.max(sq, half < 0.65 ? half : 0);
-    if (narrow > 0.35 && smile < 0.3) {
+    if (narrow > 0.35 && smile < 0.3 && !asym) {
       if (narrowSince < 0) narrowSince = now;
       if (now - narrowSince > 300) t.squint = clamp((narrow - 0.25) * 1.5, 0, 0.7);
     } else { narrowSince = -1; t.squint = 0; }
@@ -288,6 +331,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     s.happy = approach(s.happy, t.happy, 5, dt);
     s.widen = approach(s.widen, t.widen, 6, dt);
     s.squint = approach(s.squint, t.squint, 6, dt);
+    s.tongue = approach(s.tongue, hasFace ? tongueT : 0, 7, dt);
     s.lean = approach(s.lean, t.lean, 2.5, dt);
     s.bright = approach(s.bright, t.bright, 1.5, dt);
     // Mouth reads from the SMOOTHED mood, so it moves with the eyes instead
