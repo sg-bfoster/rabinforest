@@ -9,6 +9,10 @@
   to fall into, and it belongs to the brand instead of imitating a person.
 - **Lives in rabinforest**, as a new route alongside `LookAtIt.js`.
 - **One RabinAI voice:** the same Kokoro `af_heart` as read-aloud.
+- **It answers a spoken question, bounded (2026-10-03).** One question in, one
+  short spoken answer out (≤2 sentences), then back to listening. No memory
+  between turns, no follow-up chain, per-visitor rate limits. Revises the
+  "no open conversation" anti-goal rather than dropping it — see §8 and §11.
 - **It only responds; it never speaks first.** It looks, reacts and waits.
   The visitor holding something up (or answering) is the only thing that
   makes it talk.
@@ -214,9 +218,11 @@ safety property** — see §5.
 - **No image to the box, ever** (unless §0 is reversed on purpose).
 - **No comments on people.** Not "you look happy", not "nice shirt" — clothing
   is on the person; v1 keeps to held objects.
-- **No open conversation.** One question, at most one follow-up, then back to
-  just looking. The same reasoning that removed elder-app's open chat: open
-  chat is where unbounded cost and unbounded output live.
+- **No open conversation** — narrowed 2026-10-03, not dropped: it may answer
+  ONE spoken question with ONE short answer, then goes back to listening. No
+  memory between turns, no chaining, no "tell me more" loop. Open chat is where
+  unbounded cost and unbounded output live (the reason elder-app's open chat
+  was removed); the site's Home assistant is the place for that.
 - **Never speaks first.** No greeting, no remarks on the room. Silence until
   the visitor shows it something.
 - **No recording, no gallery, no "share your session".**
@@ -234,6 +240,37 @@ safety property** — see §5.
 5. **Polish:** tune the eyes and glow, phone performance pass.
 
 Each phase is usable on its own; stop wherever it stops being worth it.
+
+## 11. Built since this plan (2026-10-02/03), and step 1 of phase 3
+
+Phase 1 grew well past the silent face: smile, brows, squint, wink, O face,
+tongue (by colour, since MediaPipe's tongueOut barely moves), frown-then-soften,
+head tilt and turn mirrored, listening nods, finger/pointer following, and
+**ears**: browser speech recognition (on-device when the browser offers it,
+disclosed when it doesn't) for simple spoken directions and the lean-in on a
+question. All browser-side; see `src/face/`.
+
+**Step 1 of phase 3 — it answers.** The plan's phase 3 was "noticing what you
+hold up". Hearing landed first, so answering a spoken question comes first:
+
+```
+question (words only) ─► POST /ai/face/reply ─► input check (code) ─► box LLM (Gemini if asleep)
+                                                ─► output gate (code) ─► { say, engine }
+page ─► thinking face ─► POST /ai/readaloud (Kokoro) ─► mouth follows the audio
+```
+
+- **Words only**, as before: `/ai/face/reply` takes `{ question }` (≤200
+  chars) and nothing else. §0 is untouched.
+- **Questions about the visitor are declined in code, before any model** ("how
+  do I look?" gets a canned line). The model is told it can hear but cannot
+  see, so it never pretends to describe them.
+- **Output gate in code** (`server/face.js`, unit-tested): the same "never
+  about people's bodies" patterns as §5, plus spoken-text cleanup (no markdown,
+  links, emoji) and a two-sentence cap. A failed answer becomes a canned line.
+- **It must not hear itself:** the ears pause while it speaks.
+- **Latency budget:** recognition ~0.5s + box ~1–2s + Kokoro ~1–3s ≈ 3–6s,
+  covered by the thinking face. Streaming the first sentence is a later step.
+- Next: phase 2 (objects) reuses this endpoint with `{ heldUp: label }`.
 
 ## 10. Open questions for Brian
 
