@@ -84,6 +84,9 @@ export function createBehaviour({ reducedMotion = false } = {}) {
   let visitorBlinkWas = false, lastBlinkAt = -Infinity;
   let avertSince = -1, followUntil = 0, followX = 0;
   let talkLevel = 0;
+  // Listening: who's talking, when it last nodded, which way it turns its 'ear'.
+  let talkingSince = -1, lastTalkAt = -Infinity, nextBackchannel = 0, pauseNodDone = true;
+  let nodStart = -1, nodCount = 0, listen = 0, earSide = 1, basePitch = 0;
   let wanderX = 0, wanderY = 0, nextWander = 0;
   let tiltTarget = 0;
   let smX = null, movedAt = -Infinity, curiousUntil = 0, curiousTilt = 0, nextCuriousOk = 0;
@@ -93,6 +96,8 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     blinkStart = now; lastBlinkAt = now;
     nextBlink = now + rand(2000, 6000);
   }
+
+  function nod(now, times) { if (nodStart < 0) { nodStart = now; nodCount = times; } }
 
   function update(dt, now, input) {
     const f = input?.face ?? null;
@@ -231,6 +236,35 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     talkLevel = approach(talkLevel, (sh.jawOpen ?? 0) > 0.2 ? 1 : 0, 3, dt);
     t.lean = talkLevel > 0.5 ? 0.6 : 0;
 
+    // --- Listening: lend an ear, and nod. ---
+    // Backchannels, in the conversation-analysis sense (Yngve 1970): the small
+    // nods a listener gives WHILE someone talks, and the "mm-hm" nod at their
+    // pauses. That is what "I'm following you" looks like.
+    // It SEES you talking (jaw movement); it has no microphone. So the nods mean
+    // "I see you're speaking", not "I heard what you said".
+    const talking = hasFace && talkLevel > 0.5;
+    if (talking) {
+      if (talkingSince < 0) {
+        talkingSince = now;
+        earSide = Math.random() < 0.5 ? -1 : 1;              // which ear it offers
+        nextBackchannel = now + rand(2500, 4500);
+      }
+      lastTalkAt = now;
+      pauseNodDone = false;
+      if (now >= nextBackchannel) { nod(now, 1); nextBackchannel = now + rand(3000, 5500); }
+    } else if (talkLevel < 0.25 && talkingSince >= 0 && now - lastTalkAt > 250) {
+      // They stopped. Only nod if they'd been talking a while: a nod after a
+      // half-second "um" reads as impatience.
+      if (!pauseNodDone && lastTalkAt - talkingSince > 1200) nod(now, 2);
+      pauseNodDone = true;
+      talkingSince = -1;
+    }
+    listen = approach(listen, talking ? 1 : 0, 2.5, dt);
+    // Turning the head offers an ear, but the EYES stay on them: shift the
+    // pupils against the turn so the gaze still lands on the visitor.
+    const earTurn = earSide * 0.22 * listen;
+    t.gazeX = clamp(t.gazeX - earTurn * 2.2, -1, 1);
+
     t.bright = idle ? 0.5 : hasFace ? 1 : 0.8;
     if (!hasFace) { t.happy = 0; t.widen = 0; t.squint = 0; t.lean = 0; }
 
@@ -239,9 +273,18 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     const eyeRate = reducedMotion ? 6 : 14;
     s.gazeX = approach(s.gazeX, t.gazeX, eyeRate, dt);
     s.gazeY = approach(s.gazeY, t.gazeY, eyeRate, dt);
-    s.yaw = approach(s.yaw, t.gazeX * 0.35, 3, dt);
-    s.pitch = approach(s.pitch, -t.gazeY * 0.2, 3, dt);
-    s.roll = approach(s.roll, reducedMotion ? tiltTarget * 0.5 : tiltTarget, 2.5, dt);
+    s.yaw = approach(s.yaw, (t.gazeX + earTurn * 2.2) * 0.35 + earTurn, 3, dt);
+    basePitch = approach(basePitch, -t.gazeY * 0.2, 3, dt);
+    // A nod is a quick dip and return, ~380ms each, the second one smaller.
+    let nodOff = 0;
+    if (nodStart >= 0) {
+      const p = (now - nodStart) / 380;
+      if (p >= nodCount) nodStart = -1;
+      else nodOff = (reducedMotion ? 0.07 : 0.15) * Math.sin(Math.PI * (p % 1)) * (p < 1 ? 1 : 0.65);
+    }
+    s.pitch = basePitch + nodOff;                     // + tips the top toward you: a nod
+    const tiltWithEar = -earSide * 0.1 * listen;      // the head tips with the turn
+    s.roll = approach(s.roll, (reducedMotion ? tiltTarget * 0.5 : tiltTarget) + tiltWithEar, 2.5, dt);
     s.happy = approach(s.happy, t.happy, 5, dt);
     s.widen = approach(s.widen, t.widen, 6, dt);
     s.squint = approach(s.squint, t.squint, 6, dt);

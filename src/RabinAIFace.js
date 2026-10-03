@@ -18,11 +18,16 @@ import { createBehaviour } from './face/behaviour';
 // behaviour rules, for tuning the form without sitting in front of a camera.
 // import.meta.env.DEV is false in a production build, so this is compiled out.
 // ?demo cycles through everything; ?demo=smile (or brows, squint, talk, tilt, away) holds one.
+// ?demo=listen talks for 3s, pauses 1.5s, repeat: watch for the ear and the nods.
 const DEMO_PARAM = import.meta.env.DEV && typeof window !== 'undefined'
   ? new URLSearchParams(window.location.search).get('demo') : null;
 const DEMO = DEMO_PARAM !== null;
 const DEMO_HOLD = { smile: 5, brows: 11, squint: 8.5, talk: 14, tilt: 16.5, away: 19 };
 function demoFace(now) {
+  if (DEMO_PARAM === 'listen') {
+    const k = (now / 1000) % 4.5;
+    return { x: 0.5, y: 0.5, roll: 0, shapes: { jawOpen: k < 3 ? 0.4 : 0 } };
+  }
   const t = DEMO_HOLD[DEMO_PARAM] ?? (now / 1000) % 21;
   const sway = { x: 0.5 + 0.25 * Math.sin(now / 1500), y: 0.5 };
   if (t < 3) return { ...sway, shapes: {} };
