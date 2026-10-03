@@ -2438,3 +2438,11 @@
   border-left: 3px solid var(--cool); background: var(--field); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
 .sense-reply-say { color: var(--ink); font-weight: 500; }
 .sense-reply-by { color: var(--muted); font-size: 0.82rem; }
+/* Links from its answer: shown, never read aloud (AVATAR_ASSISTANT_PLAN phase A). */
+.face-links { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.face-link { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px var(--space-3);
+  border: 1px solid var(--cool); border-radius: var(--radius-sm); background: var(--field); color: var(--ink);
+  font-size: 0.9rem; font-weight: 500; text-decoration: none; max-width: 100%; }
+.face-link:hover, .face-link:focus-visible { background: var(--cool); color: var(--hero); }
+.face-link-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.face-link-arrow { flex: none; }

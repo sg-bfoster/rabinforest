@@ -1,6 +1,18 @@
 # Avatar Assistant — scope plan
 
-**Status:** scope only, 2026-10-03. Nothing is built. Build when Brian says build.
+**Status:** phase A built 2026-10-03 (v0.4.134, bfoster-services `7612c44`),
+committed, not pushed. B–F not started. See §13.
+
+**Decided (Brian, 2026-10-03: "build phase A, 5 turns"):** the §12
+recommendations, plus 5 turns of memory.
+- **Logging (q1):** log like Home; the page now says questions and answers are
+  kept, audio never.
+- **Where (q2):** the face page becomes "Talk to RabinAI"; Home links to it
+  (copy and link land in phase F).
+- **Memory (q3):** 5 turns, forgotten on idle (phase D).
+- **Small talk (q4):** `/ai/face/reply` stays, as the fallback when the
+  assistant can't answer.
+- **Contact by voice (q5):** disabled, Contact card instead.
 
 The site's assistant, with a face. The same brain that answers on Home —
 same knowledge about Brian, same links, same guardrails — spoken by the
@@ -193,3 +205,34 @@ Each phase works on its own. A alone is already "the assistant with a face".
    Recommendation: keep as fallback; it's cheap and already gated.
 5. **Contact by voice:** disabled with a Contact card (recommended), or a
    typed, on-screen-confirmed flow?
+
+## 13. What phase A built (2026-10-03)
+
+**Server** (`bfoster-services` `7612c44`): `spoken: true` on
+`/ai/gemini-assistant`.
+- `face.checkQuestion` first: about-the-visitor questions return the canned
+  line, `engine: 'canned'`, no model call.
+- Never emails. Contact intent gets the Contact-page instruction, and
+  `face.spokenReply` replaces any "I've sent Brian an email" claim with a fixed
+  line plus the Contact link: code, not prompt.
+- Reply gated like the face's own (no HTML/markdown/URLs, ≤2 sentences, links
+  http(s) only, max 4). Face limiter on spoken requests only.
+- `face.SPOKEN_STEER` sits on the END of the system prompt and only in what the
+  models read; the box's primed-prefix check stays on Home's prompt, so a face
+  question reuses Home's warm cache rather than drifting it.
+- Non-streamed (phase B streams). Response: `{ response: '{"text","links","gated"}', engine, model, spoken: true }`.
+
+**Page** (v0.4.134): questions go to the assistant (one `face_…`
+conversationId per page load), fall back to `/ai/face/reply`, then to "I
+couldn't think of an answer". Links render as cards under its words, never
+read out. Hearing's "Where does it go?" now says words are kept and audio
+never is. No memory yet (phase D): each question goes without history.
+
+**Measured locally, not on production:** the box answered once in 8.3s and
+timed out once at its 20s grant (Gemini covered in ~1s); Gemini alone
+answered in ~1-2s. So first word is plausibly 10s+ on the box until phase B,
+and phase E should measure it properly before anyone promises a number.
+
+**Not yet checked by a person:** the page in a browser with a real voice
+question, link cards on a phone, and how the answers SOUND.
+

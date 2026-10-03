@@ -16,10 +16,10 @@ below is settled.
 | Repo | Ahead of origin | Note |
 | --- | --- | --- |
 | rabinforest | **22** | 21 are this work; `b7f3b9c` (per-page schema) predates it |
-| bfoster-services | **2** | `e96f88e` `/ai/face/reply`, `5bdf8a7` readaloud personas. **Pushing deploys Heroku production.** |
+| bfoster-services | **3** | `e96f88e` `/ai/face/reply`, `5bdf8a7` readaloud personas, `7612c44` assistant spoken mode. **Pushing deploys Heroku production.** |
 
 **Push order if/when Brian says push:** bfoster-services first (the live page
-calls `/ai/face/reply` and `persona: 'face'`), then rabinforest. The page is
+calls `/ai/face/reply`, `persona: 'face'` and `spoken: true`), then rabinforest. The page is
 **unlisted** (no nav link, `noindex`, not in the sitemap), so nothing public
 changes until it's linked.
 
@@ -115,10 +115,11 @@ the tongue colour check, the renderer.
 
 ## Next
 
-The Avatar Assistant plan, **phase A** (~1 evening): `spoken: true` on
-`/ai/gemini-assistant` (steering in the system prompt), face gates on top,
-contact/email disabled by voice, link cards. Needs Brian's answers to §12 —
-or his "build phase A", which means taking the recommendations.
+**Phase A is built** (2026-10-03, v0.4.134 + bfoster-services `7612c44`,
+both committed, neither pushed); see AVATAR_ASSISTANT_PLAN §13. Brian answered
+§12: the recommendations, and 5 turns of memory. Next is phase B (stream:
+speak sentence 1 while the rest arrives), which is also the fix for the box's
+slow first word.
 
 ---
 

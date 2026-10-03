@@ -69,6 +69,22 @@ function demoFace(now) {
   return null;                                   // walks away: idle
 }
 
+// One conversation id per page load, so Brian's conversation logs keep a
+// visit's questions together (and can tell them from Home's `conv_` ids).
+const newConversationId = () => `face_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+
+/** A link card's label: what a visitor would call the place, not the raw URL. */
+function linkLabel(url) {
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace(/^www\./, '');
+    if (host === 'rabinforest.com' && u.pathname.startsWith('/contact')) return 'Contact Brian';
+    if (/\/resume\b/.test(u.pathname)) return "Brian's résumé";
+    const path = u.pathname.replace(/\/$/, '');
+    return path ? `${host}${path}` : host;
+  } catch { return url; }
+}
+
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
@@ -81,7 +97,7 @@ const TRY_CHIPS = [['Nod', 'nod'], ['Wink', 'wink'], ['Smile', 'smile'], ['Look 
 function replyBy(r) {
   if (!r) return '';
   const mind = r.engine === 'rabinai' ? 'answered by the box' : r.engine === 'gemini' ? 'answered by Gemini (the box was busy)'
-    : r.engine === 'canned' ? 'a built-in answer' : '';
+    : r.engine === 'canned' || r.engine === 'limit' ? 'a built-in answer' : '';
   const voice = r.voice === 'kokoro' ? 'voice: Kokoro, on the box' : r.voice ? 'voice: the cloud' : '';
   return [mind, voice].filter(Boolean).join(' · ');
 }
@@ -154,7 +170,8 @@ export default function RabinAIFace() {
   // What the render loop reads each frame: is someone talking, are they asking.
   const heardRef = useRef({ speaking: false, question: false });
   // Answering: one question in, one short spoken answer out (plan §11).
-  const [reply, setReply] = useState(null);           // { say, engine, voice } of the last answer
+  const [reply, setReply] = useState(null);           // { say, engine, voice, links } of the last answer
+  const conversationIdRef = useRef(null);
   const [answering, setAnswering] = useState('');     // '' | 'thinking' | 'speaking'
   const thinkingRef = useRef(false);
   const speakLevelRef = useRef(0);                     // 0..1 loudness of its own voice, read each frame
@@ -318,6 +335,38 @@ export default function RabinAIFace() {
   }
 
   /**
+   * The site's assistant, answering through the face (AVATAR_ASSISTANT_PLAN
+   * phase A): the same brain as Home, in spoken mode, so the server gates the
+   * question, never emails anyone, and returns two speakable sentences plus
+   * links for cards. -> { say, links, engine } or null.
+   */
+  async function askAssistant(question) {
+    conversationIdRef.current ??= newConversationId();
+    const r = await fetch(`${API_BASE_URL}/ai/gemini-assistant`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: question.slice(0, 200), conversationId: conversationIdRef.current, spoken: true }),
+    });
+    const data = await r.json().catch(() => null);
+    if (r.status === 429 && data?.say) return { say: data.say, links: [], engine: 'limit' };
+    if (!r.ok || typeof data?.response !== 'string') return null;
+    let parsed = null;
+    try { parsed = JSON.parse(data.response); } catch { /* not JSON: use it as words */ }
+    const say = (parsed ? parsed.text : data.response)?.trim();
+    if (!say) return null;
+    return { say, links: Array.isArray(parsed?.links) ? parsed.links : [], engine: data.engine };
+  }
+
+  /** The face's own small talk: the fallback when the assistant can't answer (§12 q4). */
+  async function askFace(question) {
+    const r = await fetch(`${API_BASE_URL}/ai/face/reply`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: question.slice(0, 200) }),
+    });
+    const said = await r.json().catch(() => null);
+    return said?.say ? { say: said.say, links: [], engine: said.engine } : null;
+  }
+
+  /**
    * One question -> one short spoken answer. Words go to the server (never
    * audio or images); the answer comes back gated, Kokoro speaks it, and the
    * ears are paused meanwhile so it never hears, and answers, itself.
@@ -328,14 +377,11 @@ export default function RabinAIFace() {
     thinkingRef.current = true;
     setAnswering('thinking');
     let said = null;
-    try {
-      const r = await fetch(`${API_BASE_URL}/ai/face/reply`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: question.slice(0, 200) }),
-      });
-      said = await r.json().catch(() => null);
-    } catch { said = null; }
-    if (!said?.say) { setReply({ say: "I couldn't think of an answer just then.", engine: 'none' }); finish(); return; }
+    try { said = await askAssistant(question); } catch (err) { console.warn('[face] assistant', err); }
+    if (!said) {
+      try { said = await askFace(question); } catch (err) { console.warn('[face] reply', err); }
+    }
+    if (!said?.say) { setReply({ say: "I couldn't think of an answer just then.", engine: 'none', links: [] }); finish(); return; }
 
     let voice = null;
     const a = audioRef.current;
@@ -350,7 +396,7 @@ export default function RabinAIFace() {
       voice = tts.headers.get('X-TTS-Engine');
       const url = URL.createObjectURL(await tts.blob());
       earsRef.current?.pause();
-      setReply({ say: said.say, engine: said.engine, voice });
+      setReply({ say: said.say, engine: said.engine, voice, links: said.links });
       // Keep thinking until the voice is ready; only then stop and speak.
       thinkingRef.current = false;
       setAnswering('speaking');
@@ -370,7 +416,7 @@ export default function RabinAIFace() {
       URL.revokeObjectURL(url);
     } catch (err) {
       console.warn('[face] speak', err);
-      setReply({ say: said.say, engine: said.engine, voice: null });   // the words, at least
+      setReply({ say: said.say, engine: said.engine, voice: null, links: said.links });   // the words, at least
     }
     if (a) a.playing = false;
     finish();
@@ -415,7 +461,9 @@ export default function RabinAIFace() {
   // Exact words for where the audio goes. Not reassurance: whichever is true.
   const micWhere = micMode === 'local'
     ? 'Speech is turned into words on this device. No audio leaves it.'
-    : `Your browser sends what you say to ${speechVendor()}'s speech service, which sends back the words. This page never sees the audio and keeps none of the words.`;
+    : `Your browser sends what you say to ${speechVendor()}'s speech service, which sends back the words. This page never sees the audio.`;
+  // The assistant logs conversations, here as on Home (AVATAR_ASSISTANT_PLAN §12 q1).
+  const keptWords = 'The questions you ask, and its answers, are kept so Brian can improve it. Audio never is.';
   const ACT_WORDS = {
     nod: 'nodding', shake: 'shaking its head', smile: 'smiling', wink: 'winking', grumpy: 'looking grumpy',
     surprised: 'looking surprised', ooh: 'making an O', tongue: 'sticking its tongue out', close: 'closing its eyes',
@@ -451,7 +499,8 @@ export default function RabinAIFace() {
           A small RabinAI presence that keeps eye contact, blinks with you now
           and then, and answers a smile with one of its own. Your camera feeds a
           face-tracking model running in this tab; everything it does after that
-          is ordinary code, not AI.
+          is ordinary code, not AI. Switch on Hearing and it becomes the site's
+          assistant with a face: ask it about Brian's work and it answers out loud.
         </p>
       </Hero>
 
@@ -534,7 +583,7 @@ export default function RabinAIFace() {
               <SenseCard
                 icon={<EarIcon />}
                 title="Hearing"
-                blurb="Follows simple directions. Ask it a question and it answers out loud."
+                blurb="Follows simple directions. Ask it about Brian and his work, or anything else, and it answers out loud."
                 on={mic === 'on'}
                 busy={mic === 'starting'}
                 onToggle={() => (mic === 'on' ? micOff() : micOn())}
@@ -545,7 +594,7 @@ export default function RabinAIFace() {
                   ? 'Microphone blocked. Allow it from the address bar, then switch it on again.'
                   : mic === 'error' ? "Speech recognition couldn't start in this browser." : ''}
                 details={<>
-                  {micWhere}
+                  {micWhere} {keptWords}
                   {micMode === 'downloadable' && (
                     <span className="sense-local">
                       This browser can do it on your device instead.{' '}
@@ -563,6 +612,19 @@ export default function RabinAIFace() {
                       <span className="sense-reply-by">{replyBy(reply)}</span>
                     </>}
                   </p>
+                )}
+                {/* Links are shown, never read out: the spoken answer points here. */}
+                {!answering && reply?.links?.length > 0 && (
+                  <ul className="face-links" aria-label="Links from its answer">
+                    {reply.links.map((url) => (
+                      <li key={url}>
+                        <a className="face-link" href={url} target="_blank" rel="noopener noreferrer">
+                          <span className="face-link-label">{linkLabel(url)}</span>
+                          <span className="face-link-arrow" aria-hidden="true">↗</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
                 )}
                 {mic === 'on' && (
                   <p className="sense-live" aria-live="polite">
