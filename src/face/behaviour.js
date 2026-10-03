@@ -14,6 +14,7 @@
  *   input: { face: null | { x, y, roll, shapes } }  x,y in 0..1 camera-image coords,
  *          roll = their head tilt in radians (negative = toward their right shoulder),
  *          shapes = { blendshapeName: score }
+ *          speak = 0..1 loudness of its OWN voice (phase 3, Kokoro); omit until then
  *   state: everything the renderer needs, already smoothed.
  */
 
@@ -24,6 +25,31 @@ const approach = (cur, target, rate, dt) => cur + (target - cur) * (1 - Math.exp
 
 const BLINK_MS = 150;            // whole blink, close + open
 const IDLE_AFTER_MS = 5000;      // no face this long -> idle drift
+
+/**
+ * The mouth for a mood. Each expression nudges a neutral, slightly friendly
+ * line; they add, so a smile while surprised is a wide open "oh!".
+ *   happy  -> curves up and widens; past ~0.4 it opens into a grin
+ *   widen  -> surprise: narrows into a small round "o"
+ *   squint -> flatter, shorter, lopsided: the skeptical look
+ *   lean   -> listening: small and closed
+ *   idle   -> small and neutral
+ */
+export function mouthFor(s) {
+  let curve = 0.15, width = 0.16, open = 0, tilt = 0;
+  curve += s.happy * 0.6;
+  width += s.happy * 0.08;
+  open += Math.max(0, s.happy - 0.35) * 1.0;
+  width -= s.widen * 0.15;
+  open += s.widen * 1.2;
+  curve -= s.widen * 0.9;           // the top arches UP too, so it closes into an oval, not a cup
+  curve -= s.squint * 0.25;
+  width -= s.squint * 0.04;
+  tilt += s.squint * 0.35;
+  width -= s.lean * 0.05;
+  if (s.idle) { width -= 0.03; curve -= 0.05; }
+  return { curve: clamp(curve, -0.4, 0.8), width: clamp(width, 0.06, 0.26), open: clamp(open, 0, 1), tilt };
+}
 
 export function createBehaviour({ reducedMotion = false } = {}) {
   const s = {
@@ -36,6 +62,12 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     squint: 0,                   // eyes narrowed, 0..1
     lean: 0,                     // leans in when the visitor talks, 0..1
     bright: 0.6,                 // glow; dims when idle
+    // The mouth, derived from the form's own mood above — never copied from
+    // the visitor's mouth. See mouthFor().
+    mouthCurve: 0.15,            // + = ends up (smile), - = ends down
+    mouthWidth: 0.16,            // half-width, in eye-plane units
+    mouthOpen: 0,                // 0 = a line, 1 = fully open
+    mouthTilt: 0,                // lopsided: + raises its right corner
     idle: true,
   };
 
@@ -215,6 +247,14 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     s.squint = approach(s.squint, t.squint, 6, dt);
     s.lean = approach(s.lean, t.lean, 2.5, dt);
     s.bright = approach(s.bright, t.bright, 1.5, dt);
+    // Mouth reads from the SMOOTHED mood, so it moves with the eyes instead
+    // of ahead of them; only speech (fast by nature) is eased separately.
+    const m = mouthFor(s);
+    const speak = clamp(input?.speak ?? 0, 0, 1);
+    s.mouthCurve = m.curve;
+    s.mouthWidth = m.width;
+    s.mouthTilt = m.tilt;
+    s.mouthOpen = approach(s.mouthOpen, clamp(m.open + speak * 0.7, 0, 1), speak ? 18 : 8, dt);
     return s;
   }
 

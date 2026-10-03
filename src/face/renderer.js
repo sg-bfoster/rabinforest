@@ -96,6 +96,38 @@ const EYE_FRAG = /* glsl */ `
   }
 `;
 
+// The mouth: one stroke along a curve, which can open into a filled shape.
+// Lower edge = the curve pulled down by uOpenM, tapering to the corners, so
+// the same four numbers make a line, a smile, a grin or a small round "o".
+const MOUTH_FRAG = /* glsl */ `
+  uniform float uCurve, uWidth, uOpenM, uTilt, uBright;
+  uniform vec3 uGlow;
+  varying vec2 vUv;
+  void main() {
+    vec2 p = vUv * 2.0 - 1.0;
+    float w = uWidth * 3.0;                       // half-width in plane units
+    float xc = clamp(p.x, -w, w);
+    float u = xc / w;                             // -1..1 across the mouth
+    float top = uCurve * 0.35 * (u * u - 0.35) + uTilt * 0.25 * u;
+    // sqrt, not a parabola: a round-bottomed opening, so a narrow open mouth
+    // is an oval "o" and a wide one a D-shaped grin, not a V.
+    float depth = uOpenM * 0.6 * sqrt(max(1.0 - u * u, 0.0));
+    float bot = top - depth;
+    float stroke = 0.065;
+    // Distance to the upper line, with round caps at the corners.
+    float dTop = length(vec2(p.x - xc, p.y - top));
+    float line = 1.0 - smoothstep(stroke * 0.6, stroke, dTop);
+    // Open: the inside, between the two curves, dark with a bright rim.
+    float inside = step(abs(p.x), w) * smoothstep(bot - 0.01, bot + 0.02, p.y) * (1.0 - smoothstep(top - 0.01, top + 0.01, p.y));
+    float dBot = length(vec2(p.x - xc, p.y - bot));
+    float rim = (1.0 - smoothstep(stroke * 0.6, stroke, dBot)) * step(0.02, uOpenM);
+    float a = max(max(line, rim), inside * step(0.02, uOpenM));
+    vec3 lit = uGlow * (1.05 + 0.3 * uBright);
+    vec3 col = mix(lit, vec3(0.02, 0.07, 0.12), inside * (1.0 - max(line, rim)));
+    gl_FragColor = vec4(col, a);
+  }
+`;
+
 export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -148,6 +180,20 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
     return { m, u, side };
   });
 
+  const mouthU = {
+    uCurve: { value: 0.15 }, uWidth: { value: 0.16 }, uOpenM: { value: 0 }, uTilt: { value: 0 },
+    uBright: { value: 0.6 }, uGlow: { value: GLOW },
+  };
+  const mouth = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.62, 0.42),
+    // Same reason as the eyes: drawn on top, or the wobble slices it.
+    new THREE.ShaderMaterial({ uniforms: mouthU, vertexShader: UV_VERT, fragmentShader: MOUTH_FRAG, transparent: true, depthWrite: false, depthTest: false }),
+  );
+  mouth.renderOrder = 1;
+  mouth.position.set(0, -0.3, 0.96);
+  mouth.rotation.x = 0.3;                         // follows the sphere's curve below centre
+  head.add(mouth);
+
   function resize() {
     const w = canvas.clientWidth, h = canvas.clientHeight;
     if (!w || !h) return;
@@ -185,6 +231,12 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
       e.m.position.x = e.side * 0.3 + s.gazeX * 0.04;
       e.m.position.y = 0.12 + s.gazeY * 0.03;
     }
+    mouthU.uCurve.value = s.mouthCurve ?? 0.15;
+    mouthU.uWidth.value = s.mouthWidth ?? 0.16;
+    mouthU.uOpenM.value = s.mouthOpen ?? 0;
+    mouthU.uTilt.value = s.mouthTilt ?? 0;
+    mouthU.uBright.value = s.bright;
+    mouth.position.x = s.gazeX * 0.03;           // a hint of the same parallax as the eyes
     renderer.render(scene, camera);
   }
 
