@@ -19,7 +19,7 @@ const MODEL_URL =
 
 /**
  * Start the camera and the landmarker. Resolves to { read(), stop() }.
- * read() returns the latest face ({ x, y, shapes }) or null; it never blocks.
+ * read() returns the latest face ({ x, y, roll, shapes }) or null; it never blocks.
  * Throws a DOMException named NotAllowedError when the visitor says no.
  */
 export async function startTracker(video) {
@@ -70,7 +70,15 @@ export async function startTracker(video) {
     for (const p of pts) { sx += p.x; sy += p.y; }
     const shapes = {};
     for (const c of r.faceBlendshapes?.[0]?.categories ?? []) shapes[c.categoryName] = c.score;
-    latest = { x: sx / pts.length, y: sy / pts.length, shapes };
+    // Head tilt (roll) from the outer eye corners: 33 is the visitor's right
+    // eye (image left), 263 their left (image right). Level head = 0. Tilting
+    // toward their RIGHT shoulder drops 33, which makes this negative.
+    // In pixels, not 0..1 units: x and y are normalised to different lengths on
+    // a 4:3 camera, and the angle would come out squashed.
+    const a = pts[33], b = pts[263];
+    const roll = a && b
+      ? Math.atan2((b.y - a.y) * video.videoHeight, (b.x - a.x) * video.videoWidth) : 0;
+    latest = { x: sx / pts.length, y: sy / pts.length, roll, shapes };
     return latest;
   }
 

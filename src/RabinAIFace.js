@@ -17,19 +17,20 @@ import { createBehaviour } from './face/behaviour';
 // Dev only (`npm run dev`, then ?demo): a scripted visitor fed through the same
 // behaviour rules, for tuning the form without sitting in front of a camera.
 // import.meta.env.DEV is false in a production build, so this is compiled out.
-// ?demo cycles through everything; ?demo=smile (or brows, talk, away) holds one.
+// ?demo cycles through everything; ?demo=smile (or brows, talk, tilt, away) holds one.
 const DEMO_PARAM = import.meta.env.DEV && typeof window !== 'undefined'
   ? new URLSearchParams(window.location.search).get('demo') : null;
 const DEMO = DEMO_PARAM !== null;
-const DEMO_HOLD = { smile: 5, brows: 11, talk: 14, away: 18 };
+const DEMO_HOLD = { smile: 5, brows: 11, talk: 14, tilt: 16.5, away: 19 };
 function demoFace(now) {
-  const t = DEMO_HOLD[DEMO_PARAM] ?? (now / 1000) % 20;
+  const t = DEMO_HOLD[DEMO_PARAM] ?? (now / 1000) % 21;
   const sway = { x: 0.5 + 0.25 * Math.sin(now / 1500), y: 0.5 };
   if (t < 3) return { ...sway, shapes: {} };
   if (t < 7) return { ...sway, shapes: { mouthSmileLeft: 0.9, mouthSmileRight: 0.9 } };
   if (t < 10) return { ...sway, shapes: {} };
   if (t < 13) return { ...sway, shapes: { browInnerUp: 0.8, browOuterUpLeft: 0.8, browOuterUpRight: 0.8 } };
   if (t < 16) return { ...sway, shapes: { jawOpen: 0.4 } };
+  if (t < 18) return { x: 0.5, y: 0.5, roll: 0.45 * Math.sin(now / 900), shapes: {} };   // head rocking side to side
   return null;                                   // walks away: idle
 }
 

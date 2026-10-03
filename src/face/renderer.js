@@ -160,6 +160,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
 
     head.rotation.y = s.yaw;
     head.rotation.x = s.pitch;
+    head.rotation.z = s.roll;
     head.position.y = s.happy * 0.06 + (s.idle && !reducedMotion ? Math.sin(t * 0.5) * 0.05 : 0);
     head.position.z = s.lean * 0.25;
     if (s.idle && !reducedMotion) head.position.x = Math.sin(t * 0.33) * 0.08;

@@ -11,7 +11,8 @@
  * at ~70% strength, not copied frame for frame.
  *
  * update(dt, now, input) -> state
- *   input: { face: null | { x, y, shapes } }  x,y in 0..1 camera-image coords,
+ *   input: { face: null | { x, y, roll, shapes } }  x,y in 0..1 camera-image coords,
+ *          roll = their head tilt in radians (negative = toward their right shoulder),
  *          shapes = { blendshapeName: score }
  *   state: everything the renderer needs, already smoothed.
  */
@@ -28,6 +29,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
   const s = {
     gazeX: 0, gazeY: 0,          // pupil offset, -1..1
     yaw: 0, pitch: 0,            // whole-form turn, radians-ish
+    roll: 0,                     // head tilt, radians; negative = top leans to the screen's right
     open: 1,                     // eye openness 0..1 (blinks)
     happy: 0,                    // eye crescent 0..1
     widen: 0,                    // eyes wider, form stretches up, 0..1
@@ -49,6 +51,8 @@ export function createBehaviour({ reducedMotion = false } = {}) {
   let avertSince = -1, followUntil = 0, followX = 0;
   let talkLevel = 0;
   let wanderX = 0, wanderY = 0, nextWander = 0;
+  let tiltTarget = 0;
+  let smX = null, movedAt = -Infinity, curiousUntil = 0, curiousTilt = 0, nextCuriousOk = 0;
 
   function blink(now) {
     if (blinkStart >= 0) return;
@@ -126,6 +130,33 @@ export function createBehaviour({ reducedMotion = false } = {}) {
       t.gazeY = idle ? wanderY : t.gazeY * 0.98;
     }
 
+    // --- Head tilt. Two reasons to tilt, never more than ~20 degrees. ---
+    // 1. Theirs, mirrored: tilt toward your right shoulder and its top leans to
+    //    YOUR right too, as a mirror (or a person copying you) would. 60% of the
+    //    angle, and the slow ease below puts it a beat behind — react, not copy.
+    // 2. Curious: they moved and then went still -> sometimes it cocks its head,
+    //    the dog-hearing-a-noise tilt. Held ~1.5s, then lets go.
+    if (hasFace) {
+      // Speed of a SMOOTHED position. The camera updates ~30/s while this runs
+      // at the display rate, so raw x arrives in steps, and landmark jitter
+      // divided by a 1/120s frame would read as constant motion.
+      const before = smX ?? f.x;
+      smX = approach(before, f.x, 6, dt);
+      const speed = Math.abs(smX - before) / Math.max(dt, 1e-3);
+      if (speed > 0.2) movedAt = now;                        // moving across the frame
+      const stillFor = now - movedAt;
+      if (stillFor > 350 && stillFor < 500 && now >= nextCuriousOk && Math.random() < 0.5) {
+        curiousTilt = rand(0.14, 0.22) * (Math.random() < 0.5 ? -1 : 1);
+        curiousUntil = now + rand(1200, 1800);
+        nextCuriousOk = now + rand(5000, 9000);              // a tic if it does it every time
+      }
+      const theirs = clamp((f.roll ?? 0) * 0.6, -0.35, 0.35);
+      tiltTarget = now < curiousUntil && Math.abs(theirs) < 0.08 ? curiousTilt : theirs;
+    } else {
+      smX = null;
+      tiltTarget = 0;
+    }
+
     // --- Smile back: sustained 0.5s, answered after 300-600ms, at ~70%. ---
     const smile = ((sh.mouthSmileLeft ?? 0) + (sh.mouthSmileRight ?? 0)) / 2;
     if (smile > 0.45) {
@@ -162,6 +193,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     s.gazeY = approach(s.gazeY, t.gazeY, eyeRate, dt);
     s.yaw = approach(s.yaw, t.gazeX * 0.35, 3, dt);
     s.pitch = approach(s.pitch, -t.gazeY * 0.2, 3, dt);
+    s.roll = approach(s.roll, reducedMotion ? tiltTarget * 0.5 : tiltTarget, 2.5, dt);
     s.happy = approach(s.happy, t.happy, 5, dt);
     s.widen = approach(s.widen, t.widen, 6, dt);
     s.lean = approach(s.lean, t.lean, 2.5, dt);
