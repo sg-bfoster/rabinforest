@@ -2333,13 +2333,11 @@
   background: rgba(10, 15, 21, 0.75); color: var(--glow); font-size: 0.9rem; white-space: nowrap;
 }
 
-.rabinai-face-bar {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3);
-}
-.rabinai-face-consent { margin: 0; color: var(--muted); max-width: 46ch; }
-.rabinai-face-live { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--ink-2); font-weight: 600; }
-.rabinai-face-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 3px rgba(78, 194, 127, 0.2); }
-.rabinai-face-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+
+
+
+
 
 @media (max-width: 640px) {
   .rabinai-face-stage { aspect-ratio: 3 / 4; }
@@ -2351,10 +2349,87 @@
   padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm);
   background: rgba(10, 15, 21, 0.75); color: var(--glow); font: 12px/1.45 ui-monospace, Menlo, monospace;
 }
-/* What the ears heard, word for word: the page shows exactly what it acted on. */
-.rabinai-face-heard { flex: 1 1 100%; margin: 0; color: var(--muted); font-size: 0.95rem; }
-.rabinai-face-link {
-  border: 0; background: none; padding: 0; color: var(--cool); font: inherit; font-weight: 600;
-  text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer;
+
+
+
+
+/* ---- RabinAI Face: the senses panel (Sight, Hearing) ---- */
+/* One card per sense: what it does, where its data goes (the badge, then the
+   details), and a real switch, so on/off is a state you can see, not a button
+   that changes its label. Side by side on desktop, stacked on a phone. */
+.rabinai-senses { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); align-items: start; }
+.sense-card {
+  display: flex; flex-direction: column; gap: var(--space-3); align-items: flex-start;
+  padding: var(--space-4) var(--space-6) var(--space-4); background: var(--surface);
+  border: 1px solid var(--hairline); border-radius: var(--radius-lg);
+  transition: border-color 200ms, box-shadow 200ms;
 }
-.rabinai-face-link:disabled { color: var(--muted); cursor: default; }
+.sense-card.is-on { border-color: rgba(47, 109, 153, 0.45); box-shadow: 0 0 0 3px rgba(47, 109, 153, 0.08); }
+.sense-head { display: flex; align-items: center; gap: var(--space-3); width: 100%; }
+.sense-icon {
+  display: grid; place-items: center; width: 36px; height: 36px; flex: none; border-radius: 50%;
+  background: var(--field); color: var(--cool);
+}
+.sense-card.is-on .sense-icon { background: var(--cool); color: #fff; }
+.sense-title { margin: 0; font-size: 1.15rem; font-weight: 700; flex: 1; }
+.sense-blurb { margin: 0; color: var(--ink-2); }
+
+/* The switch: 48x28, keyboard focusable, role=switch carries the state. */
+.sense-switch {
+  position: relative; flex: none; width: 48px; height: 28px; padding: 0; border: 0; border-radius: 999px;
+  background: var(--color-neutral-400); cursor: pointer; transition: background 180ms;
+}
+.sense-switch.is-on { background: var(--cool); }
+.sense-switch:focus-visible { outline: 3px solid rgba(47, 109, 153, 0.4); outline-offset: 2px; }
+.sense-switch:disabled { cursor: default; opacity: 0.6; }
+.sense-switch-knob {
+  position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25); transition: transform 180ms;
+}
+.sense-switch.is-on .sense-switch-knob { transform: translateX(20px); }
+.sense-switch.is-busy .sense-switch-knob { animation: sense-busy 900ms ease-in-out infinite alternate; }
+@keyframes sense-busy { to { transform: translateX(10px); } }
+
+.sense-badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px;
+  font-size: 0.82rem; font-weight: 600;
+}
+.sense-badge::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.sense-badge--ok { background: rgba(31, 122, 69, 0.1); color: var(--verdict-supported); }
+.sense-badge--warn { background: rgba(176, 112, 20, 0.12); color: #8a5a0f; }
+
+.sense-live { margin: 0; color: var(--ink-2); font-weight: 500; }
+.sense-did { color: var(--cool); font-weight: 700; }
+.sense-problem { margin: 0; color: var(--verdict-not); }
+
+.sense-chips { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.sense-chips-label { color: var(--muted); font-size: 0.9rem; }
+.sense-chip {
+  padding: 5px 12px; border: 1px solid var(--hairline); border-radius: 999px; background: var(--field);
+  color: var(--ink-2); font: inherit; font-size: 0.9rem; cursor: pointer; transition: border-color 150ms, background 150ms;
+}
+.sense-chip:hover { border-color: var(--cool); background: #fff; }
+.sense-chip:active { transform: translateY(1px); }
+
+.sense-details { width: 100%; color: var(--muted); font-size: 0.9rem; }
+.sense-details summary { cursor: pointer; color: var(--cool); font-weight: 600; width: fit-content; }
+.sense-details p { margin: var(--space-2) 0 0; }
+.sense-local { display: block; margin-top: var(--space-2); }
+.sense-small { margin-top: var(--space-2); padding: 6px 12px; font-size: 0.85rem; }
+
+/* On the stage: what's on, at a glance, and the preview toggle. */
+.rabinai-face-pills { position: absolute; top: var(--space-3); right: var(--space-3); z-index: 1; display: flex; gap: var(--space-2); }
+.face-pill {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
+  background: rgba(10, 15, 21, 0.6); color: var(--glow); font-size: 0.8rem; font-weight: 600;
+  border: 1px solid rgba(207, 226, 242, 0.18); backdrop-filter: blur(6px);
+}
+.face-pill svg { width: 14px; height: 14px; }
+.face-preview-btn {
+  position: absolute; left: var(--space-3); bottom: var(--space-3); z-index: 2;
+  display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border-radius: 50%;
+  border: 1px solid rgba(207, 226, 242, 0.25); background: rgba(10, 15, 21, 0.6); color: var(--glow); cursor: pointer;
+}
+.face-preview-btn.is-on { background: var(--glow); color: var(--hero); }
+.sense-state { color: var(--muted); font-size: 0.85rem; font-weight: 600; }
+.sense-card.is-on .sense-state { color: var(--cool); }

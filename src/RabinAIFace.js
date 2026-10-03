@@ -71,6 +71,58 @@ function demoFace(now) {
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
+// --- Pieces of the senses panel ------------------------------------------
+
+const TRY_CHIPS = [['Nod', 'nod'], ['Wink', 'wink'], ['Smile', 'smile'], ['Look left', 'look-left'],
+  ['Shake your head', 'shake'], ['Make an O', 'ooh']];
+
+/** Who actually turns speech into words in this browser, for the badge. */
+function speechVendor() {
+  const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+  if (/Edg\//.test(ua)) return 'Microsoft';
+  if (/Chrome|CriOS/.test(ua)) return 'Google';
+  if (/Safari/.test(ua)) return 'Apple';
+  return "the browser";
+}
+
+const svg = { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true };
+const EyeIcon = () => (<svg {...svg}><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></svg>);
+const EarIcon = () => (<svg {...svg}><path d="M6 9a6 6 0 1 1 12 0c0 3.2-2.4 4.6-3.6 5.8-1 1-1.2 2.2-1.6 3.4A3 3 0 0 1 7 18" /><path d="M10 9a2 2 0 1 1 4 0c0 1.2-1 1.7-1.5 2.3" /></svg>);
+const CameraIcon = () => (<svg {...svg}><path d="M23 7l-7 5 7 5V7z" /><rect x="1" y="5" width="15" height="14" rx="2" /></svg>);
+
+/**
+ * One sense: what it does, where its data goes, and a real on/off switch.
+ * The badge is the privacy fact in three words; the details say it in full.
+ */
+function SenseCard({ icon, title, blurb, on, busy, disabled, onToggle, badge, problem, details, children }) {
+  const id = `sense-${title.toLowerCase()}`;
+  return (
+    <section className={`sense-card${on ? ' is-on' : ''}`} aria-labelledby={`${id}-title`}>
+      <div className="sense-head">
+        <span className="sense-icon">{icon}</span>
+        <h2 id={`${id}-title`} className="sense-title">{title}</h2>
+        <span className="sense-state" aria-hidden="true">{busy ? 'Starting' : on ? 'On' : 'Off'}</span>
+        <button
+          type="button" role="switch" aria-checked={on} aria-labelledby={`${id}-title`}
+          className={`sense-switch${on ? ' is-on' : ''}${busy ? ' is-busy' : ''}`}
+          onClick={onToggle} disabled={disabled || busy}
+        >
+          <span className="sense-switch-knob" />
+        </button>
+      </div>
+      <p className="sense-blurb">{blurb}</p>
+      <span className={`sense-badge sense-badge--${badge.tone}`}>{badge.text}</span>
+      {busy && <p className="sense-live">Asking your browser…</p>}
+      {problem && <p className="sense-problem" role="status">{problem}</p>}
+      {children}
+      <details className="sense-details">
+        <summary>Where does it go?</summary>
+        <p>{details}</p>
+      </details>
+    </section>
+  );
+}
+
 export default function RabinAIFace() {
   const canvasRef = useRef(null);
   const videoRef = useRef(null);
@@ -243,7 +295,7 @@ export default function RabinAIFace() {
   // Exact words for where the audio goes. Not reassurance: whichever is true.
   const micWhere = micMode === 'local'
     ? 'Speech is turned into words on this device. No audio leaves it.'
-    : "Your browser's speech service turns what you say into words: in Chrome the audio goes to Google, in Safari to Apple. This page never sees the audio and keeps none of the words.";
+    : `Your browser sends what you say to ${speechVendor()}'s speech service, which sends back the words. This page never sees the audio and keeps none of the words.`;
   const ACT_WORDS = {
     nod: 'nodding', shake: 'shaking its head', smile: 'smiling', wink: 'winking', grumpy: 'looking grumpy',
     surprised: 'looking surprised', ooh: 'making an O', tongue: 'sticking its tongue out', close: 'closing its eyes',
@@ -318,75 +370,92 @@ export default function RabinAIFace() {
                 {debugRows.length ? debugRows.map(([k, v]) => `${k.padEnd(16)} ${v.toFixed(2)}`).join('\n') : 'no face'}
               </pre>
             )}
-            {camera === 'on' && noFace && (
-              <div className="rabinai-face-hint" role="status">I can't see you — is there enough light?</div>
+            {/* What's on, at a glance, right by the face. */}
+            {(camera === 'on' || mic === 'on') && (
+              <div className="rabinai-face-pills" aria-hidden="true">
+                {camera === 'on' && <span className="face-pill"><EyeIcon /> Seeing</span>}
+                {mic === 'on' && <span className="face-pill"><EarIcon /> Listening</span>}
+              </div>
+            )}
+            {camera === 'on' && (
+              <button type="button" className={`face-preview-btn${showPreview ? ' is-on' : ''}`}
+                aria-pressed={showPreview} onClick={() => setShowPreview((v) => !v)}
+                title={showPreview ? 'Hide what it sees' : 'Show what it sees'}>
+                <CameraIcon /><span className="sr-only">{showPreview ? 'Hide what it sees' : 'Show what it sees'}</span>
+              </button>
             )}
           </div>
 
-          <div className="rabinai-face-bar">
-            {camera === 'on' ? (
-              <>
-                <span className="rabinai-face-live"><span className="rabinai-face-dot" aria-hidden="true" />Camera on · nothing leaves this page</span>
-                <div className="rabinai-face-actions">
-                  <button type="button" className="btn btn-ghost" onClick={() => setShowPreview((v) => !v)}>
-                    {showPreview ? 'Hide what it sees' : 'Show what it sees'}
-                  </button>
-                  <button type="button" className="btn btn-secondary" onClick={turnOff}>Turn camera off</button>
-                </div>
-              </>
-            ) : (
-              <>
-                <p className="rabinai-face-consent">
-                  {camera === 'denied'
-                    ? 'The camera was blocked. Allow it in the address bar and try again — or just watch it look around.'
-                    : camera === 'error'
-                      ? "The face tracker couldn't start in this browser. It will keep looking around on its own."
-                      : 'Face tracking runs in your browser. No video or images leave this page, and nothing is recorded.'}
-                </p>
-                <button type="button" className="btn btn-primary" onClick={turnOn} disabled={camera === 'starting' || renderFailed}>
-                  {camera === 'starting' ? 'Starting…' : 'Let it see you'}
-                </button>
-              </>
-            )}
-          </div>
-
-          {/* The ears: a second, separate yes, with its own honest line. */}
-          {micMode && micMode !== 'none' && earsSupported() && (
-            <div className="rabinai-face-bar">
-              {mic === 'on' ? (
-                <>
-                  <span className="rabinai-face-live">
-                    <span className="rabinai-face-dot" aria-hidden="true" />
-                    {micMode === 'local' ? 'Microphone on · words stay on this device' : "Microphone on · your browser's speech service"}
-                  </span>
-                  <div className="rabinai-face-actions">
-                    <button type="button" className="btn btn-secondary" onClick={micOff}>Turn microphone off</button>
-                  </div>
-                  <p className="rabinai-face-heard" aria-live="polite">
-                    {heardText ? <>Heard: “{heardText}”{ACT_WORDS[heardAct] ? <> → {ACT_WORDS[heardAct]}</> : null}</> : 'Try “nod”, “wink”, “look left”, or ask it something.'}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="rabinai-face-consent">
-                    {mic === 'denied'
-                      ? 'The microphone was blocked. Allow it in the address bar to try again.'
-                      : mic === 'error'
-                        ? "Speech recognition couldn't start in this browser."
-                        : <>Let it hear you and it follows simple directions — “nod”, “wink”, “look left” — and leans in when you ask it something. {micWhere}</>}
-                    {micMode === 'downloadable' && mic !== 'denied' && (
-                      <> <button type="button" className="rabinai-face-link" onClick={goLocal} disabled={installing}>
-                        {installing ? 'Downloading…' : 'Keep it on this device instead (one-time download)'}
-                      </button></>
-                    )}
-                  </p>
-                  <button type="button" className="btn btn-primary" onClick={micOn} disabled={mic === 'starting'}>
-                    {mic === 'starting' ? 'Starting…' : 'Let it hear you'}
-                  </button>
-                </>
+          <div className="rabinai-senses">
+            <SenseCard
+              icon={<EyeIcon />}
+              title="Sight"
+              blurb="Eye contact, and it answers your expressions. Point a finger and it follows."
+              on={camera === 'on'}
+              busy={camera === 'starting'}
+              disabled={renderFailed}
+              onToggle={() => (camera === 'on' ? turnOff() : turnOn())}
+              badge={{ tone: 'ok', text: 'Stays on this device' }}
+              problem={camera === 'denied'
+                ? 'Camera blocked. Allow it from the address bar, then switch it on again.'
+                : camera === 'error' ? "The tracker couldn't start in this browser." : ''}
+              details={<>
+                Your camera feeds a face- and hand-tracking model running in this tab.
+                Frames are never uploaded, saved or recorded. The model files download
+                once, from Google's model servers.
+              </>}
+            >
+              {camera === 'on' && (
+                <p className="sense-live">{noFace ? "Can't see you yet — is there enough light?" : 'Watching you. Try a smile, a wink, or raised eyebrows.'}</p>
               )}
-            </div>
-          )}
+            </SenseCard>
+
+            {micMode && micMode !== 'none' && earsSupported() && (
+              <SenseCard
+                icon={<EarIcon />}
+                title="Hearing"
+                blurb="Follows simple directions, and leans in when you ask it something."
+                on={mic === 'on'}
+                busy={mic === 'starting'}
+                onToggle={() => (mic === 'on' ? micOff() : micOn())}
+                badge={micMode === 'local'
+                  ? { tone: 'ok', text: 'Stays on this device' }
+                  : { tone: 'warn', text: `Uses ${speechVendor()}'s speech service` }}
+                problem={mic === 'denied'
+                  ? 'Microphone blocked. Allow it from the address bar, then switch it on again.'
+                  : mic === 'error' ? "Speech recognition couldn't start in this browser." : ''}
+                details={<>
+                  {micWhere}
+                  {micMode === 'downloadable' && (
+                    <span className="sense-local">
+                      This browser can do it on your device instead.{' '}
+                      <button type="button" className="btn btn-secondary sense-small" onClick={goLocal} disabled={installing}>
+                        {installing ? 'Downloading…' : 'Keep speech on this device'}
+                      </button>
+                    </span>
+                  )}
+                </>}
+              >
+                {mic === 'on' && (
+                  <p className="sense-live" aria-live="polite">
+                    {heardText
+                      ? <>Heard “{heardText}”{ACT_WORDS[heardAct] ? <> <span className="sense-did">→ {ACT_WORDS[heardAct]}</span></> : null}</>
+                      : 'Listening. Say one of these, or ask it a question:'}
+                  </p>
+                )}
+                {/* Tappable too: the same moves, for anyone without a mic. */}
+                <div className="sense-chips" role="group" aria-label="Directions it knows">
+                  {mic !== 'on' && <span className="sense-chips-label">Try one:</span>}
+                  {TRY_CHIPS.map(([label, act]) => (
+                    <button key={act} type="button" className="sense-chip"
+                      onClick={() => { behaviourRef.current?.act(act, performance.now()); setHeardAct(act); }}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </SenseCard>
+            )}
+          </div>
         </div>
       </ScreenBody>
     </>
