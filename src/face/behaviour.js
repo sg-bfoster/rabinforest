@@ -15,6 +15,8 @@
  *          roll = their head tilt in radians (negative = toward their right shoulder),
  *          shapes = { blendshapeName: score }
  *          speak = 0..1 loudness of its OWN voice (phase 3, Kokoro); omit until then
+ *          heard = { speaking, question } from the microphone (ears.js), if it's on
+ *   act(name, now) plays a direction it was given out loud (commands.js)
  *   state: everything the renderer needs, already smoothed.
  */
 
@@ -120,6 +122,9 @@ export function createBehaviour({ reducedMotion = false } = {}) {
   let wanderX = 0, wanderY = 0, nextWander = 0;
   let tiltTarget = 0;
   let smX = null, movedAt = -Infinity, curiousUntil = 0, curiousTilt = 0, nextCuriousOk = 0;
+  // Directions it was asked to follow: name -> time the move ends.
+  const acts = {};
+  let shakeStart = -1, nodAmp = 0.15, wasQuestion = false, baseYaw = 0;
 
   function blink(now) {
     if (blinkStart >= 0) return;
@@ -127,7 +132,20 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     nextBlink = now + rand(2000, 6000);
   }
 
-  function nod(now, times) { if (nodStart < 0) { nodStart = now; nodCount = times; } }
+  function nod(now, times, amp = 0.15) { if (nodStart < 0) { nodStart = now; nodCount = times; nodAmp = amp; } }
+
+  const ACT_MS = {
+    smile: 2200, grumpy: 2000, surprised: 1600, ooh: 1800, tongue: 1800, close: 2000, tilt: 1800,
+    'look-left': 1500, 'look-right': 1500, 'look-up': 1500, 'look-down': 1500, ponder: 900,
+  };
+  /** Do what it was asked. Unknown names do nothing. */
+  function act(name, now) {
+    if (name === 'nod') { nodStart = -1; nod(now, 2, 0.22); return; }       // a clear, deliberate yes
+    if (name === 'shake') { shakeStart = now; return; }
+    if (name === 'wink') { winkSide = 1; winkStart = now; winkCooldown = now + 1500; return; }
+    if (ACT_MS[name]) acts[name] = now + ACT_MS[name];
+  }
+  const doing = (name, now) => (acts[name] ?? 0) > now;
 
   function update(dt, now, input) {
     const f = input?.face ?? null;
@@ -333,6 +351,8 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     const rounded = Math.max(sh.mouthFunnel ?? 0, (sh.mouthPucker ?? 0) * 0.8) > 0.3;
     talkLevel = approach(talkLevel, (sh.jawOpen ?? 0) > 0.2 && !rounded ? 1 : 0, 3, dt);
     t.lean = talkLevel > 0.5 ? 0.6 : 0;
+    if (input?.heard?.speaking) t.lean = Math.max(t.lean, 0.6);
+    if (input?.heard?.question) t.lean = 0.85;
 
     // --- Listening: lend an ear, and nod. ---
     // Backchannels, in the conversation-analysis sense (Yngve 1970): the small
@@ -340,7 +360,11 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     // pauses. That is what "I'm following you" looks like.
     // It SEES you talking (jaw movement); it has no microphone. So the nods mean
     // "I see you're speaking", not "I heard what you said".
-    const talking = hasFace && talkLevel > 0.5;
+    // From the camera (jaw) or, if it's on, the microphone. A question gets
+    // the full ear: it leans in further and stays turned until they finish.
+    const heard = input?.heard ?? null;
+    const question = !!heard?.question;
+    const talking = (hasFace && talkLevel > 0.5) || !!heard?.speaking || question;
     if (talking) {
       if (talkingSince < 0) {
         talkingSince = now;
@@ -353,43 +377,77 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     } else if (talkLevel < 0.25 && talkingSince >= 0 && now - lastTalkAt > 250) {
       // They stopped. Only nod if they'd been talking a while: a nod after a
       // half-second "um" reads as impatience.
-      if (!pauseNodDone && lastTalkAt - talkingSince > 1200) nod(now, 2);
+      if (!pauseNodDone && lastTalkAt - talkingSince > 1200 && !wasQuestion) nod(now, 2);
       pauseNodDone = true;
       talkingSince = -1;
     }
-    listen = approach(listen, talking ? 1 : 0, 2.5, dt);
+    // A question just ended -> a thoughtful "hmm": eyes up, one slow nod. It
+    // can't answer yet (that is phase 3, the box), but it can look like it
+    // took the question in.
+    if (wasQuestion && !question) { act('ponder', now); nodStart = -1; nod(now, 1, 0.1); }
+    wasQuestion = question;
+    listen = approach(listen, talking ? 1 : 0, question ? 4 : 2.5, dt);
     // Turning the head offers an ear, but the EYES stay on them: shift the
     // pupils against the turn so the gaze still lands on the visitor.
     const earTurn = earSide * 0.22 * listen;
     t.gazeX = clamp(t.gazeX - earTurn * 2.2, -1, 1);
 
     t.bright = idle ? 0.5 : hasFace ? 1 : 0.8;
-    if (!hasFace) { t.happy = 0; t.widen = 0; t.squint = 0; t.lean = 0; }
+    if (!hasFace) { t.happy = 0; t.widen = 0; t.squint = 0; t.lean = input?.heard?.question ? 0.85 : input?.heard?.speaking ? 0.6 : 0; }
+
+    // --- Directions it was given. These win over mirroring while they play:
+    //     asked to look left, it looks left even though you're in the middle.
+    if (doing('smile', now)) t.happy = 0.75;
+    if (doing('grumpy', now)) { angryT = 0.65; worryT = 0; }
+    if (doing('surprised', now)) t.widen = 0.6;
+    if (doing('ooh', now)) oohT = 0.8;
+    if (doing('tongue', now)) { tongueT = 1; t.happy = Math.max(t.happy, 0.45); }
+    if (doing('tilt', now)) tiltTarget = 0.25;
+    if (doing('look-left', now)) { t.gazeX = -0.9; t.gazeY = 0; }
+    if (doing('look-right', now)) { t.gazeX = 0.9; t.gazeY = 0; }
+    if (doing('look-up', now)) { t.gazeX = 0; t.gazeY = 0.75; }
+    if (doing('look-down', now)) { t.gazeX = 0; t.gazeY = -0.75; }
+    if (doing('ponder', now)) { t.gazeY = 0.55; t.gazeX = 0.35; }
+    const anyAct = Object.values(acts).some((until) => until > now);
 
     // --- Smoothing. Eyes are quick, the body follows slower: that lag is
     //     what makes it read as one creature rather than a sticker. ---
     const eyeRate = reducedMotion ? 6 : 14;
     s.gazeX = approach(s.gazeX, t.gazeX, eyeRate, dt);
     s.gazeY = approach(s.gazeY, t.gazeY, eyeRate, dt);
-    s.yaw = approach(s.yaw, (t.gazeX + earTurn * 2.2) * 0.35 + earTurn, 3, dt);
+    baseYaw = approach(baseYaw, (t.gazeX + earTurn * 2.2) * 0.35 + earTurn, 3, dt);
     basePitch = approach(basePitch, -t.gazeY * 0.2, 3, dt);
     // A nod is a quick dip and return, ~380ms each, the second one smaller.
     let nodOff = 0;
     if (nodStart >= 0) {
       const p = (now - nodStart) / 380;
       if (p >= nodCount) nodStart = -1;
-      else nodOff = (reducedMotion ? 0.07 : 0.15) * Math.sin(Math.PI * (p % 1)) * (p < 1 ? 1 : 0.65);
+      else nodOff = (reducedMotion ? nodAmp / 2 : nodAmp) * Math.sin(Math.PI * (p % 1)) * (p < 1 ? 1 : 0.65);
     }
     s.pitch = basePitch + nodOff;                     // + tips the top toward you: a nod
+    // Shaking its head: three swings, fading out, ~1.35s.
+    let shakeOff = 0;
+    if (shakeStart >= 0) {
+      const e = now - shakeStart;
+      if (e > 1350) shakeStart = -1;
+      else shakeOff = (reducedMotion ? 0.12 : 0.3) * Math.sin((2 * Math.PI * e) / 450) * (1 - e / 1350);
+    }
+    s.yaw = baseYaw + shakeOff;                       // like the nod: an offset on a smoothed base, never fed back
+    // Eyes shut on request; afterwards ease them open (a blink is the only
+    // other thing that ever sets openness, and it may be seconds away).
+    if (doing('close', now)) s.open = Math.min(s.open, 0.05);
+    else if (blinkStart < 0) s.open = approach(s.open, 1, 10, dt);
     const tiltWithEar = -earSide * 0.1 * listen;      // the head tips with the turn
     s.roll = approach(s.roll, (reducedMotion ? tiltTarget * 0.5 : tiltTarget) + tiltWithEar, 2.5, dt);
     s.happy = approach(s.happy, t.happy, 5, dt);
     s.widen = approach(s.widen, t.widen, 6, dt);
     s.squint = approach(s.squint, t.squint, 6, dt);
-    s.tongue = approach(s.tongue, hasFace ? tongueT : 0, 7, dt);
-    s.ooh = approach(s.ooh, hasFace ? oohT : 0, 7, dt);
-    s.angry = approach(s.angry, hasFace ? angryT : 0, 5, dt);
-    s.worry = approach(s.worry, hasFace ? worryT : 0, 3, dt);
+    // With no face, only a direction it was given can hold these up.
+    const on = hasFace || anyAct;
+    s.tongue = approach(s.tongue, on ? tongueT : 0, 7, dt);
+    s.ooh = approach(s.ooh, on ? oohT : 0, 7, dt);
+    s.angry = approach(s.angry, on ? angryT : 0, 5, dt);
+    s.worry = approach(s.worry, on ? worryT : 0, 3, dt);
     s.slant = s.angry - s.worry;
     s.lean = approach(s.lean, t.lean, 2.5, dt);
     s.bright = approach(s.bright, t.bright, 1.5, dt);
@@ -405,5 +463,5 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     return s;
   }
 
-  return { update, state: s };
+  return { update, act, state: s };
 }

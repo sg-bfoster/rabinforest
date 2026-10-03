@@ -2351,3 +2351,10 @@
   padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm);
   background: rgba(10, 15, 21, 0.75); color: var(--glow); font: 12px/1.45 ui-monospace, Menlo, monospace;
 }
+/* What the ears heard, word for word: the page shows exactly what it acted on. */
+.rabinai-face-heard { flex: 1 1 100%; margin: 0; color: var(--muted); font-size: 0.95rem; }
+.rabinai-face-link {
+  border: 0; background: none; padding: 0; color: var(--cool); font: inherit; font-weight: 600;
+  text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer;
+}
+.rabinai-face-link:disabled { color: var(--muted); cursor: default; }

@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Hero, ScreenBody } from './components/Hero';
 import { createBehaviour } from './face/behaviour';
+import { parse } from './face/commands';
+import { earsMode, earsSupported } from './face/ears';
 
 // RabinAI Face, phase 1 — a glowing form that keeps eye contact and reacts to
 // your expressions. Silent: it never speaks in this phase, and it never will
@@ -78,6 +80,16 @@ export default function RabinAIFace() {
   const [noFace, setNoFace] = useState(false);
   const [renderFailed, setRenderFailed] = useState(false);
   const lastFaceRef = useRef(null);
+  // Ears (the second, separate consent): 'off' | 'starting' | 'on' | 'denied' | 'error'
+  const [mic, setMic] = useState('off');
+  const [micMode, setMicMode] = useState(null);       // 'local' | 'downloadable' | 'cloud' | 'none', known before asking
+  const [installing, setInstalling] = useState(false);
+  const [heardText, setHeardText] = useState('');     // the exact words, shown under the stage
+  const [heardAct, setHeardAct] = useState('');
+  const earsRef = useRef(null);
+  const behaviourRef = useRef(null);
+  // What the render loop reads each frame: is someone talking, are they asking.
+  const heardRef = useRef({ speaking: false, question: false });
   const [debugRows, setDebugRows] = useState(null);
 
   // The form runs from the moment the page opens — idle, looking around — so
@@ -86,6 +98,7 @@ export default function RabinAIFace() {
     let raf = 0, alive = true, form = null, last = performance.now(), lastFaceSeen = 0, flagged = false;
     const reduced = prefersReducedMotion();
     const behaviour = createBehaviour({ reducedMotion: reduced });
+    behaviourRef.current = behaviour;
     const canvas = canvasRef.current;
 
     import('./face/renderer').then(({ createFormRenderer }) => {
@@ -111,7 +124,7 @@ export default function RabinAIFace() {
         // or a covered lens doesn't look like the page ignoring them.
         const missing = !!trackerRef.current && now - lastFaceSeen > 3000;
         if (missing !== flagged) { flagged = missing; setNoFace(missing); }
-        form.render(behaviour.update(dt, now, { face }), now);
+        form.render(behaviour.update(dt, now, { face, heard: heardRef.current }), now);
         raf = requestAnimationFrame(tick);
       };
       raf = requestAnimationFrame(tick);
@@ -137,8 +150,86 @@ export default function RabinAIFace() {
     return () => clearInterval(id);
   }, []);
 
-  // Leaving the page turns the camera off. Always.
-  useEffect(() => () => { trackerRef.current?.stop(); trackerRef.current = null; }, []);
+  // Where speech would be recognised, found out BEFORE asking, so the consent
+  // line can say exactly where the audio goes.
+  useEffect(() => { earsMode().then(setMicMode).catch(() => setMicMode('none')); }, []);
+
+  // Leaving the page turns the camera and the microphone off. Always.
+  useEffect(() => () => {
+    trackerRef.current?.stop(); trackerRef.current = null;
+    earsRef.current?.stop(); earsRef.current = null;
+  }, []);
+
+  async function micOn() {
+    setMic('starting');
+    try {
+      const { startEars } = await import('./face/ears');
+      let firedFor = -1, questionTimer = 0;
+      earsRef.current = startEars({
+        mode: micMode === 'local' ? 'local' : 'cloud',
+        onWords(text, isFinal, index) {
+          const { act, question } = parse(text);
+          // One move per phrase: interim results repeat, and "nod" must not
+          // nod five times while the sentence is still arriving.
+          if (act && firedFor !== index) {
+            firedFor = index;
+            behaviourRef.current?.act(act, performance.now());
+            setHeardAct(act);
+          }
+          // Lean in WHILE a question is being asked; let go just after it ends.
+          clearTimeout(questionTimer);
+          if (question && !isFinal) heardRef.current = { ...heardRef.current, question: true };
+          else if (isFinal) questionTimer = setTimeout(() => { heardRef.current = { ...heardRef.current, question: false }; }, 250);
+          setHeardText(text.trim());
+          if (isFinal && !act) setHeardAct(question ? 'question' : '');
+        },
+        onSpeaking(on) { heardRef.current = { ...heardRef.current, speaking: on }; },
+        onStop(reason) {
+          if (reason === 'denied') setMic('denied');
+          else if (reason === 'error') setMic('error');
+          earsRef.current = null;
+          heardRef.current = { speaking: false, question: false };
+        },
+      });
+      setMic('on');
+    } catch (err) {
+      console.warn('[face] ears', err);
+      earsRef.current = null;
+      setMic('error');
+    }
+  }
+
+  // Chrome can keep speech on the device after a one-time download. Offer it
+  // rather than defaulting visitors to the cloud.
+  async function goLocal() {
+    setInstalling(true);
+    const { installLocal } = await import('./face/ears');
+    const ok = await installLocal();
+    setInstalling(false);
+    if (ok) {
+      setMicMode('local');
+      if (earsRef.current) { micOff(); }               // restart on-device next time they switch it on
+    }
+  }
+
+  function micOff() {
+    earsRef.current?.stop();
+    earsRef.current = null;
+    heardRef.current = { speaking: false, question: false };
+    setMic('off');
+    setHeardText(''); setHeardAct('');
+  }
+
+  // Exact words for where the audio goes. Not reassurance: whichever is true.
+  const micWhere = micMode === 'local'
+    ? 'Speech is turned into words on this device. No audio leaves it.'
+    : "Your browser's speech service turns what you say into words: in Chrome the audio goes to Google, in Safari to Apple. This page never sees the audio and keeps none of the words.";
+  const ACT_WORDS = {
+    nod: 'nodding', shake: 'shaking its head', smile: 'smiling', wink: 'winking', grumpy: 'looking grumpy',
+    surprised: 'looking surprised', ooh: 'making an O', tongue: 'sticking its tongue out', close: 'closing its eyes',
+    tilt: 'tilting its head', 'look-left': 'looking left', 'look-right': 'looking right', 'look-up': 'looking up',
+    'look-down': 'looking down', question: 'listening to your question',
+  };
 
   async function turnOn() {
     setCamera('starting');
@@ -223,6 +314,44 @@ export default function RabinAIFace() {
               </>
             )}
           </div>
+
+          {/* The ears: a second, separate yes, with its own honest line. */}
+          {micMode && micMode !== 'none' && earsSupported() && (
+            <div className="rabinai-face-bar">
+              {mic === 'on' ? (
+                <>
+                  <span className="rabinai-face-live">
+                    <span className="rabinai-face-dot" aria-hidden="true" />
+                    {micMode === 'local' ? 'Microphone on · words stay on this device' : "Microphone on · your browser's speech service"}
+                  </span>
+                  <div className="rabinai-face-actions">
+                    <button type="button" className="btn btn-secondary" onClick={micOff}>Turn microphone off</button>
+                  </div>
+                  <p className="rabinai-face-heard" aria-live="polite">
+                    {heardText ? <>Heard: “{heardText}”{ACT_WORDS[heardAct] ? <> → {ACT_WORDS[heardAct]}</> : null}</> : 'Try “nod”, “wink”, “look left”, or ask it something.'}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="rabinai-face-consent">
+                    {mic === 'denied'
+                      ? 'The microphone was blocked. Allow it in the address bar to try again.'
+                      : mic === 'error'
+                        ? "Speech recognition couldn't start in this browser."
+                        : <>Let it hear you and it follows simple directions — “nod”, “wink”, “look left” — and leans in when you ask it something. {micWhere}</>}
+                    {micMode === 'downloadable' && mic !== 'denied' && (
+                      <> <button type="button" className="rabinai-face-link" onClick={goLocal} disabled={installing}>
+                        {installing ? 'Downloading…' : 'Keep it on this device instead (one-time download)'}
+                      </button></>
+                    )}
+                  </p>
+                  <button type="button" className="btn btn-primary" onClick={micOn} disabled={mic === 'starting'}>
+                    {mic === 'starting' ? 'Starting…' : 'Let it hear you'}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </ScreenBody>
     </>
