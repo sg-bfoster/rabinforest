@@ -56,7 +56,8 @@ export async function installLocal() {
  *   onWords(text, isFinal, index)  every interim and final transcript; index identifies the phrase
  *   onSpeaking(bool)        roughly: is someone talking right now
  *   onStop(reason)          ended for good ('denied' | 'error' | 'stopped')
- * Returns { stop() }.
+ * Returns { stop(), pause(), resume() }. Pause while the face is SPEAKING:
+ * otherwise it transcribes its own voice and answers itself.
  */
 export function startEars({ mode, onWords, onSpeaking, onStop }) {
   const rec = new Rec();
@@ -65,7 +66,7 @@ export function startEars({ mode, onWords, onSpeaking, onStop }) {
   rec.interimResults = true;
   if (mode === 'local') { try { rec.processLocally = true; } catch { /* ignore */ } }
 
-  let alive = true, quietTimer = 0;
+  let alive = true, paused = false, quietTimer = 0;
   const speaking = (on) => {
     clearTimeout(quietTimer);
     if (on) { onSpeaking?.(true); quietTimer = setTimeout(() => onSpeaking?.(false), 900); }
@@ -88,12 +89,14 @@ export function startEars({ mode, onWords, onSpeaking, onStop }) {
   // Continuous recognition still ends on its own after silence or a time cap.
   // Restart it for as long as the visitor has it switched on.
   rec.onend = () => {
-    if (!alive) return;
+    if (!alive || paused) return;
     try { rec.start(); } catch { alive = false; onStop?.('error'); }
   };
   rec.start();
 
   return {
+    pause() { if (paused) return; paused = true; speaking(false); try { rec.abort(); } catch { /* not running */ } },
+    resume() { if (!paused || !alive) return; paused = false; try { rec.start(); } catch { /* already running */ } },
     stop() {
       alive = false;
       clearTimeout(quietTimer);

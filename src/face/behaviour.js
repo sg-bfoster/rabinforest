@@ -17,6 +17,7 @@
  *          shapes = { blendshapeName: score }
  *          speak = 0..1 loudness of its OWN voice (phase 3, Kokoro); omit until then
  *          heard = { speaking, question } from the microphone (ears.js), if it's on
+ *          thinking = true while an answer is on its way (the box is working)
  *          point = { gx, gy, near } something to follow instead of the face (a
  *                  fingertip or the pointer), already in gaze terms (-1..1)
  *   act(name, now) plays a direction it was given out loud (commands.js)
@@ -433,6 +434,12 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     if (doing('look-up', now)) { t.gazeX = 0; t.gazeY = 0.75; }
     if (doing('look-down', now)) { t.gazeX = 0; t.gazeY = -0.75; }
     if (doing('ponder', now)) { t.gazeY = 0.55; t.gazeX = 0.35; }
+    // Thinking: eyes up and to one side, drifting a little, a slight squint.
+    // Held for as long as the answer takes, so a 3s wait reads as thought.
+    if (input?.thinking) {
+      t.gazeX = 0.35 + Math.sin(now / 700) * 0.12; t.gazeY = 0.5 + Math.sin(now / 1100) * 0.06;
+      t.squint = Math.max(t.squint, 0.18);
+    }
     const anyAct = Object.values(acts).some((until) => until > now);
 
     // --- Smoothing. Eyes are quick, the body follows slower: that lag is

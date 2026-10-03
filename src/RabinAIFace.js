@@ -3,6 +3,7 @@ import { Hero, ScreenBody } from './components/Hero';
 import { createBehaviour } from './face/behaviour';
 import { parse } from './face/commands';
 import { earsMode, earsSupported } from './face/ears';
+import API_BASE_URL from './config/api';
 
 // RabinAI Face, phase 1 — a glowing form that keeps eye contact and reacts to
 // your expressions. Silent: it never speaks in this phase, and it never will
@@ -76,6 +77,15 @@ const prefersReducedMotion = () =>
 const TRY_CHIPS = [['Nod', 'nod'], ['Wink', 'wink'], ['Smile', 'smile'], ['Look left', 'look-left'],
   ['Shake your head', 'shake'], ['Make an O', 'ooh']];
 
+/** Who answered and who spoke, honestly: the box when it could, the cloud when it couldn't. */
+function replyBy(r) {
+  if (!r) return '';
+  const mind = r.engine === 'rabinai' ? 'answered by the box' : r.engine === 'gemini' ? 'answered by Gemini (the box was busy)'
+    : r.engine === 'canned' ? 'a built-in answer' : '';
+  const voice = r.voice === 'kokoro' ? 'voice: Kokoro, on the box' : r.voice ? 'voice: the cloud' : '';
+  return [mind, voice].filter(Boolean).join(' · ');
+}
+
 /** Who actually turns speech into words in this browser, for the badge. */
 function speechVendor() {
   const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
@@ -143,6 +153,13 @@ export default function RabinAIFace() {
   const behaviourRef = useRef(null);
   // What the render loop reads each frame: is someone talking, are they asking.
   const heardRef = useRef({ speaking: false, question: false });
+  // Answering: one question in, one short spoken answer out (plan §11).
+  const [reply, setReply] = useState(null);           // { say, engine, voice } of the last answer
+  const [answering, setAnswering] = useState('');     // '' | 'thinking' | 'speaking'
+  const thinkingRef = useRef(false);
+  const speakLevelRef = useRef(0);                     // 0..1 loudness of its own voice, read each frame
+  const audioRef = useRef(null);                       // { ctx, analyser, buf, el }
+  const busyRef = useRef(false);
   // The pointer (mouse or touch) over the stage, in gaze terms, and when it last moved.
   const pointerRef = useRef(null);
   const stageRef = useRef(null);
@@ -194,7 +211,17 @@ export default function RabinAIFace() {
           const h = trackerRef.current?.readHand?.();
           if (h) point = { gx: (0.5 - h.x) * 2.2, gy: (0.5 - h.y) * 2.0, near: h.size };
         }
-        form.render(behaviour.update(dt, now, { face, heard: heardRef.current, point }), now);
+        // Its own voice, if it's speaking: loudness drives the mouth.
+        const a = audioRef.current;
+        if (a?.playing) {
+          a.analyser.getFloatTimeDomainData(a.buf);
+          let sum = 0;
+          for (let i = 0; i < a.buf.length; i++) sum += a.buf[i] * a.buf[i];
+          speakLevelRef.current = Math.min(1, Math.sqrt(sum / a.buf.length) * 6);
+        } else speakLevelRef.current = 0;
+        form.render(behaviour.update(dt, now, {
+          face, heard: heardRef.current, point, thinking: thinkingRef.current, speak: speakLevelRef.current,
+        }), now);
         raf = requestAnimationFrame(tick);
       };
       raf = requestAnimationFrame(tick);
@@ -230,10 +257,12 @@ export default function RabinAIFace() {
   useEffect(() => () => {
     trackerRef.current?.stop(); trackerRef.current = null;
     earsRef.current?.stop(); earsRef.current = null;
+    try { audioRef.current?.el.pause(); audioRef.current?.ctx.close(); } catch { /* already closed */ }
   }, []);
 
   async function micOn() {
     setMic('starting');
+    ensureAudio();
     try {
       const { startEars } = await import('./face/ears');
       let firedFor = -1, questionTimer = 0;
@@ -254,6 +283,8 @@ export default function RabinAIFace() {
           else if (isFinal) questionTimer = setTimeout(() => { heardRef.current = { ...heardRef.current, question: false }; }, 250);
           setHeardText(text.trim());
           if (isFinal && !act) setHeardAct(question ? 'question' : '');
+          // A finished question that wasn't a direction gets an answer.
+          if (isFinal && question && !act) answer(text.trim());
         },
         onSpeaking(on) { heardRef.current = { ...heardRef.current, speaking: on }; },
         onStop(reason) {
@@ -270,6 +301,90 @@ export default function RabinAIFace() {
       setMic('error');
     }
   }
+
+  // Its voice runs through Web Audio so the mouth can follow the loudness.
+  // Created from the mic switch's click: browsers keep audio muted otherwise.
+  function ensureAudio() {
+    if (audioRef.current) { audioRef.current.ctx.resume?.(); return; }
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const el = new Audio();
+      const src = ctx.createMediaElementSource(el);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 1024;
+      src.connect(analyser); analyser.connect(ctx.destination);
+      audioRef.current = { ctx, el, analyser, buf: new Float32Array(analyser.fftSize), playing: false };
+    } catch (err) { console.warn('[face] audio', err); }
+  }
+
+  /**
+   * One question -> one short spoken answer. Words go to the server (never
+   * audio or images); the answer comes back gated, Kokoro speaks it, and the
+   * ears are paused meanwhile so it never hears, and answers, itself.
+   */
+  async function answer(question) {
+    if (busyRef.current) return;                       // one at a time
+    busyRef.current = true;
+    thinkingRef.current = true;
+    setAnswering('thinking');
+    let said = null;
+    try {
+      const r = await fetch(`${API_BASE_URL}/ai/face/reply`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: question.slice(0, 200) }),
+      });
+      said = await r.json().catch(() => null);
+    } catch { said = null; }
+    if (!said?.say) { setReply({ say: "I couldn't think of an answer just then.", engine: 'none' }); finish(); return; }
+
+    let voice = null;
+    const a = audioRef.current;
+    try {
+      if (!a) throw new Error('no audio');
+      const tts = await fetch(`${API_BASE_URL}/ai/readaloud`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: said.say }),
+      });
+      if (!tts.ok) throw new Error(String(tts.status));
+      voice = tts.headers.get('X-TTS-Engine');
+      const url = URL.createObjectURL(await tts.blob());
+      earsRef.current?.pause();
+      setReply({ say: said.say, engine: said.engine, voice });
+      // Keep thinking until the voice is ready; only then stop and speak.
+      thinkingRef.current = false;
+      setAnswering('speaking');
+      a.el.src = url;
+      a.playing = true;
+      // Never wait forever: a blocked or stalled play() must not leave it
+      // stuck 'busy' and deaf. A two-sentence answer is well under 20s.
+      await new Promise((resolve) => {
+        const cap = setTimeout(resolve, 20_000);
+        const done = () => { clearTimeout(cap); resolve(); };
+        a.el.onended = done; a.el.onerror = done; a.el.play().catch(done);
+      });
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.warn('[face] speak', err);
+      setReply({ say: said.say, engine: said.engine, voice: null });   // the words, at least
+    }
+    if (a) a.playing = false;
+    finish();
+
+    function finish() {
+      thinkingRef.current = false;
+      setAnswering('');
+      // A beat before listening again, so the tail of its own voice isn't heard.
+      setTimeout(() => { earsRef.current?.resume(); busyRef.current = false; }, 400);
+    }
+  }
+
+  // Dev only: window.__face.ask('why is the sky blue') runs the whole answer
+  // path (reply, voice, mouth, caption) without talking to it.
+  useEffect(() => {
+    if (!import.meta.env.DEV) return undefined;
+    window.__face = { ask: (q) => { ensureAudio(); return answer(q); } };
+    return () => { delete window.__face; };
+  });
 
   // Chrome can keep speech on the device after a one-time download. Offer it
   // rather than defaulting visitors to the cloud.
@@ -414,7 +529,7 @@ export default function RabinAIFace() {
               <SenseCard
                 icon={<EarIcon />}
                 title="Hearing"
-                blurb="Follows simple directions, and leans in when you ask it something."
+                blurb="Follows simple directions. Ask it a question and it answers out loud."
                 on={mic === 'on'}
                 busy={mic === 'starting'}
                 onToggle={() => (mic === 'on' ? micOff() : micOn())}
@@ -436,11 +551,19 @@ export default function RabinAIFace() {
                   )}
                 </>}
               >
+                {(answering || reply) && (
+                  <p className="sense-reply" aria-live="polite">
+                    {answering === 'thinking' ? 'Thinking…' : <>
+                      <span className="sense-reply-say">“{reply?.say}”</span>
+                      <span className="sense-reply-by">{replyBy(reply)}</span>
+                    </>}
+                  </p>
+                )}
                 {mic === 'on' && (
                   <p className="sense-live" aria-live="polite">
                     {heardText
                       ? <>Heard “{heardText}”{ACT_WORDS[heardAct] ? <> <span className="sense-did">→ {ACT_WORDS[heardAct]}</span></> : null}</>
-                      : 'Listening. Say one of these, or ask it a question:'}
+                      : 'Listening. Ask it a question, or say one of these:'}
                   </p>
                 )}
                 {/* Tappable too: the same moves, for anyone without a mic. */}

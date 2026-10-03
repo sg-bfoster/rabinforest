@@ -35,7 +35,7 @@ const ACTS = [
 // How a question usually starts in English, plus tag questions ("…, right?").
 // Recognition rarely adds "?", so the first word is the best early signal —
 // and early is the point: it should lean in WHILE you ask, not after.
-const QUESTION_START = /^(what|why|how|who|whom|whose|where|when|which|can|could|would|will|won't|do|does|did|don't|doesn't|are|aren't|is|isn't|am|was|were|should|shall|have|has|may|might)\b/;
+const QUESTION_START = /^(tell me|explain|what|why|how|who|whom|whose|where|when|which|can|could|would|will|won't|do|does|did|don't|doesn't|are|aren't|is|isn't|am|was|were|should|shall|have|has|may|might)\b/;
 const QUESTION_TAG = /(\?|\b(right|isn't it|aren't you|don't you|do you|can you|or not))\s*$/;
 
 export function parse(text) {
