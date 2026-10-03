@@ -8,7 +8,11 @@
 - **An abstract RabinAI presence, not a human face** (§3a). No uncanny valley
   to fall into, and it belongs to the brand instead of imitating a person.
 - **Lives in rabinforest**, as a new route alongside `LookAtIt.js`.
-- **One RabinAI voice:** the same Kokoro `af_heart` as read-aloud.
+- ~~**One RabinAI voice:** the same Kokoro `af_heart` as read-aloud.~~ **Revised
+  2026-10-03 (Brian): the face has its own voice**, because the orb is a character,
+  not the site's narrator. Kokoro `af_bella(2)+af_sky(1)` at 1.08 speed, lifted
+  ~5% on playback so it sounds small; OpenAI `shimmer` with acting directions when
+  the box is asleep. `persona: 'face'` in `/ai/readaloud` maps to both engines.
 - **It answers a spoken question, bounded (2026-10-03).** One question in, one
   short spoken answer out (≤2 sentences), then back to listening. No memory
   between turns, no follow-up chain, per-visitor rate limits. Revises the
@@ -283,7 +287,7 @@ page ─► thinking face ─► POST /ai/readaloud (Kokoro) ─► mouth follow
    An abstract "RabinAI" presence dodges the uncanny valley entirely and might
    suit the brand better than a human face.
 3. ~~**Where does it live?**~~ **Decided 2026-10-02: rabinforest**, a new route next to `LookAtIt.js`.
-4. ~~**Voice?**~~ **Decided 2026-10-02: the same Kokoro `af_heart` as read-aloud.** RabinAI has one voice.
+4. ~~**Voice?**~~ Decided 2026-10-02 as the narrator's `af_heart`; **revised 2026-10-03 to its own voice** (see Decided, top).
 5. ~~**Should it ever speak first?**~~ **Decided 2026-10-02: no, it only responds.** The "arrived" and "room glance" triggers are cut (§4).
 
 All five answered; nothing open blocks phase 1.

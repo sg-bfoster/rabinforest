@@ -343,7 +343,8 @@ export default function RabinAIFace() {
       if (!a) throw new Error('no audio');
       const tts = await fetch(`${API_BASE_URL}/ai/readaloud`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: said.say }),
+        // Its own voice, not the narrator's: see VOICE_PERSONAS in bfoster-services.
+        body: JSON.stringify({ prompt: said.say, persona: 'face' }),
       });
       if (!tts.ok) throw new Error(String(tts.status));
       voice = tts.headers.get('X-TTS-Engine');
@@ -354,6 +355,10 @@ export default function RabinAIFace() {
       thinkingRef.current = false;
       setAnswering('speaking');
       a.el.src = url;
+      // A touch higher and quicker on playback, pitch NOT preserved: it sounds
+      // small, like the orb, without tipping into a chipmunk.
+      a.el.preservesPitch = false; a.el.mozPreservesPitch = false; a.el.webkitPreservesPitch = false;
+      a.el.playbackRate = 1.05;
       a.playing = true;
       // Never wait forever: a blocked or stalled play() must not leave it
       // stuck 'busy' and deaf. A two-sentence answer is well under 20s.
