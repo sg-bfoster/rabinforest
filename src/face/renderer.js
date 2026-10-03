@@ -100,7 +100,7 @@ const EYE_FRAG = /* glsl */ `
 // Lower edge = the curve pulled down by uOpenM, tapering to the corners, so
 // the same four numbers make a line, a smile, a grin or a small round "o".
 const MOUTH_FRAG = /* glsl */ `
-  uniform float uCurve, uWidth, uOpenM, uTilt, uTongue, uBright;
+  uniform float uCurve, uWidth, uOpenM, uTilt, uTongue, uLips, uBright;
   uniform vec3 uGlow;
   varying vec2 vUv;
   void main() {
@@ -113,7 +113,7 @@ const MOUTH_FRAG = /* glsl */ `
     // is an oval "o" and a wide one a D-shaped grin, not a V.
     float depth = uOpenM * 0.6 * sqrt(max(1.0 - u * u, 0.0));
     float bot = top - depth;
-    float stroke = 0.065;
+    float stroke = 0.065 + uLips * 0.06;           // fuller lips for the O face
     // Distance to the upper line, with round caps at the corners.
     float dTop = length(vec2(p.x - xc, p.y - top));
     float line = 1.0 - smoothstep(stroke * 0.6, stroke, dTop);
@@ -124,6 +124,20 @@ const MOUTH_FRAG = /* glsl */ `
     float a = max(max(line, rim), inside * step(0.02, uOpenM));
     vec3 lit = uGlow * (1.05 + 0.3 * uBright);
     vec3 col = mix(lit, vec3(0.02, 0.07, 0.12), inside * (1.0 - max(line, rim)));
+    // O face: a real ring, taller than wide. The curve-and-depth shape above
+    // always has corners, so at its roundest it was still a lens, not an O.
+    // Fades in over the lower part of uLips so it never shows as both at once.
+    if (uLips > 0.01) {
+      float k = smoothstep(0.15, 0.55, uLips);
+      vec2 rr = vec2(0.21, 0.29) * (0.75 + 0.35 * uLips);
+      float e = length((p - vec2(0.0, -0.06)) / rr);
+      float ringW = stroke * 1.15 / rr.y;
+      float ring = 1.0 - smoothstep(ringW * 0.55, ringW, abs(e - 1.0));
+      float hole = 1.0 - smoothstep(0.96, 1.0, e);
+      vec3 ocol = mix(lit, vec3(0.02, 0.07, 0.12), hole * (1.0 - ring));
+      col = mix(col, ocol, k);
+      a = mix(a, max(ring, hole), k);
+    }
     // Tongue: a soft rounded shape hanging from the middle of the top lip,
     // with a groove down the centre. The one warm colour on the form, so it
     // reads instantly.
@@ -197,7 +211,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
   });
 
   const mouthU = {
-    uCurve: { value: 0.15 }, uWidth: { value: 0.16 }, uOpenM: { value: 0 }, uTilt: { value: 0 }, uTongue: { value: 0 },
+    uCurve: { value: 0.15 }, uWidth: { value: 0.16 }, uOpenM: { value: 0 }, uTilt: { value: 0 }, uTongue: { value: 0 }, uLips: { value: 0 },
     uBright: { value: 0.6 }, uGlow: { value: GLOW },
   };
   const mouth = new THREE.Mesh(
@@ -254,6 +268,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
     mouthU.uOpenM.value = s.mouthOpen ?? 0;
     mouthU.uTilt.value = s.mouthTilt ?? 0;
     mouthU.uTongue.value = s.tongue ?? 0;
+    mouthU.uLips.value = s.mouthLips ?? 0;
     mouthU.uBright.value = s.bright;
     mouth.position.x = s.gazeX * 0.03;           // a hint of the same parallax as the eyes
     renderer.render(scene, camera);

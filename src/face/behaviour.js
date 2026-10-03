@@ -49,11 +49,22 @@ export function mouthFor(s) {
   width -= s.lean * 0.05;
   if (s.idle) { width -= 0.03; curve -= 0.05; }
   // Tongue out: mouth a little open and narrower, so the tongue has a gap to come through.
+  // O face: lips rounded into an O. Narrow, open, and the top arched so it
+  // closes into a circle, with fuller lips. Overrides the smile curve: you
+  // can't round your lips and grin at once.
+  let lips = 0;
+  if (s.ooh > 0.02) {
+    const k = s.ooh;
+    width = width + (0.085 - width) * k;
+    open = Math.max(open, 0.95 * k);
+    curve = curve + (-0.75 - curve) * k;
+    lips = k;
+  }
   if (s.tongue > 0.02) { open = Math.max(open, 0.32 * s.tongue); width = Math.min(width, 0.17); curve = Math.max(curve, 0.1); }
   // A wink pulls the mouth up on the winking side: the smirk.
   tilt += (s.winkRight - s.winkLeft) * 0.35;
   curve += Math.max(s.winkLeft, s.winkRight) * 0.2;
-  return { curve: clamp(curve, -0.4, 0.8), width: clamp(width, 0.06, 0.26), open: clamp(open, 0, 1), tilt };
+  return { curve: clamp(curve, -0.8, 0.8), width: clamp(width, 0.06, 0.26), open: clamp(open, 0, 1), tilt, lips };
 }
 
 export function createBehaviour({ reducedMotion = false } = {}) {
@@ -67,6 +78,8 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     squint: 0,                   // eyes narrowed, 0..1
     winkLeft: 0, winkRight: 0,   // one eye shut, by SCREEN side (left = the eye on the viewer's left), 0..1
     tongue: 0,                   // tongue out, 0..1
+    ooh: 0,                      // O face, lips rounded, 0..1
+    mouthLips: 0,                // lip fullness for the renderer, 0..1
     lean: 0,                     // leans in when the visitor talks, 0..1
     bright: 0.6,                 // glow; dims when idle
     // The mouth, derived from the form's own mood above — never copied from
@@ -90,6 +103,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
   let narrowSince = -1;
   let winkSeenSide = 0, winkSeenSince = -1, winkAt = -1, winkSide = 0, winkStart = -1, winkCooldown = 0;
   let tongueSince = -1, tongueAt = -1, tongueT = 0;
+  let oohSince = -1, oohT = 0;
   let visitorBlinkWas = false, lastBlinkAt = -Infinity;
   let avertSince = -1, followUntil = 0, followX = 0;
   let talkLevel = 0;
@@ -253,6 +267,16 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     tongueT = tongueAt >= 0 && now >= tongueAt ? 1 : 0;
     if (tongueT) t.happy = Math.max(t.happy, 0.45);
 
+    // --- O face -> it makes one back. MediaPipe reads rounded lips well:
+    //     mouthFunnel is the open "oh", mouthPucker the tighter "ooh"/kiss.
+    //     Held 200ms, then it answers at about 85% of theirs.
+    const funnel = sh.mouthFunnel ?? 0, pucker = sh.mouthPucker ?? 0;
+    const round = Math.max(funnel, pucker * 0.8);
+    if (round > 0.3) {
+      if (oohSince < 0) oohSince = now;
+      if (now - oohSince > 200) oohT = clamp(0.4 + round * 0.6, 0, 1) * 0.85;
+    } else { oohSince = -1; oohT = 0; }
+
     // --- They squint -> it squints back, a beat later and a little less. ---
     // MediaPipe reports narrowed eyes as eyeSquint* AND as a partly closed
     // eyeBlink*, often more strongly the second way, so either counts. Held for
@@ -276,7 +300,9 @@ export function createBehaviour({ reducedMotion = false } = {}) {
 
     // --- They're talking -> lean in and listen. jawOpen flickers while
     //     speaking, so average it rather than react to each frame. ---
-    talkLevel = approach(talkLevel, (sh.jawOpen ?? 0) > 0.2 ? 1 : 0, 3, dt);
+    // An O face opens the jaw too; rounded lips held still are not talking.
+    const rounded = Math.max(sh.mouthFunnel ?? 0, (sh.mouthPucker ?? 0) * 0.8) > 0.3;
+    talkLevel = approach(talkLevel, (sh.jawOpen ?? 0) > 0.2 && !rounded ? 1 : 0, 3, dt);
     t.lean = talkLevel > 0.5 ? 0.6 : 0;
 
     // --- Listening: lend an ear, and nod. ---
@@ -332,6 +358,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     s.widen = approach(s.widen, t.widen, 6, dt);
     s.squint = approach(s.squint, t.squint, 6, dt);
     s.tongue = approach(s.tongue, hasFace ? tongueT : 0, 7, dt);
+    s.ooh = approach(s.ooh, hasFace ? oohT : 0, 7, dt);
     s.lean = approach(s.lean, t.lean, 2.5, dt);
     s.bright = approach(s.bright, t.bright, 1.5, dt);
     // Mouth reads from the SMOOTHED mood, so it moves with the eyes instead
@@ -341,6 +368,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     s.mouthCurve = m.curve;
     s.mouthWidth = m.width;
     s.mouthTilt = m.tilt;
+    s.mouthLips = m.lips;
     s.mouthOpen = approach(s.mouthOpen, clamp(m.open + speak * 0.7, 0, 1), speak ? 18 : 8, dt);
     return s;
   }
