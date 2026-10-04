@@ -632,11 +632,10 @@ export default function RabinAIFace() {
       <Hero>
         <h1 className="hero-h1">It looks back.</h1>
         <p className="hero-sub hero-sub--page">
-          A small RabinAI presence that keeps eye contact, blinks with you now
-          and then, and answers a smile with one of its own. Your camera feeds a
-          face-tracking model running in this tab; everything it does after that
-          is ordinary code, not AI. Wake it and it's the site's assistant with a
-          face: ask it about Brian's work and it answers out loud.
+          Wake it up and RabinAI has a face. It holds eye contact, blinks along
+          with you, and answers a smile with one of its own. Ask it about
+          Brian's work, or anything else, and it answers out loud from the AI
+          server he runs at home. Your camera feed never leaves this tab.
         </p>
       </Hero>
 
