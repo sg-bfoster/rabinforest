@@ -881,9 +881,9 @@ export default function RabinAIFace() {
                     ? `It ${cantSee ? 'hears' : 'sees and hears'} you. Ask it about Brian and his work, or anything else, and it answers out loud.`
                     : 'It sees you and answers your expressions. It can\'t hear in this browser: type your question below.')
                   : noSenses
-                    ? 'Type a question and it wakes up and answers out loud.'
+                    ? 'Wake it and type a question: it answers out loud.'
                   : cantHear
-                    ? 'Wake it and it keeps eye contact, answers your expressions, and follows your finger. Type to ask it something.'
+                    ? 'Wake it and it keeps eye contact, answers your expressions, and follows your finger. You type your questions.'
                     : cantSee
                       ? 'Wake it and it listens: ask it a question and it answers out loud.'
                       : 'Wake it and it keeps eye contact, answers your expressions, follows your finger, and talks with you.'}
@@ -919,7 +919,7 @@ export default function RabinAIFace() {
                     {!cantDraw && cantHear && (
                       <li>
                         <b>It can't hear you.</b> This browser has no speech recognition, so you can't ask it
-                        questions out loud (Chrome, Edge and Safari can). Type your question in the box below instead.
+                        questions out loud (Chrome, Edge and Safari can). Wake it and type your question instead.
                       </li>
                     )}
                     {!cantDraw && cantSee && (
@@ -935,7 +935,10 @@ export default function RabinAIFace() {
 
               {/* Type instead of talking: no mic, a quiet room, or just preference.
                   Needs neither camera nor microphone, and works asleep (it wakes). */}
-              {showTyping ? (
+              {/* Never while it's asleep: asking a sleeping face a question read as
+                  wrong (Brian, 2026-10-04). Asleep, the link wakes it quietly
+                  (eyes open, no camera or mic) and opens the box. */}
+              {nothingToWake ? null : awake && showTyping ? (
                 <form className="ask-typed" onSubmit={askTyped}>
                   <label htmlFor="face-ask" className="sr-only">Type a question for RabinAI</label>
                   <input
@@ -948,9 +951,9 @@ export default function RabinAIFace() {
               ) : (
                 <button
                   type="button" className="type-instead"
-                  onClick={() => { setTypeOpen(true); setTimeout(() => document.getElementById('face-ask')?.focus(), 0); }}
+                  onClick={() => { wakeQuiet(); setTypeOpen(true); setTimeout(() => document.getElementById('face-ask')?.focus(), 0); }}
                 >
-                  Type instead
+                  {awake ? 'Type instead' : 'Wake it without camera or mic, and type instead'}
                 </button>
               )}
               {asked && (answering || reply) && <p className="sense-live">You asked “{asked}”</p>}
