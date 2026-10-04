@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { Hero, ScreenBody } from './components/Hero';
+import { addLink } from './features/assistantSlice';
+import { detectSitesInText } from './utils/siteDetector';
 import { createBehaviour } from './face/behaviour';
 import { parse, fixHeard } from './face/commands';
 import { earsMode, earsSupported } from './face/ears';
@@ -113,6 +116,24 @@ const SAMPLE_QUESTIONS = [
 // One conversation id per page load, so Brian's conversation logs keep a
 // visit's questions together (and can tell them from Home's `conv_` ids).
 const newConversationId = () => `face_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+
+/**
+ * The links for an answer: the ones the assistant returned, plus the site of
+ * anything it NAMED. The model is told to put a URL in "links" for each site
+ * it names and often doesn't ("What's RabinAI?" came back with none), so the
+ * names are looked up in the same table Home's project cards use
+ * (utils/siteDetector). One per site, the assistant's own first, six at most.
+ */
+function linksFor(said, fromAssistant) {
+  const key = (u) => { try { const x = new URL(u); return x.hostname.replace(/^www\./, '') + x.pathname.replace(/\/$/, ''); } catch { return u; } };
+  const out = [], seen = new Set();
+  const named = detectSitesInText(said).map((site) => site.url).filter(Boolean);
+  for (const url of [...(fromAssistant ?? []), ...named]) {
+    if (typeof url !== 'string' || seen.has(key(url))) continue;
+    seen.add(key(url)); out.push(url);
+  }
+  return out.slice(0, 6);
+}
 
 /** A link card's label: what a visitor would call the place, not the raw URL. */
 function linkLabel(url) {
@@ -276,6 +297,7 @@ export default function RabinAIFace() {
   const heardRef = useRef({ speaking: false, question: false });
   // Answering: one question in, one short spoken answer out (plan §11).
   const [reply, setReply] = useState(null);           // { say, engine, voice, links } of the last answer
+  const dispatch = useDispatch();
   const conversationIdRef = useRef(null);
   const [support] = useState(browserSupport);
   const memoryRef = useRef({ turns: [], at: 0 });      // [{ q, a }], and when the last one ended
@@ -704,9 +726,12 @@ export default function RabinAIFace() {
       mem.at = performance.now();
     }
 
-    // Links once it has finished talking, under the words it said.
-    const links = whole?.links ?? [];
+    // Links once it has finished talking, under the words it said: as cards
+    // here, and in the site's Links panel (the same list Home's answers feed),
+    // so they are still there after the next question or on another page.
+    const links = linksFor(said.join(' '), whole?.links);
     setReply((r) => (r ? { ...r, links } : r));
+    if (sleptGen === sleptRef.current) links.forEach((url) => dispatch(addLink({ url, text: url })));
     thinkingRef.current = false;
     setAnswering('');
     // A beat before listening again, so the tail of its own voice isn't heard.
