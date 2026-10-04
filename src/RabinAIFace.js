@@ -377,7 +377,9 @@ export default function RabinAIFace() {
     conversationIdRef.current ??= newConversationId();
     const r = await fetch(`${API_BASE_URL}/ai/gemini-assistant`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: question.slice(0, 200), conversationId: conversationIdRef.current, spoken: true, stream: true }),
+      // seeing: is the camera running right now? Only picks which honest line
+      // answers "can you see me" (it sees expressions, in this browser only).
+      body: JSON.stringify({ prompt: question.slice(0, 200), conversationId: conversationIdRef.current, spoken: true, stream: true, seeing: !!trackerRef.current }),
     });
     if (!r.headers.get('content-type')?.includes('text/event-stream')) {
       const data = await r.json().catch(() => null);
@@ -412,7 +414,7 @@ export default function RabinAIFace() {
   async function askFace(question) {
     const r = await fetch(`${API_BASE_URL}/ai/face/reply`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: question.slice(0, 200) }),
+      body: JSON.stringify({ question: question.slice(0, 200), seeing: !!trackerRef.current }),
     });
     const said = await r.json().catch(() => null);
     return said?.say ? { say: said.say, links: [], engine: said.engine } : null;
