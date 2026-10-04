@@ -8,6 +8,10 @@
 - **An abstract RabinAI presence, not a human face** (§3a). No uncanny valley
   to fall into, and it belongs to the brand instead of imitating a person.
 - **Lives in rabinforest**, as a new route alongside `LookAtIt.js`.
+- **Styled after Brian (2026-10-04), as a caricature.** Revises "abstract
+  presence": bald, bearded, brown-eyed, on the pill body. Still not a likeness
+  and still never claims to be Brian: the robot voice, the cool rim and the
+  "answered by the box / Gemini" captions are what keep that true.
 - ~~**One RabinAI voice:** the same Kokoro `af_heart` as read-aloud.~~ **Revised
   2026-10-03 (Brian): the face has its own voice**, because the orb is a character,
   not the site's narrator. Kokoro `af_bella(2)+af_sky(1)` at 1.08 speed, lifted

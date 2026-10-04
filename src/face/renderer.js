@@ -17,6 +17,21 @@ const DEEP = new THREE.Color('#0d2a40');
 const COOL = new THREE.Color('#2f6d99');
 const GLOW = new THREE.Color('#cfe2f2');
 
+// Styled after Brian (2026-10-04: "style the avatar closer to my look"): a
+// caricature, not a likeness. Bald and shiny, warm skin, a salt-and-pepper
+// beard and mustache, brown eyes, heavy gray-brown brows. The cool rim glow
+// stays, faint, as the RabinAI signature; the robot voice and the captions
+// keep it from passing as Brian himself.
+const SKIN = new THREE.Color('#e6bfa8');
+const SKIN_SHADE = new THREE.Color('#a87862');
+const BEARD_BROWN = new THREE.Color('#6a4a33');
+const BEARD_GRAY = new THREE.Color('#c9c4bb');
+const BROW = new THREE.Color('#7d6858');
+const EYE_WHITE = new THREE.Color('#f4f0ea');
+const IRIS = new THREE.Color('#6e4b2c');
+const LASH = new THREE.Color('#3b2a22');
+const LIP = new THREE.Color('#a9564f');
+
 // The body's shape: a pill. Rounded top and bottom, straight sides, a little
 // narrower than it is tall. Still a presence, not a head (§3a): no jaw, no
 // cheekbones, no chin. Three's CapsuleGeometry gives exact normals, which the
@@ -38,13 +53,14 @@ function onSurface(x, y, lift = 0.015) {
 
 const BODY_VERT = /* glsl */ `
   uniform float uTime, uStretch, uWobble;
-  varying vec3 vNormal, vView;
+  varying vec3 vNormal, vView, vPos;
   // Cheap smooth noise: sums of sines. Enough for a slow, living surface.
   float wob(vec3 p, float t) {
     return sin(p.x * 2.1 + t * 0.9) * sin(p.y * 2.7 + t * 0.7) * sin(p.z * 1.9 + t * 1.1);
   }
   void main() {
     vec3 p = position;
+    vPos = position;                            // undeformed, so the beard doesn't swim
     p += normal * wob(p, uTime) * uWobble;
     p.y *= 1.0 + uStretch * 0.08;
     p.y += 0.02 * sin(uTime * 1.3);            // breathing
@@ -55,13 +71,35 @@ const BODY_VERT = /* glsl */ `
   }
 `;
 const BODY_FRAG = /* glsl */ `
-  uniform vec3 uDeep, uCool, uGlow;
+  uniform vec3 uDeep, uCool, uGlow, uSkin, uShade, uBeardA, uBeardB;
   uniform float uBright, uWarm;
-  varying vec3 vNormal, vView;
+  varying vec3 vNormal, vView, vPos;
+  float hash(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
   void main() {
-    float facing = clamp(dot(normalize(vNormal), normalize(vView)), 0.0, 1.0);
+    vec3 N = normalize(vNormal), V = normalize(vView);
+    float facing = clamp(dot(N, V), 0.0, 1.0);
     float rim = pow(1.0 - facing, 2.2);
-    vec3 c = mix(uDeep, uCool, facing * 0.8) + uGlow * rim * 0.9;
+    // Skin, shaded by how squarely it faces you, lit a little from up-left.
+    float key = clamp(dot(N, normalize(vec3(-0.35, 0.55, 0.75))), 0.0, 1.0);
+    vec3 skin = mix(uShade, uSkin, 0.3 + 0.5 * facing + 0.25 * key);
+    // The bald shine: a soft highlight up on the dome.
+    vec3 H = normalize(normalize(vec3(0.3, 0.85, 0.5)) + V);
+    float spec = pow(max(dot(N, H), 0.0), 48.0) * 0.5 * smoothstep(0.15, 0.7, vPos.y);
+    // Beard and mustache: everything below a line that sits just under the
+    // nose in the middle and climbs the sides to the sideburns; front and
+    // sides only. A hashed speckle makes it hair, and ragged at the edge.
+    // Two scales of speckle, kept low-contrast: one alone reads as static.
+    float n = 0.6 * hash(floor(vPos * 60.0)) + 0.4 * hash(floor(vPos * 140.0));
+    float ax = abs(vPos.x);
+    // Clear cheeks under the eyes; the line only climbs at the far sides.
+    float line = -0.215 + 0.34 * smoothstep(0.5, 0.8, ax) + (n - 0.5) * 0.04;
+    float beard = (1.0 - smoothstep(line - 0.025, line + 0.025, vPos.y)) * smoothstep(-0.5, -0.15, vPos.z);
+    // Salt and pepper: grayer in the mustache and chin, browner at the sides.
+    float gray = clamp(0.3 + 0.45 * (1.0 - smoothstep(0.1, 0.6, ax)) + (n - 0.5) * 0.45, 0.0, 1.0);
+    vec3 hair = mix(uBeardA, uBeardB, gray) * (0.88 + 0.2 * n) * (0.5 + 0.35 * facing + 0.2 * key);
+    vec3 c = mix(skin, hair, beard) + vec3(1.0, 0.97, 0.92) * spec * (1.0 - beard);
+    // The RabinAI signature: a faint cool rim.
+    c += uGlow * rim * 0.4;
     // Grumpy: the rim warms toward a soft ember. A tint, not a red alarm.
     c += vec3(0.35, -0.05, -0.2) * rim * uWarm;
     gl_FragColor = vec4(c * (0.55 + 0.6 * uBright), 1.0);
@@ -89,7 +127,7 @@ const UV_VERT = /* glsl */ `
 const EYE_FRAG = /* glsl */ `
   uniform float uOpen, uHappy, uWiden, uSquint, uSlant, uSide, uBright;
   uniform vec2 uPupil;
-  uniform vec3 uGlow;
+  uniform vec3 uGlow, uWhite, uIris, uLash;
   varying vec2 vUv;
   float ellipse(vec2 p, vec2 r) { return length(p / r); }
   void main() {
@@ -121,19 +159,26 @@ const EYE_FRAG = /* glsl */ `
     }
     // Pupil fades out as the eye becomes a crescent (^ ^ has no pupils).
     vec2 pp = p - uPupil * vec2(0.22, 0.2);
-    float pupil = (1.0 - smoothstep(0.17, 0.21, length(pp / vec2(1.0, max(uOpen, 0.2))))) * (1.0 - uHappy);
+    float pr = length(pp / vec2(1.0, max(uOpen, 0.2)));
+    float iris = (1.0 - smoothstep(0.2, 0.235, pr)) * (1.0 - uHappy);
+    float pupil = (1.0 - smoothstep(0.1, 0.13, pr)) * (1.0 - uHappy);
     // Shut: a squashed ellipse with a pupil painted over it breaks into dashes,
     // so near zero openness hand over to one clean closed-lid curve (a soft
     // smile shape, like sleeping). Asleep (Sight off), "close your eyes", and
     // the bottom of every blink all pass through here.
     float shut = 1.0 - smoothstep(0.04, 0.2, uOpen);
     pupil *= 1.0 - shut;
+    iris *= 1.0 - shut;
     eye *= 1.0 - shut;
     float arcY = 0.22 * p.x * p.x - 0.06;
     float along = 1.0 - smoothstep(0.38, 0.48, abs(p.x));
     eye = max(eye, (1.0 - smoothstep(0.035, 0.065, abs(p.y - arcY))) * along * shut);
-    vec3 col = mix(uGlow * (1.1 + 0.3 * uBright), vec3(0.03, 0.08, 0.13), pupil);
-    float glow = (1.0 - smoothstep(0.9, 1.35, e)) * 0.25 * (1.0 - uHappy * 0.5) * mix(1.0, step(0.86, cut), cutOn) * (1.0 - shut * 0.8);
+    // White, brown iris, dark pupil. Closed lids and the happy ^ ^ are lash
+    // lines, dark on skin, not glowing ones.
+    vec3 col = mix(uWhite * (0.92 + 0.12 * uBright), uIris, iris);
+    col = mix(col, vec3(0.06, 0.04, 0.03), pupil);
+    col = mix(col, uLash, max(shut, smoothstep(0.35, 0.8, uHappy)));
+    float glow = (1.0 - smoothstep(0.9, 1.35, e)) * 0.08 * (1.0 - uHappy) * mix(1.0, step(0.86, cut), cutOn) * (1.0 - shut * 0.8);
     float a = max(eye, glow);
     gl_FragColor = vec4(col * max(eye, glow * 1.5), a);
   }
@@ -157,9 +202,9 @@ const BROW_FRAG = /* glsl */ `
     float inner = u * -uSide;
     float y = uArch * 0.4 * (1.0 - u * u) - uSlant * 0.42 * inner - 0.1;
     float d = length(vec2(p.x - xc, p.y - y));
-    float thick = 0.12 * (1.0 - 0.5 * abs(u));
+    float thick = 0.17 * (1.0 - 0.45 * abs(u));   // heavy brows
     float a = 1.0 - smoothstep(thick * 0.55, thick, d);
-    gl_FragColor = vec4(uGlow * (0.95 + 0.3 * uBright), a * 0.95);
+    gl_FragColor = vec4(uGlow * (0.85 + 0.25 * uBright), a);   // uGlow = BROW here
   }
 `;
 
@@ -186,8 +231,11 @@ const MOUTH_FRAG = /* glsl */ `
     float dBot = length(vec2(p.x - xc, p.y - bot));
     float rim = (1.0 - smoothstep(stroke * 0.6, stroke, dBot)) * step(0.02, uOpenM);
     float a = max(max(line, rim), inside * step(0.02, uOpenM));
-    vec3 lit = uGlow * (1.05 + 0.3 * uBright);
-    vec3 col = mix(lit, vec3(0.02, 0.07, 0.12), inside * (1.0 - max(line, rim)));
+    vec3 lit = uGlow * (0.9 + 0.25 * uBright);     // uGlow = LIP here
+    vec3 col = mix(lit, vec3(0.16, 0.05, 0.05), inside * (1.0 - max(line, rim)));
+    // Teeth: the upper part of an open mouth, the grin in the photo.
+    float teeth = inside * (1.0 - max(line, rim)) * smoothstep(top - depth * 0.55 - 0.01, top - depth * 0.55 + 0.01, p.y) * step(0.05, uOpenM);
+    col = mix(col, vec3(0.96, 0.95, 0.92), teeth);
     // O face: a real ring, taller than wide. The curve-and-depth shape above
     // always has corners, so at its roundest it was still a lens, not an O.
     // Fades in over the lower part of uLips so it never shows as both at once.
@@ -198,7 +246,7 @@ const MOUTH_FRAG = /* glsl */ `
       float ringW = stroke * 1.15 / rr.y;
       float ring = 1.0 - smoothstep(ringW * 0.55, ringW, abs(e - 1.0));
       float hole = 1.0 - smoothstep(0.96, 1.0, e);
-      vec3 ocol = mix(lit, vec3(0.02, 0.07, 0.12), hole * (1.0 - ring));
+      vec3 ocol = mix(lit, vec3(0.16, 0.05, 0.05), hole * (1.0 - ring));
       col = mix(col, ocol, k);
       a = mix(a, max(ring, hole), k);
     }
@@ -235,6 +283,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
   const bodyU = {
     uTime: { value: 0 }, uStretch: { value: 0 }, uWobble: { value: reducedMotion ? 0.012 : 0.035 },
     uBright: { value: 0.6 }, uWarm: { value: 0 }, uDeep: { value: DEEP }, uCool: { value: COOL }, uGlow: { value: GLOW },
+    uSkin: { value: SKIN }, uShade: { value: SKIN_SHADE }, uBeardA: { value: BEARD_BROWN }, uBeardB: { value: BEARD_GRAY },
   };
   const body = new THREE.Mesh(
     new THREE.CapsuleGeometry(PILL_R, PILL_LEN, 32, 96),
@@ -258,6 +307,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
       uOpen: { value: 1 }, uHappy: { value: 0 }, uWiden: { value: 0 }, uSquint: { value: 0 },
       uSlant: { value: 0 }, uSide: { value: side }, uBright: { value: 0.6 },
       uPupil: { value: new THREE.Vector2() }, uGlow: { value: GLOW },
+      uWhite: { value: EYE_WHITE }, uIris: { value: IRIS }, uLash: { value: LASH },
     };
     const m = new THREE.Mesh(
       new THREE.PlaneGeometry(EYE_SIZE, EYE_SIZE),
@@ -277,7 +327,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
 
   // Brows: above each eye, drawn on top like the eyes.
   const brows = [-1, 1].map((side) => {
-    const u = { uArch: { value: 0.35 }, uSlant: { value: 0 }, uSide: { value: side }, uBright: { value: 0.6 }, uGlow: { value: GLOW } };
+    const u = { uArch: { value: 0.35 }, uSlant: { value: 0 }, uSide: { value: side }, uBright: { value: 0.6 }, uGlow: { value: BROW } };
     const m = new THREE.Mesh(
       new THREE.PlaneGeometry(0.44, 0.28),
       new THREE.ShaderMaterial({ uniforms: u, vertexShader: UV_VERT, fragmentShader: BROW_FRAG, transparent: true, depthWrite: false, depthTest: false }),
@@ -292,7 +342,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
 
   const mouthU = {
     uCurve: { value: 0.15 }, uWidth: { value: 0.16 }, uOpenM: { value: 0 }, uTilt: { value: 0 }, uTongue: { value: 0 }, uLips: { value: 0 },
-    uBright: { value: 0.6 }, uGlow: { value: GLOW },
+    uBright: { value: 0.6 }, uGlow: { value: LIP },
   };
   const mouth = new THREE.Mesh(
     new THREE.PlaneGeometry(0.62, 0.42),
