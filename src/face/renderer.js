@@ -23,6 +23,7 @@ const GLOW = new THREE.Color('#cfe2f2');
 // rim glow depends on.
 const PILL_R = 0.82;      // radius: half the width, and the size of each rounded end
 const PILL_LEN = 0.4;     // the straight middle section
+const EYE_SIZE = 0.54;    // each eye's square; the shape inside is drawn by EYE_FRAG
 
 /**
  * Where a feature sits: on the pill's front surface at this x,y, lifted a
@@ -255,7 +256,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
       uPupil: { value: new THREE.Vector2() }, uGlow: { value: GLOW },
     };
     const m = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.46, 0.46),
+      new THREE.PlaneGeometry(EYE_SIZE, EYE_SIZE),
       // No depth test, drawn after the body: the wobbling surface bulges up to
       // 0.035 outward and, with the head turned, would otherwise slice through
       // an eye and leave it looking half-shut on one side.
