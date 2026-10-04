@@ -20,6 +20,7 @@
  *          thinking = true while an answer is on its way (the box is working)
  *          point = { gx, gy, near } something to follow instead of the face (a
  *                  fingertip or the pointer), already in gaze terms (-1..1)
+ *          asleep = true while Sight is off: the eyes drift shut and stay shut
  *   act(name, now) plays a direction it was given out loud (commands.js)
  *   state: everything the renderer needs, already smoothed.
  */
@@ -500,9 +501,12 @@ export function createBehaviour({ reducedMotion = false } = {}) {
       else shakeOff = (reducedMotion ? 0.12 : 0.3) * Math.sin((2 * Math.PI * e) / 450) * (1 - e / 1350);
     }
     s.yaw = baseYaw + shakeOff;                       // like the nod: an offset on a smoothed base, never fed back
+    // Sight off: eyes drift shut, slowly, like dozing off, and no blink can
+    // pop them open. Switching Sight on wakes it with the ordinary ease below.
+    if (input?.asleep) { blinkStart = -1; s.open = approach(s.open, 0.03, 2.5, dt); }
     // Eyes shut on request; afterwards ease them open (a blink is the only
     // other thing that ever sets openness, and it may be seconds away).
-    if (doing('close', now)) s.open = Math.min(s.open, 0.05);
+    else if (doing('close', now)) s.open = Math.min(s.open, 0.05);
     else if (blinkStart < 0) s.open = approach(s.open, 1, 10, dt);
     const tiltWithEar = -earSide * 0.1 * listen;      // the head tips with the turn
     s.roll = approach(s.roll, (reducedMotion ? tiltTarget * 0.5 : tiltTarget) + tiltWithEar, 2.5, dt);

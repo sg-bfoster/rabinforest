@@ -236,8 +236,11 @@ export default function RabinAIFace() {
           for (let i = 0; i < a.buf.length; i++) sum += a.buf[i] * a.buf[i];
           speakLevelRef.current = Math.min(1, Math.sqrt(sum / a.buf.length) * 6);
         } else speakLevelRef.current = 0;
+        // Eyes closed while Sight is off (and while it's starting): it opens
+        // them when it can actually see. The dev demo is a visitor, so awake.
+        const asleep = !(import.meta.env.DEV && DEMO) && !trackerRef.current;
         form.render(behaviour.update(dt, now, {
-          face, heard: heardRef.current, point, thinking: thinkingRef.current, speak: speakLevelRef.current,
+          face, heard: heardRef.current, point, thinking: thinkingRef.current, speak: speakLevelRef.current, asleep,
         }), now);
         raf = requestAnimationFrame(tick);
       };
@@ -525,7 +528,7 @@ export default function RabinAIFace() {
             {renderFailed ? (
               <p className="rabinai-face-fallback">This browser can't draw it — WebGL is off or unavailable.</p>
             ) : (
-              <canvas ref={canvasRef} className="rabinai-face-canvas" aria-label="A glowing RabinAI form with two eyes" role="img" />
+              <canvas ref={canvasRef} className="rabinai-face-canvas" aria-label={`A glowing RabinAI form with two eyes${camera === 'on' ? '' : ', closed'}`} role="img" />
             )}
             <video
               ref={videoRef}

@@ -99,8 +99,18 @@ const EYE_FRAG = /* glsl */ `
     // Pupil fades out as the eye becomes a crescent (^ ^ has no pupils).
     vec2 pp = p - uPupil * vec2(0.22, 0.2);
     float pupil = (1.0 - smoothstep(0.17, 0.21, length(pp / vec2(1.0, max(uOpen, 0.2))))) * (1.0 - uHappy);
+    // Shut: a squashed ellipse with a pupil painted over it breaks into dashes,
+    // so near zero openness hand over to one clean closed-lid curve (a soft
+    // smile shape, like sleeping). Asleep (Sight off), "close your eyes", and
+    // the bottom of every blink all pass through here.
+    float shut = 1.0 - smoothstep(0.04, 0.2, uOpen);
+    pupil *= 1.0 - shut;
+    eye *= 1.0 - shut;
+    float arcY = 0.22 * p.x * p.x - 0.06;
+    float along = 1.0 - smoothstep(0.38, 0.48, abs(p.x));
+    eye = max(eye, (1.0 - smoothstep(0.035, 0.065, abs(p.y - arcY))) * along * shut);
     vec3 col = mix(uGlow * (1.1 + 0.3 * uBright), vec3(0.03, 0.08, 0.13), pupil);
-    float glow = (1.0 - smoothstep(0.9, 1.35, e)) * 0.25 * (1.0 - uHappy * 0.5) * step(0.86, cut);
+    float glow = (1.0 - smoothstep(0.9, 1.35, e)) * 0.25 * (1.0 - uHappy * 0.5) * step(0.86, cut) * (1.0 - shut * 0.8);
     float a = max(eye, glow);
     gl_FragColor = vec4(col * max(eye, glow * 1.5), a);
   }
