@@ -137,6 +137,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
   let browSince = -1;
   let narrowSince = -1;
   let winkSeenSide = 0, winkSeenSince = -1, winkAt = -1, winkSide = 0, winkStart = -1, winkCooldown = 0;
+  let winkByVisitor = false, winkLetGo = -1;   // answering THEIR wink: hold it as long as they do
   let tongueSince = -1, tongueAt = -1, tongueT = 0;
   let oohSince = -1, oohT = 0;
   let angrySince = -1, angryT = 0, worryT = 0;
@@ -171,7 +172,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
   function act(name, now) {
     if (name === 'nod') { nodStart = -1; nod(now, 2, 0.22); return; }       // a clear, deliberate yes
     if (name === 'shake') { shakeStart = now; return; }
-    if (name === 'wink') { winkSide = 1; winkStart = now; winkCooldown = now + 1500; return; }
+    if (name === 'wink') { winkSide = 1; winkStart = now; winkByVisitor = false; winkLetGo = -1; winkCooldown = now + 1500; return; }
     if (ACT_MS[name]) acts[name] = now + ACT_MS[name];
   }
   const doing = (name, now) => (acts[name] ?? 0) > now;
@@ -305,13 +306,27 @@ export function createBehaviour({ reducedMotion = false } = {}) {
         winkAt = now + rand(250, 400); winkSide = seen;
       }
     } else { winkSeenSide = seen; winkSeenSince = now; }
-    if (winkAt >= 0 && now >= winkAt) { winkStart = now; winkAt = -1; winkCooldown = now + 1500; }
+    if (winkAt >= 0 && now >= winkAt) { winkStart = now; winkAt = -1; winkByVisitor = true; winkLetGo = -1; winkCooldown = now + 1500; }
     let wk = 0;
     if (winkStart >= 0) {
-      // Shut fast (120ms), hold (250ms), open slower (200ms).
+      // Shut fast (120ms), hold at least 250ms, open slower (200ms). Answering
+      // THEIR wink, it holds for as long as they do and opens a beat after
+      // they open: opening first reads as not paying attention. The bar to
+      // keep holding is lower than the bar to start (0.4 vs 0.55/0.3), so
+      // flicker in the scores mid-wink doesn't open it early. Capped at 5s in
+      // case the tracker gets stuck reading a shut eye.
       const e = now - winkStart;
-      wk = e < 120 ? e / 120 : e < 370 ? 1 : e < 570 ? 1 - (e - 370) / 200 : 0;
-      if (e >= 570) winkStart = -1;
+      const theirs = winkSide < 0 ? bl : br, other = winkSide < 0 ? br : bl;
+      const held = winkByVisitor && e < 5000 && theirs > 0.4 && other < 0.4;
+      if (held) winkLetGo = -1;
+      else if (winkLetGo < 0) winkLetGo = now + (winkByVisitor ? 150 : 0);
+      const openFrom = winkLetGo < 0 ? Infinity : Math.max(winkStart + 370, winkLetGo);
+      if (e < 120) wk = e / 120;
+      else if (now < openFrom) wk = 1;
+      else {
+        wk = 1 - (now - openFrom) / 200;
+        if (wk <= 0) { wk = 0; winkStart = -1; winkCooldown = Math.max(winkCooldown, now + 600); }
+      }
     }
     s.winkLeft = winkSide < 0 ? wk : 0;
     s.winkRight = winkSide > 0 ? wk : 0;
