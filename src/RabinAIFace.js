@@ -953,7 +953,7 @@ export default function RabinAIFace() {
                   type="button" className="type-instead"
                   onClick={() => { wakeQuiet(); setTypeOpen(true); setTimeout(() => document.getElementById('face-ask')?.focus(), 0); }}
                 >
-                  {awake ? 'Type instead' : 'Wake it without camera or mic, and type instead'}
+                  {awake ? 'Type instead' : 'Wake and type'}
                 </button>
               )}
               {asked && (answering || reply) && <p className="sense-live">You asked “{asked}”</p>}
