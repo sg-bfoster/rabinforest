@@ -85,11 +85,39 @@ function linkLabel(url) {
   } catch { return url; }
 }
 
-// How robotic its voice is: 0 = Kokoro as-is, 1 = all robot. ~0.45 keeps
-// every word clear. ROBOT_RING_HZ sets the buzz: 30-40 is the Dalek growl,
-// 50-70 a friendlier droid, 100+ starts to sound like a bad phone line.
-const ROBOT_MIX = 0.45;
-const ROBOT_RING_HZ = 55;
+// Its voice: a Kokoro persona (bfoster-services VOICE_PERSONAS) plus what the
+// page does to it. `rate` shifts speed AND pitch together (pitch is not
+// preserved): above 1 is quicker and higher. `mix` is how much robot (0 = the
+// plain voice). `ringHz` is the buzz: 30-45 is the Dalek growl, 60-90 a
+// friendlier droid. `ring` 0 skips the buzz and leaves only the comb echo,
+// which is the hollow tin-can sound; `comb` is how much it resonates.
+//
+// 'droid' is the default since 2026-10-04: the first male voice ('deep') was
+// "too slow and creepy" (Brian). In dev, ?voices adds buttons to hear each.
+const VOICES = {
+  droid: { label: 'Droid', persona: 'face', rate: 1.05, mix: 0.35, ringHz: 65, ring: 1, comb: 0.35, combMs: 7 },
+  toon: { label: 'Cartoon', persona: 'face-toon', rate: 1.17, mix: 0.15, ringHz: 85, ring: 1, comb: 0.2, combMs: 7 },
+  tin: { label: 'Tin can', persona: 'face-tin', rate: 1.02, mix: 0.55, ringHz: 65, ring: 0, comb: 0.6, combMs: 4 },
+  plain: { label: 'No effect', persona: 'face', rate: 1, mix: 0, ringHz: 65, ring: 1, comb: 0.35, combMs: 7 },
+  deep: { label: 'Deep (the old one)', persona: 'face-deep', rate: 0.94, mix: 0.6, ringHz: 42, ring: 1, comb: 0.35, combMs: 7 },
+};
+const VOICE_LAB = import.meta.env.DEV && typeof window !== 'undefined'
+  && new URLSearchParams(window.location.search).has('voices');
+const VOICE_SAMPLE = "Hi, I'm RabinAI. Ask me about Brian's work, or anything else.";
+
+/** Set the effect graph's dials for a voice. Safe before the graph exists. */
+function applyVoice(a, v) {
+  if (!a?.fx) return;
+  const { dry, wet, out, tone, toneAmt, ring, fb, comb } = a.fx;
+  dry.gain.value = 1 - v.mix;
+  wet.gain.value = v.mix * 1.6;            // ring mod halves the level; make it up
+  out.gain.value = 1 + v.mix * 1.1;        // dry and wet partly cancel (measured ~4dB at 0.45)
+  tone.frequency.value = v.ringHz;
+  toneAmt.gain.value = v.ring;             // 1: voice x tone (pure ring mod); 0: voice passes straight to the comb
+  ring.gain.value = 1 - v.ring;
+  fb.gain.value = v.comb;
+  comb.delayTime.value = v.combMs / 1000;
+}
 
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -174,6 +202,8 @@ export default function RabinAIFace() {
   // Answering: one question in, one short spoken answer out (plan §11).
   const [reply, setReply] = useState(null);           // { say, engine, voice, links } of the last answer
   const conversationIdRef = useRef(null);
+  const voiceRef = useRef(VOICES.droid);
+  const [voiceKey, setVoiceKey] = useState('droid');   // dev ?voices only
   const [answering, setAnswering] = useState('');     // '' | 'thinking' | 'speaking'
   const thinkingRef = useRef(false);
   const speakLevelRef = useRef(0);                     // 0..1 loudness of its own voice, read each frame
@@ -334,29 +364,30 @@ export default function RabinAIFace() {
       const src = ctx.createMediaElementSource(el);
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 1024;
-      // The robot: the same Kokoro voice, processed, half dry and half wet,
-      // so it sounds like a friendly machine and stays easy to follow.
-      //   ring modulation (the voice multiplied by a 55Hz tone): the metallic,
+      // The robot: the same Kokoro voice, processed, part dry and part wet.
+      //   ring modulation (the voice multiplied by a low tone): the metallic,
       //     buzzing quality of every classic film robot
-      //   a short comb echo (7ms, fed back): a hollow, tinny body
+      //   a short comb echo (fed back): a hollow, tinny body
       //   a high-pass on the wet side: thinner, like a small speaker
       // Analyser after the mix, so the mouth follows what you actually hear.
-      // Make-up gain: dry and wet partly cancel, so the mix measured ~4dB quieter
-      // than the plain voice (RMS 0.086 vs 0.134 at mix 0.45). 1.5 restores it,
-      // peaks stay ~0.7, and the mouth (calibrated on the dry voice) still moves.
-      const out = ctx.createGain(); out.gain.value = 1 + ROBOT_MIX * 1.1;
-      const dry = ctx.createGain(); dry.gain.value = 1 - ROBOT_MIX;
-      const ring = ctx.createGain(); ring.gain.value = 0;          // 0 + the tone = pure multiplication
-      const tone = ctx.createOscillator(); tone.frequency.value = ROBOT_RING_HZ; tone.connect(ring.gain); tone.start();
+      // The dials are set by applyVoice from VOICES.
+      const out = ctx.createGain();
+      const dry = ctx.createGain();
+      const ring = ctx.createGain();
+      const tone = ctx.createOscillator();
+      const toneAmt = ctx.createGain();
+      tone.connect(toneAmt); toneAmt.connect(ring.gain); tone.start();
       const thin = ctx.createBiquadFilter(); thin.type = 'highpass'; thin.frequency.value = 220;
-      const comb = ctx.createDelay(0.05); comb.delayTime.value = 0.007;
-      const fb = ctx.createGain(); fb.gain.value = 0.35;
-      const wet = ctx.createGain(); wet.gain.value = ROBOT_MIX * 1.6;  // ring mod halves the level; make it up
+      const comb = ctx.createDelay(0.05);
+      const fb = ctx.createGain();
+      const wet = ctx.createGain();
       src.connect(dry); dry.connect(out);
       src.connect(ring); ring.connect(thin); thin.connect(comb); comb.connect(fb); fb.connect(comb);
       thin.connect(wet); comb.connect(wet); wet.connect(out);
       out.connect(analyser); analyser.connect(ctx.destination);
-      audioRef.current = { ctx, el, analyser, buf: new Float32Array(analyser.fftSize), playing: false };
+      audioRef.current = { ctx, el, analyser, buf: new Float32Array(analyser.fftSize), playing: false,
+        fx: { dry, wet, out, tone, toneAmt, ring, fb, comb } };
+      applyVoice(audioRef.current, voiceRef.current);
     } catch (err) { console.warn('[face] audio', err); }
   }
 
@@ -420,10 +451,9 @@ export default function RabinAIFace() {
   /** Play one clip through the analysed <audio>, so the mouth follows it. */
   async function playClip(a, url) {
     a.el.src = url;
-    // A touch higher and quicker on playback, pitch NOT preserved: it sounds
-    // small, like the orb, without tipping into a chipmunk.
+    // Pitch NOT preserved, so the rate shifts the pitch too (see VOICES).
     a.el.preservesPitch = false; a.el.mozPreservesPitch = false; a.el.webkitPreservesPitch = false;
-    a.el.playbackRate = 1.05;
+    a.el.playbackRate = voiceRef.current.rate;
     a.playing = true;
     // Never wait forever: a blocked or stalled play() must not leave it stuck
     // 'busy' and deaf. One sentence is well under 20s.
@@ -450,7 +480,7 @@ export default function RabinAIFace() {
       const res = await fetch(`${API_BASE_URL}/ai/readaloud`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         // Its own voice, not the narrator's: see VOICE_PERSONAS in bfoster-services.
-        body: JSON.stringify({ prompt: text, persona: 'face' }),
+        body: JSON.stringify({ prompt: text, persona: voiceRef.current.persona }),
       });
       if (!res.ok) throw new Error(String(res.status));
       return { url: URL.createObjectURL(await res.blob()), engine: res.headers.get('X-TTS-Engine') };
@@ -519,6 +549,22 @@ export default function RabinAIFace() {
     thinkingRef.current = false;
     setAnswering('');
     // A beat before listening again, so the tail of its own voice isn't heard.
+    setTimeout(() => { earsRef.current?.resume(); busyRef.current = false; }, 400);
+  }
+
+  // Dev only (?voices): switch voice and hear a sample line in it.
+  async function tryVoice(key) {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    ensureAudio();
+    voiceRef.current = VOICES[key];
+    setVoiceKey(key);
+    applyVoice(audioRef.current, voiceRef.current);
+    earsRef.current?.pause();
+    const voice = createVoice(audioRef.current);
+    voice.add(VOICE_SAMPLE, 'none');
+    voice.close();
+    await voice.play(() => {});
     setTimeout(() => { earsRef.current?.resume(); busyRef.current = false; }, 400);
   }
 
@@ -740,6 +786,18 @@ export default function RabinAIFace() {
                     ? <>Heard “{heardText}”{ACT_WORDS[heardAct] ? <> <span className="sense-did">→ {ACT_WORDS[heardAct]}</span></> : null}</>
                     : 'Listening. Ask it a question.'}
                 </p>
+              )}
+
+              {import.meta.env.DEV && VOICE_LAB && (
+                <div className="voice-lab">
+                  <span className="voice-lab-label">Voice (dev):</span>
+                  {Object.entries(VOICES).map(([key, v]) => (
+                    <button key={key} type="button" className={`btn btn-secondary sense-small${voiceKey === key ? ' is-on' : ''}`}
+                      aria-pressed={voiceKey === key} onClick={() => tryVoice(key)}>
+                      {v.label}
+                    </button>
+                  ))}
+                </div>
               )}
 
               <details className="sense-details">
