@@ -22,7 +22,7 @@ const GLOW = new THREE.Color('#cfe2f2');
 // cheekbones, no chin. Three's CapsuleGeometry gives exact normals, which the
 // rim glow depends on.
 const PILL_R = 0.82;      // radius: half the width, and the size of each rounded end
-const PILL_LEN = 0.6;     // the straight middle section
+const PILL_LEN = 0.4;     // the straight middle section
 
 /**
  * Where a feature sits: on the pill's front surface at this x,y, lifted a
