@@ -106,8 +106,12 @@ const EYE_FRAG = /* glsl */ `
     float lid = ry * (1.0 - uSquint * 0.75);
     eye *= 1.0 - smoothstep(lid - 0.03, lid + 0.01, p.y) * step(0.01, uSquint);
     // Crescent: a disc rises from below and eats the lower half of the eye.
+    // Only when it's actually smiling: at rest the disc still reached up to
+    // -0.7, and a wide (surprised) eye goes lower than that, so its bottom
+    // was sliced flat.
     float cut = length(p - vec2(0.0, mix(-1.6, -0.42, uHappy))) ;
-    eye *= smoothstep(0.86, 0.94, cut);
+    float cutOn = smoothstep(0.0, 0.1, uHappy);
+    eye *= mix(1.0, smoothstep(0.86, 0.94, cut), cutOn);
     // Slanted lid: + (angry) drops the INNER corner, toward the nose; -
     // (worried) raises it. uSide is -1 for the eye on the viewer's left.
     if (abs(uSlant) > 0.01) {
@@ -129,7 +133,7 @@ const EYE_FRAG = /* glsl */ `
     float along = 1.0 - smoothstep(0.38, 0.48, abs(p.x));
     eye = max(eye, (1.0 - smoothstep(0.035, 0.065, abs(p.y - arcY))) * along * shut);
     vec3 col = mix(uGlow * (1.1 + 0.3 * uBright), vec3(0.03, 0.08, 0.13), pupil);
-    float glow = (1.0 - smoothstep(0.9, 1.35, e)) * 0.25 * (1.0 - uHappy * 0.5) * step(0.86, cut) * (1.0 - shut * 0.8);
+    float glow = (1.0 - smoothstep(0.9, 1.35, e)) * 0.25 * (1.0 - uHappy * 0.5) * mix(1.0, step(0.86, cut), cutOn) * (1.0 - shut * 0.8);
     float a = max(eye, glow);
     gl_FragColor = vec4(col * max(eye, glow * 1.5), a);
   }
