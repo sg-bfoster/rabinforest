@@ -2475,3 +2475,38 @@
 }
 @keyframes wake-hint { 50% { opacity: 0.55; } }
 @media (prefers-reduced-motion: reduce) { .face-wake-hint { animation: none; } }
+
+/* ---- RabinAI Face: thought cloud while it thinks ---- */
+/* Anchored to the stage, up and to the right of its head. Puffs pop in one by
+   one rising from the head, then the cloud; the cloud bobs and the dots wave. */
+.thought { position: absolute; z-index: 2; left: 50%; top: 12%; width: min(42%, 210px); pointer-events: none; }
+/* Below the Seeing/Listening pills (top 12%), above the head. Solid colour, not
+   translucent: overlapping bumps would show seams. The two
+   bumps on top are what make it a cloud rather than a pill-shaped badge. */
+.thought-cloud {
+  --cloud: #cfe2f2;
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 12px 16px 13px; border-radius: 999px; text-align: center;
+  background: var(--cloud); color: var(--hero);
+  filter: drop-shadow(0 0 10px rgba(207, 226, 242, 0.35));
+  animation: thought-in 260ms 420ms both ease-out, thought-bob 3.2s 700ms ease-in-out infinite;
+}
+.thought-cloud::before, .thought-cloud::after { content: ''; position: absolute; z-index: -1; border-radius: 50%; background: var(--cloud); }
+.thought-cloud::before { width: 46%; aspect-ratio: 1; left: 12%; top: -34%; }
+.thought-cloud::after { width: 36%; aspect-ratio: 1; right: 14%; top: -22%; }
+.thought-puff { position: absolute; border-radius: 50%; background: #cfe2f2; animation: thought-in 220ms both ease-out; }
+.thought-puff--1 { width: 9px; height: 9px; left: -14%; top: calc(100% + 40px); animation-delay: 0ms; }
+.thought-puff--2 { width: 14px; height: 14px; left: -4%; top: calc(100% + 20px); animation-delay: 140ms; }
+.thought-puff--3 { width: 20px; height: 20px; left: 8%; top: calc(100% + 2px); animation-delay: 280ms; }
+.thought-dots { display: flex; gap: 6px; }
+.thought-dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--cool); animation: thought-dot 1.1s ease-in-out infinite; }
+.thought-dots i:nth-child(2) { animation-delay: 150ms; }
+.thought-dots i:nth-child(3) { animation-delay: 300ms; }
+.thought-line { font-size: 0.8rem; font-weight: 600; line-height: 1.2; }
+@keyframes thought-in { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: scale(1); } }
+@keyframes thought-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -4px; } }
+@keyframes thought-dot { 0%, 60%, 100% { transform: translateY(0); opacity: 0.45; } 30% { transform: translateY(-5px); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .thought-cloud, .thought-puff, .thought-dots i { animation: none; }
+}
+@media (max-width: 640px) { .thought { left: 50%; width: 46%; } }

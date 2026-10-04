@@ -117,6 +117,33 @@ function speechVendor() {
   return "the browser";
 }
 
+// While it thinks, a cartoon thought cloud over its head: the wait is real
+// (the box can take several seconds before a first word), so it should look
+// like thinking rather than like nothing happening. The line under the dots
+// changes as the wait grows, honestly: it says it is slow, not that it's done.
+const THINK_LINES = [[0, ''], [3500, 'Thinking…'], [8000, 'Still thinking…'], [14000, 'The box is taking its time…']];
+
+function ThoughtCloud() {
+  const [ms, setMs] = useState(0);
+  useEffect(() => {
+    const t0 = performance.now();
+    const id = setInterval(() => setMs(performance.now() - t0), 500);
+    return () => clearInterval(id);
+  }, []);
+  const line = THINK_LINES.filter(([at]) => ms >= at).pop()[1];
+  return (
+    <div className="thought" role="status" aria-label="RabinAI is thinking">
+      <span className="thought-puff thought-puff--1" />
+      <span className="thought-puff thought-puff--2" />
+      <span className="thought-puff thought-puff--3" />
+      <div className="thought-cloud">
+        <span className="thought-dots" aria-hidden="true"><i /><i /><i /></span>
+        {line && <span className="thought-line">{line}</span>}
+      </div>
+    </div>
+  );
+}
+
 const svg = { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true };
 const EyeIcon = () => (<svg {...svg}><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></svg>);
 const EarIcon = () => (<svg {...svg}><path d="M6 9a6 6 0 1 1 12 0c0 3.2-2.4 4.6-3.6 5.8-1 1-1.2 2.2-1.6 3.4A3 3 0 0 1 7 18" /><path d="M10 9a2 2 0 1 1 4 0c0 1.2-1 1.7-1.5 2.3" /></svg>);
@@ -633,6 +660,7 @@ export default function RabinAIFace() {
               </pre>
             )}
             {!awake && !renderFailed && <div className="face-wake-hint" aria-hidden="true">Tap to wake</div>}
+            {answering === 'thinking' && !renderFailed && <ThoughtCloud />}
             {/* What's on, at a glance, right by the face. */}
             {(camera === 'on' || mic === 'on') && (
               <div className="rabinai-face-pills" aria-hidden="true">
