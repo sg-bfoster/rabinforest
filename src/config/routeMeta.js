@@ -180,14 +180,19 @@ const PAGES = {
     ),
     robots: 'index, follow',
   },
-  // Unlisted until Brian has looked at it: noindex and, per the rule above, no
-  // schema. Flip robots and add schema when it goes in the nav.
+  // Listed since 2026-10-04: in the nav as "Avatar", in the sitemap, indexable.
   [PLAYGROUND_RABINAI_FACE]: {
-    title: 'It Looks Back | Rabin Forest',
+    title: 'Avatar | Rabin Forest',
     description:
-      'A small RabinAI presence that keeps eye contact and answers your expressions. Face tracking runs in your browser; no video leaves the page.',
+      "Talk to Brian Foster's site assistant out loud: a small RabinAI face that keeps eye contact, reacts to your expressions and answers in its own voice from his home AI server. Face tracking runs in your browser; no video leaves the page.",
     canonical: `${SITE}${PLAYGROUND_RABINAI_FACE}`,
-    robots: 'noindex, nofollow',
+    schema: app(
+      `${SITE}${PLAYGROUND_RABINAI_FACE}`,
+      'RabinAI Avatar',
+      "The site's assistant with a face: it keeps eye contact, reacts to your expressions and answers out loud. Face tracking stays in your browser.",
+      'MultimediaApplication',
+    ),
+    robots: 'index, follow',
   },
   '/admin': {
     title: 'Admin | Rabin Forest',

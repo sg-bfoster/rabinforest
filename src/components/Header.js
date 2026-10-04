@@ -5,7 +5,7 @@ import {
   PLAYGROUND_CHAT_BOTS,
   PLAYGROUND_FACT_CHECK,
   PLAYGROUND_RABINAI_IMAGERY,
-  PLAYGROUND_STILL_MOVING,
+  PLAYGROUND_RABINAI_FACE,
 } from '../playgroundRoutes';
 
 export const SynapseLogo = ({ size = 24 }) => (
@@ -78,14 +78,15 @@ const Header = () => {
           <NavLink to="/" end className={navClass}>
             Assistant
           </NavLink>
+          {/* "Avatar" for now (Brian, 2026-10-04); the assistant with a face. */}
+          <NavLink to={PLAYGROUND_RABINAI_FACE} className={navClass}>
+            Avatar
+          </NavLink>
           {FEATURES.rabinaiImagery && (
             <NavLink to={PLAYGROUND_RABINAI_IMAGERY} className={navClass}>
               RabinAI Images
             </NavLink>
           )}
-          <NavLink to={PLAYGROUND_STILL_MOVING} className={navClass}>
-            Still Moving
-          </NavLink>
           <NavLink to={PLAYGROUND_CHAT_BOTS} className={navClass}>
             Chat Bots
           </NavLink>

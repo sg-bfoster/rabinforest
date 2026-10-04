@@ -19,9 +19,9 @@ below is settled.
 | bfoster-services | **3** | `e96f88e` `/ai/face/reply`, `5bdf8a7` readaloud personas, `7612c44` assistant spoken mode. **Pushing deploys Heroku production.** |
 
 **Push order if/when Brian says push:** bfoster-services first (the live page
-calls `/ai/face/reply`, `persona: 'face'` and `spoken: true`), then rabinforest. The page is
-**unlisted** (no nav link, `noindex`, not in the sitemap), so nothing public
-changes until it's linked.
+calls `/ai/face/reply`, `persona: 'face'` and `spoken: true`), then rabinforest. **Since 2026-10-04 (v0.4.160) the page is LISTED**: "Avatar" in the nav, in
+the sitemap, indexable. Pushing rabinforest now makes it public, so
+bfoster-services must be live first.
 
 ## Run it locally
 

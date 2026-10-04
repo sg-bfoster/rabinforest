@@ -11,6 +11,11 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://www.rabinforest.com/playground/rabinai-face</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://www.rabinforest.com/playground/rabinai-imagery</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
