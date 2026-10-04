@@ -17,6 +17,54 @@ const DEEP = new THREE.Color('#0d2a40');
 const COOL = new THREE.Color('#2f6d99');
 const GLOW = new THREE.Color('#cfe2f2');
 
+// The body's shape: a sphere, sculpted. Still an orb, not a head (§3a), but
+// with a little structure: cheekbones that read as a plane rather than a
+// ball, a soft hollow under them, and a jaw — the lower half runs longer and
+// stays wide until a jaw angle, then turns in to a squarer chin. Applied once
+// to the geometry, with normals taken from the shape itself (finite
+// differences, not computeVertexNormals: the sphere's UV seam would crease).
+function sculpt(x, y, z) {
+  const gauss = (v, c, w) => Math.exp(-(((v - c) / w) ** 2));
+  const smooth = (a, b, v) => { const t = Math.min(1, Math.max(0, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
+  const front = smooth(-0.3, 0.6, z);
+  let sx = 1;
+  // Cheekbones: barely wider; the edge comes from flattening (nz, below), not
+  // a bump, which read as ears.
+  sx += 0.015 * gauss(y, 0.05, 0.22);
+  sx -= 0.035 * gauss(y, -0.3, 0.2) * front;                  // a shallow hollow under them
+  sx *= 1 - 0.22 * smooth(-0.45, -1.0, y);                    // jaw angle, then in toward the chin
+  let ny = y < 0 ? y * 1.12 : y;                              // a longer lower face
+  ny = Math.max(ny, -1.06);                                   // a flatter chin, not a point
+  let nz = z + 0.05 * smooth(-0.6, -1.0, y) * Math.max(z, 0);   // chin forward a touch
+  // ...and the front corners at cheek height pulled back, so the front of the
+  // face meets the side at more of an edge: a cheekbone line, not a ball.
+  nz -= 0.07 * gauss(y, -0.02, 0.3) * smooth(0.35, 0.85, Math.abs(x)) * front;
+  return [x * sx, ny, nz];
+}
+
+function sculptedBody(segments) {
+  const g = new THREE.SphereGeometry(1, segments, segments);
+  const pos = g.attributes.position, nor = g.attributes.normal;
+  const d = new THREE.Vector3(), t1 = new THREE.Vector3(), t2 = new THREE.Vector3();
+  const P = new THREE.Vector3(), A = new THREE.Vector3(), B = new THREE.Vector3(), n = new THREE.Vector3();
+  const at = (v, out) => out.set(...sculpt(v.x, v.y, v.z));
+  const eps = 0.01;
+  for (let i = 0; i < pos.count; i++) {
+    d.fromBufferAttribute(pos, i).normalize();
+    t1.crossVectors(d, Math.abs(d.y) > 0.9 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0)).normalize();
+    t2.crossVectors(d, t1);
+    at(d, P);
+    at(t1.clone().multiplyScalar(eps).add(d).normalize(), A);
+    at(t2.clone().multiplyScalar(eps).add(d).normalize(), B);
+    n.crossVectors(A.sub(P), B.sub(P)).normalize();
+    if (n.dot(P) < 0) n.negate();
+    pos.setXYZ(i, P.x, P.y, P.z);
+    nor.setXYZ(i, n.x, n.y, n.z);
+  }
+  g.computeBoundingSphere();
+  return g;
+}
+
 const BODY_VERT = /* glsl */ `
   uniform float uTime, uStretch, uWobble;
   varying vec3 vNormal, vView;
@@ -214,7 +262,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
     uBright: { value: 0.6 }, uWarm: { value: 0 }, uDeep: { value: DEEP }, uCool: { value: COOL }, uGlow: { value: GLOW },
   };
   const body = new THREE.Mesh(
-    new THREE.SphereGeometry(1, 96, 96),
+    sculptedBody(96),
     new THREE.ShaderMaterial({ uniforms: bodyU, vertexShader: BODY_VERT, fragmentShader: BODY_FRAG }),
   );
   head.add(body);
