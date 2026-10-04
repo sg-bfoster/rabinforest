@@ -966,7 +966,7 @@ export default function RabinAIFace() {
                   <button type="button" className="btn btn-secondary wake-btn" onClick={sleep}>Put it to sleep</button>
                 </>
               ) : (
-                <button type="button" className="btn btn-primary wake-btn" onClick={wake} disabled={nothingToWake}>Wake RabinAI</button>
+                <button type="button" className="btn btn-primary wake-btn" onClick={wake} disabled={nothingToWake}>Tap to wake</button>
               )}
 
               {/* What this browser can't do, and what to do about it. Shown before
