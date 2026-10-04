@@ -24,6 +24,7 @@ const GLOW = new THREE.Color('#cfe2f2');
 const PILL_R = 0.82;      // radius: half the width, and the size of each rounded end
 const PILL_LEN = 0.4;     // the straight middle section
 const EYE_SIZE = 0.54;    // each eye's square; the shape inside is drawn by EYE_FRAG
+const MOUTH_SCALE = 1.35; // the mouth's plane, against its original 0.62 x 0.42 (Brian, 2026-10-04: "bigger")
 
 /**
  * Where a feature sits: on the pill's front surface at this x,y, lifted a
@@ -296,12 +297,12 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
     uBright: { value: 0.6 }, uGlow: { value: GLOW },
   };
   const mouth = new THREE.Mesh(
-    new THREE.PlaneGeometry(0.62, 0.42),
+    new THREE.PlaneGeometry(0.62 * MOUTH_SCALE, 0.42 * MOUTH_SCALE),
     // Same reason as the eyes: drawn on top, or the wobble slices it.
     new THREE.ShaderMaterial({ uniforms: mouthU, vertexShader: UV_VERT, fragmentShader: MOUTH_FRAG, transparent: true, depthWrite: false, depthTest: false }),
   );
   mouth.renderOrder = 1;
-  mouth.position.set(...onSurface(0, -0.3));
+  mouth.position.set(...onSurface(0, -0.33));       // a touch lower, so the bigger mouth keeps clear of the eyes
   mouth.rotation.x = 0.3;                         // follows the sphere's curve below centre
   head.add(mouth);
 
