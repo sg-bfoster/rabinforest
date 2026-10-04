@@ -2502,3 +2502,11 @@
   .thought-cloud, .thought-puff, .thought-dots i { animation: none; }
 }
 @media (max-width: 640px) { .thought { left: 50%; width: 46%; } }
+
+/* Asleep = greyed out. Dimming alone darkened the skin, and a darker skin
+   tone reads as a different person: asleep it looked African American, awake
+   Caucasian (Brian, 2026-10-04). Taking the COLOUR out says "switched off"
+   without changing who it is. Fades with the wake/sleep animation. */
+.rabinai-face-canvas { transition: filter 1.2s ease; }
+.rabinai-face-stage.is-asleep .rabinai-face-canvas { filter: grayscale(1) brightness(1.12) contrast(0.92); }
+@media (prefers-reduced-motion: reduce) { .rabinai-face-canvas { transition: none; } }

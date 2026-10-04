@@ -624,7 +624,8 @@ export default function RabinAIFace() {
       <ScreenBody width="links">
         <div className="rabinai-face">
           <div
-            className="rabinai-face-stage"
+            // Asleep is GREYED OUT, not just darker: see .is-asleep in App.css.
+            className={`rabinai-face-stage${!awake && !(import.meta.env.DEV && DEMO) ? ' is-asleep' : ''}`}
             ref={stageRef}
             // Mouse or finger on the stage: the eyes follow it. Screen coords,
             // so no mirroring: point right and it looks right.
