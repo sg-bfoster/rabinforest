@@ -114,40 +114,8 @@ function speechVendor() {
 const svg = { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true };
 const EyeIcon = () => (<svg {...svg}><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></svg>);
 const EarIcon = () => (<svg {...svg}><path d="M6 9a6 6 0 1 1 12 0c0 3.2-2.4 4.6-3.6 5.8-1 1-1.2 2.2-1.6 3.4A3 3 0 0 1 7 18" /><path d="M10 9a2 2 0 1 1 4 0c0 1.2-1 1.7-1.5 2.3" /></svg>);
+const SleepIcon = () => (<svg {...svg}><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></svg>);
 const CameraIcon = () => (<svg {...svg}><path d="M23 7l-7 5 7 5V7z" /><rect x="1" y="5" width="15" height="14" rx="2" /></svg>);
-
-/**
- * One sense: what it does, where its data goes, and a real on/off switch.
- * The badge is the privacy fact in three words; the details say it in full.
- */
-function SenseCard({ icon, title, blurb, on, busy, disabled, onToggle, badge, problem, details, children }) {
-  const id = `sense-${title.toLowerCase()}`;
-  return (
-    <section className={`sense-card${on ? ' is-on' : ''}`} aria-labelledby={`${id}-title`}>
-      <div className="sense-head">
-        <span className="sense-icon">{icon}</span>
-        <h2 id={`${id}-title`} className="sense-title">{title}</h2>
-        <span className="sense-state" aria-hidden="true">{busy ? 'Starting' : on ? 'On' : 'Off'}</span>
-        <button
-          type="button" role="switch" aria-checked={on} aria-labelledby={`${id}-title`}
-          className={`sense-switch${on ? ' is-on' : ''}${busy ? ' is-busy' : ''}`}
-          onClick={onToggle} disabled={disabled || busy}
-        >
-          <span className="sense-switch-knob" />
-        </button>
-      </div>
-      <p className="sense-blurb">{blurb}</p>
-      <span className={`sense-badge sense-badge--${badge.tone}`}>{badge.text}</span>
-      {busy && <p className="sense-live">Asking your browser…</p>}
-      {problem && <p className="sense-problem" role="status">{problem}</p>}
-      {children}
-      <details className="sense-details">
-        <summary>Where does it go?</summary>
-        <p>{details}</p>
-      </details>
-    </section>
-  );
-}
 
 export default function RabinAIFace() {
   const canvasRef = useRef(null);
@@ -155,6 +123,10 @@ export default function RabinAIFace() {
   const trackerRef = useRef(null);
   // 'off' | 'starting' | 'on' | 'denied' | 'error'
   const [camera, setCamera] = useState('off');
+  // ONE switch: asleep, or awake (seeing and hearing together). Brian, 2026-10-04:
+  // two switches for one creature was a settings page, not a character.
+  const [awake, setAwake] = useState(false);
+  const awakeRef = useRef(false);
   const [showPreview, setShowPreview] = useState(false);
   const [noFace, setNoFace] = useState(false);
   const [renderFailed, setRenderFailed] = useState(false);
@@ -236,9 +208,9 @@ export default function RabinAIFace() {
           for (let i = 0; i < a.buf.length; i++) sum += a.buf[i] * a.buf[i];
           speakLevelRef.current = Math.min(1, Math.sqrt(sum / a.buf.length) * 6);
         } else speakLevelRef.current = 0;
-        // Eyes closed while Sight is off (and while it's starting): it opens
-        // them when it can actually see. The dev demo is a visitor, so awake.
-        const asleep = !(import.meta.env.DEV && DEMO) && !trackerRef.current;
+        // Asleep until woken. Awake even if the camera was refused: it can
+        // still hear you. The dev demo is a visitor, so awake.
+        const asleep = !(import.meta.env.DEV && DEMO) && !awakeRef.current;
         form.render(behaviour.update(dt, now, {
           face, heard: heardRef.current, point, thinking: thinkingRef.current, speak: speakLevelRef.current, asleep,
         }), now);
@@ -559,6 +531,30 @@ export default function RabinAIFace() {
     setNoFace(false);
   }
 
+  const canHear = !!(micMode && micMode !== 'none' && earsSupported());
+
+  /**
+   * Wake it: camera and microphone together, from this click (which is also
+   * the gesture the browser needs for audio). Each can fail on its own — a
+   * refused camera still leaves it hearing you, and the other way round.
+   */
+  async function wake() {
+    if (awakeRef.current) return;
+    awakeRef.current = true;
+    setAwake(true);
+    ensureAudio();
+    await Promise.allSettled([turnOn(), canHear ? micOn() : Promise.resolve()]);
+  }
+
+  /** Back to sleep: both off, and anything it was saying stops. */
+  function sleep() {
+    awakeRef.current = false;
+    setAwake(false);
+    turnOff();
+    if (canHear) micOff();
+    try { audioRef.current?.el.pause(); } catch { /* not playing */ }
+  }
+
   return (
     <>
       <Hero>
@@ -567,8 +563,8 @@ export default function RabinAIFace() {
           A small RabinAI presence that keeps eye contact, blinks with you now
           and then, and answers a smile with one of its own. Your camera feeds a
           face-tracking model running in this tab; everything it does after that
-          is ordinary code, not AI. Switch on Hearing and it becomes the site's
-          assistant with a face: ask it about Brian's work and it answers out loud.
+          is ordinary code, not AI. Wake it and it's the site's assistant with a
+          face: ask it about Brian's work and it answers out loud.
         </p>
       </Hero>
 
@@ -589,11 +585,13 @@ export default function RabinAIFace() {
               };
             }}
             onPointerLeave={() => { pointerRef.current = null; }}
+            onClick={() => { if (!awake) wake(); }}
+            style={{ cursor: awake ? undefined : 'pointer' }}
           >
             {renderFailed ? (
               <p className="rabinai-face-fallback">This browser can't draw it — WebGL is off or unavailable.</p>
             ) : (
-              <canvas ref={canvasRef} className="rabinai-face-canvas" aria-label={`A glowing RabinAI form with two eyes${camera === 'on' ? '' : ', closed'}`} role="img" />
+              <canvas ref={canvasRef} className="rabinai-face-canvas" aria-label={`A glowing RabinAI form with two eyes${awake ? '' : ', asleep'}`} role="img" />
             )}
             <video
               ref={videoRef}
@@ -607,6 +605,7 @@ export default function RabinAIFace() {
                 {debugRows.length ? debugRows.map(([k, v]) => `${k.padEnd(16)} ${v.toFixed(2)}`).join('\n') : 'no face'}
               </pre>
             )}
+            {!awake && !renderFailed && <div className="face-wake-hint" aria-hidden="true">Tap to wake</div>}
             {/* What's on, at a glance, right by the face. */}
             {(camera === 'on' || mic === 'on') && (
               <div className="rabinai-face-pills" aria-hidden="true">
@@ -624,84 +623,71 @@ export default function RabinAIFace() {
           </div>
 
           <div className="rabinai-senses">
-            <SenseCard
-              icon={<EyeIcon />}
-              title="Sight"
-              blurb="Eye contact, and it answers your expressions. Point a finger and it follows."
-              on={camera === 'on'}
-              busy={camera === 'starting'}
-              disabled={renderFailed}
-              onToggle={() => (camera === 'on' ? turnOff() : turnOn())}
-              badge={{ tone: 'ok', text: 'Stays on this device' }}
-              problem={camera === 'denied'
-                ? 'Camera blocked. Allow it from the address bar, then switch it on again.'
-                : camera === 'error' ? "The tracker couldn't start in this browser." : ''}
-              details={<>
-                Your camera feeds a face- and hand-tracking model running in this tab.
-                Frames are never uploaded, saved or recorded. The model files download
-                once, from Google's model servers.
-              </>}
-            >
-              {camera === 'on' && (
-                <p className="sense-live">{noFace ? "Can't see you yet — is there enough light?" : 'Watching you. Try a smile, a wink, or raised eyebrows.'}</p>
-              )}
-            </SenseCard>
+            <section className={`sense-card wake-card${awake ? ' is-on' : ''}`} aria-labelledby="wake-title">
+              <div className="sense-head">
+                <span className="sense-icon">{awake ? <EyeIcon /> : <SleepIcon />}</span>
+                <h2 id="wake-title" className="sense-title">{awake ? 'Awake' : 'Asleep'}</h2>
+              </div>
+              <p className="sense-blurb">
+                {awake
+                  ? 'It sees and hears you. Ask it about Brian and his work, or anything else, and it answers out loud.'
+                  : 'Wake it and it keeps eye contact, answers your expressions, follows your finger, and talks with you.'}
+              </p>
 
-            {micMode && micMode !== 'none' && earsSupported() && (
-              <SenseCard
-                icon={<EarIcon />}
-                title="Hearing"
-                blurb="Follows simple directions. Ask it about Brian and his work, or anything else, and it answers out loud."
-                on={mic === 'on'}
-                busy={mic === 'starting'}
-                onToggle={() => (mic === 'on' ? micOff() : micOn())}
-                badge={micMode === 'local'
-                  ? { tone: 'ok', text: 'Stays on this device' }
-                  : { tone: 'warn', text: `Uses ${speechVendor()}'s speech service` }}
-                problem={mic === 'denied'
-                  ? 'Microphone blocked. Allow it from the address bar, then switch it on again.'
-                  : mic === 'error' ? "Speech recognition couldn't start in this browser." : ''}
-                details={<>
-                  {micWhere} {keptWords}
-                  {micMode === 'downloadable' && (
-                    <span className="sense-local">
-                      This browser can do it on your device instead.{' '}
-                      <button type="button" className="btn btn-secondary sense-small" onClick={goLocal} disabled={installing}>
-                        {installing ? 'Downloading…' : 'Keep speech on this device'}
-                      </button>
-                    </span>
-                  )}
-                </>}
-              >
-                {(answering || reply) && (
-                  <p className="sense-reply" aria-live="polite">
-                    {answering === 'thinking' ? 'Thinking…' : <>
-                      <span className="sense-reply-say">“{reply?.say}”</span>
-                      <span className="sense-reply-by">{replyBy(reply)}</span>
-                    </>}
-                  </p>
+              {/* Where each sense goes, before you agree: they differ, so both are said. */}
+              <ul className="wake-facts">
+                <li><EyeIcon /> <span><b>Seeing</b> stays on this device</span></li>
+                {canHear && (
+                  <li><EarIcon /> <span><b>Hearing</b> {micMode === 'local' ? 'stays on this device' : <>uses {speechVendor()}'s speech service</>}</span></li>
                 )}
-                {/* Links are shown, never read out: the spoken answer points here. */}
-                {!answering && reply?.links?.length > 0 && (
-                  <ul className="face-links" aria-label="Links from its answer">
-                    {reply.links.map((url) => (
-                      <li key={url}>
-                        <a className="face-link" href={url} target="_blank" rel="noopener noreferrer">
-                          <span className="face-link-label">{linkLabel(url)}</span>
-                          <span className="face-link-arrow" aria-hidden="true">↗</span>
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {mic === 'on' && (
-                  <p className="sense-live" aria-live="polite">
-                    {heardText
-                      ? <>Heard “{heardText}”{ACT_WORDS[heardAct] ? <> <span className="sense-did">→ {ACT_WORDS[heardAct]}</span></> : null}</>
-                      : 'Listening. Ask it a question, or say one of these:'}
-                  </p>
-                )}
-                {/* Tappable too: the same moves, for anyone without a mic. */}
+              </ul>
+
+              {awake ? (
+                <button type="button" className="btn btn-secondary wake-btn" onClick={sleep}>Put it to sleep</button>
+              ) : (
+                <button type="button" className="btn btn-primary wake-btn" onClick={wake} disabled={renderFailed}>Wake RabinAI</button>
+              )}
+
+              {/* Partial wakes are fine; say what didn't come on, and why. */}
+              {awake && camera === 'starting' && <p className="sense-live">Opening its eyes…</p>}
+              {awake && (camera === 'denied' || camera === 'error') && (
+                <p className="sense-problem" role="status">{camera === 'denied' ? "Camera blocked, so it can't see you. Allow it from the address bar, then wake it again." : "Its eyes couldn't start in this browser."}</p>
+              )}
+              {awake && (mic === 'denied' || mic === 'error') && (
+                <p className="sense-problem" role="status">{mic === 'denied' ? "Microphone blocked, so it can't hear you. Allow it from the address bar, then wake it again." : "Its ears couldn't start in this browser."}</p>
+              )}
+              {awake && camera === 'on' && noFace && <p className="sense-live">Can't see you yet — is there enough light?</p>}
+
+              {(answering || reply) && (
+                <p className="sense-reply" aria-live="polite">
+                  {answering === 'thinking' ? 'Thinking…' : <>
+                    <span className="sense-reply-say">“{reply?.say}”</span>
+                    <span className="sense-reply-by">{replyBy(reply)}</span>
+                  </>}
+                </p>
+              )}
+              {/* Links are shown, never read out: the spoken answer points here. */}
+              {!answering && reply?.links?.length > 0 && (
+                <ul className="face-links" aria-label="Links from its answer">
+                  {reply.links.map((url) => (
+                    <li key={url}>
+                      <a className="face-link" href={url} target="_blank" rel="noopener noreferrer">
+                        <span className="face-link-label">{linkLabel(url)}</span>
+                        <span className="face-link-arrow" aria-hidden="true">↗</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {awake && mic === 'on' && (
+                <p className="sense-live" aria-live="polite">
+                  {heardText
+                    ? <>Heard “{heardText}”{ACT_WORDS[heardAct] ? <> <span className="sense-did">→ {ACT_WORDS[heardAct]}</span></> : null}</>
+                    : 'Listening. Ask it a question, or say one of these:'}
+                </p>
+              )}
+              {/* Tappable too: the same moves, for anyone without a mic. */}
+              {awake && (
                 <div className="sense-chips" role="group" aria-label="Directions it knows">
                   {mic !== 'on' && <span className="sense-chips-label">Try one:</span>}
                   {TRY_CHIPS.map(([label, act]) => (
@@ -711,8 +697,30 @@ export default function RabinAIFace() {
                     </button>
                   ))}
                 </div>
-              </SenseCard>
-            )}
+              )}
+
+              <details className="sense-details">
+                <summary>Where does it go?</summary>
+                <p>
+                  <b>Seeing:</b> your camera feeds a face- and hand-tracking model running in this tab.
+                  Frames are never uploaded, saved or recorded; the model files download once, from
+                  Google's model servers.
+                </p>
+                {canHear && (
+                  <p>
+                    <b>Hearing:</b> {micWhere} {keptWords}
+                    {micMode === 'downloadable' && (
+                      <span className="sense-local">
+                        This browser can do it on your device instead.{' '}
+                        <button type="button" className="btn btn-secondary sense-small" onClick={goLocal} disabled={installing}>
+                          {installing ? 'Downloading…' : 'Keep speech on this device'}
+                        </button>
+                      </span>
+                    )}
+                  </p>
+                )}
+              </details>
+            </section>
           </div>
         </div>
       </ScreenBody>

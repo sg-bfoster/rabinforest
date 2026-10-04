@@ -20,7 +20,7 @@
  *          thinking = true while an answer is on its way (the box is working)
  *          point = { gx, gy, near } something to follow instead of the face (a
  *                  fingertip or the pointer), already in gaze terms (-1..1)
- *          asleep = true while Sight is off: the eyes drift shut and stay shut
+ *          asleep = true until it's woken (the page's Wake): eyes drift shut and stay shut
  *   act(name, now) plays a direction it was given out loud (commands.js)
  *   state: everything the renderer needs, already smoothed.
  */
@@ -154,6 +154,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
   const acts = {};
   let shakeStart = -1, nodAmp = 0.15, wasQuestion = false, baseYaw = 0;
   let pointSince = -1, convergeT = 0;
+  let wasAsleep = false, wokeAt = -Infinity, flutter = [];
   let oneBrowSince = -1, oneBrowSide = 0, quizT = 0;
 
   function blink(now) {
@@ -443,6 +444,23 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     t.gazeX = clamp(t.gazeX - earTurn * 2.2, -1, 1);
 
     t.bright = idle ? 0.5 : hasFace ? 1 : 0.8;
+
+    // --- Asleep, and waking up. Asleep it dims and nothing else plays. Woken,
+    //     it does what anyone does: a double flutter of the eyes, brows up, a
+    //     small smile, then it looks for you. ~1.5s, then ordinary behaviour.
+    const asleep = !!input?.asleep;
+    if (wasAsleep && !asleep) { wokeAt = now; flutter = [now + 450, now + 700]; nextBlink = now + rand(2500, 4500); }
+    if (flutter.length && now >= flutter[0] && blinkStart < 0) { flutter.shift(); blink(now); }
+    wasAsleep = asleep;
+    if (asleep) {
+      t.bright = 0.32;
+      t.happy = 0; t.widen = 0; t.squint = 0; t.lean = 0;
+      t.gazeX = 0; t.gazeY = -0.25;                    // eyes (behind the lids) settle down
+    } else {
+      const w = now - wokeAt;
+      if (w < 900) t.widen = Math.max(t.widen, 0.45 * (1 - w / 900));
+      if (w > 250 && w < 1600) t.happy = Math.max(t.happy, 0.3);
+    }
     if (!hasFace) { t.happy = 0; t.widen = 0; t.squint = 0; t.lean = input?.heard?.question ? 0.85 : input?.heard?.speaking ? 0.6 : 0; }
 
     // --- Something to follow: a pointing fingertip, or the pointer. ---
@@ -516,8 +534,8 @@ export function createBehaviour({ reducedMotion = false } = {}) {
       else shakeOff = (reducedMotion ? 0.12 : 0.3) * Math.sin((2 * Math.PI * e) / 450) * (1 - e / 1350);
     }
     s.yaw = baseYaw + shakeOff;                       // like the nod: an offset on a smoothed base, never fed back
-    // Sight off: eyes drift shut, slowly, like dozing off, and no blink can
-    // pop them open. Switching Sight on wakes it with the ordinary ease below.
+    // Asleep: eyes drift shut, slowly, like dozing off, and no blink can pop
+    // them open. Woken, they ease open below and the flutter above plays.
     if (input?.asleep) { blinkStart = -1; s.open = approach(s.open, 0.03, 2.5, dt); }
     // Eyes shut on request; afterwards ease them open (a blink is the only
     // other thing that ever sets openness, and it may be seconds away).

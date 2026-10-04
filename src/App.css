@@ -2460,3 +2460,18 @@
   }
   .rabinai-senses { grid-template-columns: 1fr; }
 }
+
+/* ---- RabinAI Face: one switch, asleep or awake ---- */
+.wake-card .sense-title { font-size: 1.25rem; }
+.wake-facts { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); color: var(--ink-2); font-size: 0.92rem; }
+.wake-facts li { display: flex; align-items: center; gap: var(--space-2); }
+.wake-facts svg { width: 16px; height: 16px; color: var(--cool); flex: none; }
+.wake-btn { width: 100%; justify-content: center; padding-top: 12px; padding-bottom: 12px; font-size: 1rem; }
+.face-wake-hint {
+  position: absolute; left: 50%; bottom: var(--space-4); transform: translateX(-50%); z-index: 1;
+  padding: var(--space-2) var(--space-4); border-radius: 999px; pointer-events: none;
+  background: rgba(10, 15, 21, 0.6); color: var(--glow); font-size: 0.9rem; font-weight: 600;
+  border: 1px solid rgba(207, 226, 242, 0.18); animation: wake-hint 2.8s ease-in-out infinite;
+}
+@keyframes wake-hint { 50% { opacity: 0.55; } }
+@media (prefers-reduced-motion: reduce) { .face-wake-hint { animation: none; } }
