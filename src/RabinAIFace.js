@@ -209,6 +209,7 @@ export default function RabinAIFace() {
   const [quiet, setQuiet] = useState(false);
   const quietRef = useRef(false);
   const [typed, setTyped] = useState('');
+  const [typeOpen, setTypeOpen] = useState(false);    // "Type instead" was clicked
   const [asked, setAsked] = useState('');             // the typed question being answered, shown back
   const awakeRef = useRef(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -720,6 +721,13 @@ export default function RabinAIFace() {
   const cantHear = micMode !== null && !canHear;
   const cantSpeak = !support.voice;
   const noSenses = cantSee && cantHear;                // it can still be typed to
+  // The typed box is shown outright only when talking isn't possible: no speech
+  // recognition, or the microphone was blocked or failed. Otherwise it sits
+  // behind a "Type instead" link, so the card leads with talking (Brian,
+  // 2026-10-04) and the path is still one click away for a quiet room or
+  // anyone who'd rather not speak. Once used, it stays open.
+  const mustType = cantHear || mic === 'denied' || mic === 'error';
+  const showTyping = typeOpen || mustType || quiet;
   const nothingToWake = cantDraw;
 
   /**
@@ -927,15 +935,24 @@ export default function RabinAIFace() {
 
               {/* Type instead of talking: no mic, a quiet room, or just preference.
                   Needs neither camera nor microphone, and works asleep (it wakes). */}
-              <form className="ask-typed" onSubmit={askTyped}>
-                <label htmlFor="face-ask" className="sr-only">Type a question for RabinAI</label>
-                <input
-                  id="face-ask" type="text" className="ask-typed-input" value={typed} maxLength={200}
-                  onChange={(e) => setTyped(e.target.value)} autoComplete="off" enterKeyHint="send"
-                  placeholder={canHear ? 'Or type a question' : 'Type a question'}
-                />
-                <button type="submit" className="btn btn-secondary ask-typed-btn" disabled={!typed.trim() || !!answering}>Ask</button>
-              </form>
+              {showTyping ? (
+                <form className="ask-typed" onSubmit={askTyped}>
+                  <label htmlFor="face-ask" className="sr-only">Type a question for RabinAI</label>
+                  <input
+                    id="face-ask" type="text" className="ask-typed-input" value={typed} maxLength={200}
+                    onChange={(e) => setTyped(e.target.value)} autoComplete="off" enterKeyHint="send"
+                    placeholder="Type a question"
+                  />
+                  <button type="submit" className="btn btn-secondary ask-typed-btn" disabled={!typed.trim() || !!answering}>Ask</button>
+                </form>
+              ) : (
+                <button
+                  type="button" className="type-instead"
+                  onClick={() => { setTypeOpen(true); setTimeout(() => document.getElementById('face-ask')?.focus(), 0); }}
+                >
+                  Type instead
+                </button>
+              )}
               {asked && (answering || reply) && <p className="sense-live">You asked “{asked}”</p>}
 
               {/* Partial wakes are fine; say what didn't come on, and why. */}

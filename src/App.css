@@ -2530,3 +2530,8 @@
 /* ---- RabinAI Face: tap to stop ---- */
 .face-stop-hint { animation: none; }
 .face-stop-btn { align-self: flex-start; padding: 6px 14px; font-size: 0.9rem; }
+/* "Type instead": a link, not another button competing with Wake. */
+.type-instead { align-self: flex-start; padding: 0; border: 0; background: none; cursor: pointer;
+  color: var(--cool); font: inherit; font-size: 0.9rem; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.type-instead:hover { color: var(--ink); }
+.type-instead:focus-visible { outline: 2px solid var(--cool); outline-offset: 3px; border-radius: 2px; }
