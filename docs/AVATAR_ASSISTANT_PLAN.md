@@ -2,8 +2,8 @@
 
 **Status:** phases A and B built 2026-10-03 (A: v0.4.134; B: v0.4.144); the
 typed box (half of C) and the nav/sitemap listing (most of F) 2026-10-04.
-Memory (D) 2026-10-04, at 3 turns. Committed, not pushed. Not built: tap to
-stop (C), spoken evals (E). See §13–§15.
+Memory (D, at 3 turns) and tap to stop (the rest of C) 2026-10-04. Committed,
+not pushed. Not built: the spoken eval suite (E). See §13–§15.
 
 **Decided (Brian, 2026-10-03: "build phase A, 5 turns"):** the §12
 recommendations, plus 5 turns of memory.
@@ -280,4 +280,10 @@ than mid-word.
   two quiet minutes and when it goes to sleep. Only real answers are
   remembered, as what it actually said; built-in lines and answers cut short
   by sleep are not. The server clamps to the same 3 (`face.clampHistory`).
+- **Tap to stop, the rest of phase C** (v0.4.166): tap the face, press Escape,
+  or use the Stop button, while it's thinking or talking. Thinking: the
+  request is aborted, nothing is said, no fallback is asked. Talking: the clip
+  stops and no further sentence plays. It stays awake and goes back to
+  listening. A stopped answer is remembered as far as it got; one cut by sleep
+  is not. Voice barge-in (§6) is still not built.
 

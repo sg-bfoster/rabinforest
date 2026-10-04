@@ -230,8 +230,11 @@ export default function RabinAIFace() {
   const conversationIdRef = useRef(null);
   const [support] = useState(browserSupport);
   const memoryRef = useRef({ turns: [], at: 0 });      // [{ q, a }], and when the last one ended
-  const hushRef = useRef(0);                           // bumped by sleep(): cuts an answer short
+  const hushRef = useRef(0);                           // bumped by sleep() and stop: cuts an answer short
+  const sleptRef = useRef(0);                          // bumped by sleep() only: that answer is not remembered
+  const abortRef = useRef(null);                       // the question in flight, so stop can cancel it
   const sleepRef = useRef(null);
+  const stopRef = useRef(null);
   const [answering, setAnswering] = useState('');     // '' | 'thinking' | 'speaking'
   const thinkingRef = useRef(false);
   const speakLevelRef = useRef(0);                     // 0..1 loudness of its own voice, read each frame
@@ -316,6 +319,13 @@ export default function RabinAIFace() {
     };
   }, []);
 
+  // Escape stops it talking, from anywhere on the page.
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') stopRef.current?.(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   // Leaving turns it off. A camera or mic left running after you've gone
   // elsewhere is the one thing this page must never do.
   //   - another tab, a minimised window, a locked phone: it goes to sleep, and
@@ -332,6 +342,7 @@ export default function RabinAIFace() {
       window.removeEventListener('pagehide', onPageHide);
       awakeRef.current = false;
       hushRef.current++;
+      abortRef.current?.abort();
       trackerRef.current?.stop(); trackerRef.current = null;
       earsRef.current?.stop(); earsRef.current = null;
       const a = audioRef.current;
@@ -462,8 +473,9 @@ export default function RabinAIFace() {
     const history = mem.turns.flatMap(({ q, a }) => [
       { role: 'user', parts: [{ text: q }] }, { role: 'model', parts: [{ text: a }] },
     ]);
+    abortRef.current = new AbortController();
     const r = await fetch(`${API_BASE_URL}/ai/gemini-assistant`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: abortRef.current.signal,
       // seeing: is the camera running right now? Only picks which honest line
       // answers "can you see me" (it sees expressions, in this browser only).
       body: JSON.stringify({ prompt: question.slice(0, 200), history, conversationId: conversationIdRef.current, spoken: true, stream: true, seeing: !!trackerRef.current }),
@@ -518,9 +530,11 @@ export default function RabinAIFace() {
     // 'busy' and deaf. One sentence is well under 20s.
     await new Promise((resolve) => {
       const cap = setTimeout(resolve, 20_000);
-      const done = () => { clearTimeout(cap); resolve(); };
-      // onpause too: going to sleep pauses it, and that must end the wait now,
-      // not at the 20s cap.
+      const done = () => { clearTimeout(cap); a.finish = null; resolve(); };
+      // Stop and sleep end the wait NOW, not at the 20s cap. Through a.finish
+      // as well as onpause: a clip the browser never actually started (autoplay
+      // blocked, tab in the background) fires no pause event when paused.
+      a.finish = done;
       a.el.onended = done; a.el.onerror = done; a.el.onpause = done; a.el.play().catch(done);
     });
     a.playing = false;
@@ -585,7 +599,8 @@ export default function RabinAIFace() {
     thinkingRef.current = true;
     setAnswering('thinking');
 
-    const gen = hushRef.current;
+    const gen = hushRef.current, sleptGen = sleptRef.current;
+    const cut = () => gen !== hushRef.current;         // stopped, or put to sleep, since this began
     const voice = createVoice(audioRef.current);
     const said = [];
     let ttsEngine = null;
@@ -600,19 +615,23 @@ export default function RabinAIFace() {
     let streamed = 0, whole = null;
     try {
       whole = await askAssistant(question, (sentence, engine) => { streamed++; voice.add(sentence, engine); });
-    } catch (err) { console.warn('[face] assistant', err); }
-    if (!whole && !streamed) {
-      try { whole = await askFace(question); } catch (err) { console.warn('[face] reply', err); }
+    } catch (err) { if (!cut()) console.warn('[face] assistant', err); }
+    // Stopped while it was thinking: no fallback, no "couldn't think", nothing said.
+    if (!cut()) {
+      if (!whole && !streamed) {
+        try { whole = await askFace(question); } catch (err) { console.warn('[face] reply', err); }
+      }
+      if (!whole && !streamed) whole = { say: "I couldn't think of an answer just then.", links: [], engine: 'none' };
+      if (!streamed && !cut()) voice.add(whole.say, whole.engine);  // Gemini, canned, fallback: one clip
     }
-    if (!whole && !streamed) whole = { say: "I couldn't think of an answer just then.", links: [], engine: 'none' };
-    if (!streamed) voice.add(whole.say, whole.engine);  // Gemini, canned, fallback: one clip
     voice.close();
     await speaking;
 
     // Remember the exchange: what was asked and what it actually SAID. Not the
     // built-in lines (nothing to follow up on), and not an answer that sleep
-    // cut short.
-    if (gen === hushRef.current && said.length && !['canned', 'limit', 'none'].includes(whole?.engine)) {
+    // cut short. One you STOPPED is remembered as far as it got: "go on" and
+    // "no, I meant..." both need it.
+    if (sleptGen === sleptRef.current && said.length && !['canned', 'limit', 'none'].includes(whole?.engine)) {
       const mem = memoryRef.current;
       mem.turns = [...mem.turns, { q: question.slice(0, 200), a: said.join(' ') }].slice(-MEMORY_TURNS);
       mem.at = performance.now();
@@ -739,19 +758,37 @@ export default function RabinAIFace() {
     answer(q, { typed: true });
   }
 
+  /**
+   * Tap to stop (AVATAR_ASSISTANT_PLAN phase C): cut off what it's saying, or
+   * cancel a question it's still thinking about, and go back to listening. It
+   * stays awake. Voice barge-in would need the mic open while it speaks; a tap
+   * (or Escape, or the Stop button) is the honest version that works everywhere.
+   */
+  function stopTalking() {
+    if (!busyRef.current) return;
+    hushRef.current++;                                 // the voice queue says no more
+    abortRef.current?.abort();                         // and the answer still on its way is dropped
+    try { audioRef.current?.el.pause(); } catch { /* not playing */ }
+    audioRef.current?.finish?.();
+  }
+
   /** Back to sleep: both off, and anything it was saying stops. */
   function sleep() {
     awakeRef.current = false;
     hushRef.current++;                                 // any answer in flight says no more
+    sleptRef.current++;
+    abortRef.current?.abort();
     memoryRef.current = { turns: [], at: 0 };          // asleep forgets the conversation
     setAwake(false);
     quietRef.current = false; setQuiet(false);
     turnOff();
     if (canHear) micOff();
     try { audioRef.current?.el.pause(); } catch { /* not playing */ }
+    audioRef.current?.finish?.();
   }
 
   sleepRef.current = sleep;
+  stopRef.current = stopTalking;
 
   return (
     <>
@@ -783,8 +820,8 @@ export default function RabinAIFace() {
               };
             }}
             onPointerLeave={() => { pointerRef.current = null; }}
-            onClick={() => { if (!awake) wake(); }}
-            style={{ cursor: awake || nothingToWake ? undefined : 'pointer' }}
+            onClick={() => { if (answering) stopTalking(); else if (!awake) wake(); }}
+            style={{ cursor: answering || (!awake && !nothingToWake) ? 'pointer' : undefined }}
           >
             {renderFailed ? (
               <p className="rabinai-face-fallback">This browser can't draw it — WebGL is off or unavailable.</p>
@@ -803,7 +840,8 @@ export default function RabinAIFace() {
                 {debugRows.length ? debugRows.map(([k, v]) => `${k.padEnd(16)} ${v.toFixed(2)}`).join('\n') : 'no face'}
               </pre>
             )}
-            {!awake && !nothingToWake && <div className="face-wake-hint" aria-hidden="true">Tap to wake</div>}
+            {!awake && !nothingToWake && !answering && <div className="face-wake-hint" aria-hidden="true">Tap to wake</div>}
+            {answering && <div className="face-wake-hint face-stop-hint" aria-hidden="true">Tap to stop</div>}
             {answering === 'thinking' && !renderFailed && <ThoughtCloud />}
             {/* What's on, at a glance, right by the face. */}
             {(camera === 'on' || mic === 'on') && (
@@ -910,6 +948,14 @@ export default function RabinAIFace() {
               )}
               {awake && camera === 'on' && noFace && <p className="sense-live">Can't see you yet — is there enough light?</p>}
 
+              {/* The same stop as tapping the face or pressing Escape, for keyboards
+                  and screen readers. Outside the live region, so it isn't read out
+                  with every sentence. */}
+              {answering && (
+                <button type="button" className="btn btn-secondary face-stop-btn" onClick={stopTalking}>
+                  Stop<span className="sr-only"> {answering === 'thinking' ? 'thinking about this question' : 'talking'}</span>
+                </button>
+              )}
               {(answering || reply) && (
                 <p className="sense-reply" aria-live="polite">
                   {answering === 'thinking' ? 'Thinking…' : <>

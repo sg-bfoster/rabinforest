@@ -2526,3 +2526,7 @@
 }
 .ask-typed-input:focus-visible { outline: 2px solid var(--cool); outline-offset: 1px; border-color: var(--cool); }
 .ask-typed-btn { flex: none; }
+
+/* ---- RabinAI Face: tap to stop ---- */
+.face-stop-hint { animation: none; }
+.face-stop-btn { align-self: flex-start; padding: 6px 14px; font-size: 0.9rem; }
