@@ -141,6 +141,24 @@ function audioSessionType(type) {
   } catch { /* unsupported type, or not allowed right now */ }
 }
 
+/**
+ * Why the camera didn't start, in words a visitor can act on. "Its eyes
+ * couldn't start in this browser" blamed the browser for what is usually the
+ * camera itself: on the live site Brian got exactly that, in a Chrome that
+ * runs the tracker fine (2026-10-04). The error's own name goes in brackets,
+ * so a report of the message says what actually happened.
+ */
+function cameraProblem(err) {
+  const name = err?.name || 'Error';
+  if (name === 'NotReadableError' || name === 'TrackStartError' || name === 'AbortError') {
+    return `The camera wouldn't start: another app or browser tab may be using it. Close that, then try again. (${name})`;
+  }
+  if (name === 'NotFoundError' || name === 'DevicesNotFoundError' || name === 'OverconstrainedError') {
+    return `No camera was found on this device, so it can't see you. It can still hear you and answer. (${name})`;
+  }
+  return `Its eyes couldn't start. Try again; if it keeps failing, reload the page. (${name})`;
+}
+
 /** Set the effect graph's dials for a voice. Safe before the graph exists. */
 function applyVoice(a, v) {
   if (!a?.fx) return;
@@ -219,6 +237,7 @@ export default function RabinAIFace() {
   const [camera, setCamera] = useState('off');
   // ONE switch: asleep, or awake (seeing and hearing together). Brian, 2026-10-04:
   // two switches for one creature was a settings page, not a character.
+  const [cameraWhy, setCameraWhy] = useState('');     // what went wrong, when camera === 'error'
   const [awake, setAwake] = useState(false);
   // Awake because a question was TYPED: eyes open, voice on, camera and mic
   // never asked for. The accessible path, and the one for quiet places.
@@ -735,6 +754,7 @@ export default function RabinAIFace() {
     } catch (err) {
       console.warn('[face] camera', err);
       trackerRef.current = null;
+      setCameraWhy(cameraProblem(err));
       setCamera(err?.name === 'NotAllowedError' || err?.name === 'SecurityError' ? 'denied' : 'error');
     }
   }
@@ -995,7 +1015,10 @@ export default function RabinAIFace() {
               {/* Partial wakes are fine; say what didn't come on, and why. */}
               {awake && camera === 'starting' && <p className="sense-live">Opening its eyes…</p>}
               {awake && (camera === 'denied' || camera === 'error') && (
-                <p className="sense-problem" role="status">{camera === 'denied' ? "Camera blocked, so it can't see you. Allow it from the address bar, then wake it again." : "Its eyes couldn't start in this browser."}</p>
+                <p className="sense-problem" role="status">
+                  {camera === 'denied' ? "Camera blocked, so it can't see you. Allow it from the address bar, then try again." : cameraWhy}{' '}
+                  <button type="button" className="type-instead" onClick={turnOn}>Try the camera again</button>
+                </p>
               )}
               {awake && (mic === 'denied' || mic === 'error') && (
                 <p className="sense-problem" role="status">{mic === 'denied' ? "Microphone blocked, so it can't hear you. Allow it from the address bar, then wake it again." : "Its ears couldn't start in this browser."}</p>
