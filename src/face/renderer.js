@@ -23,11 +23,13 @@ const GLOW = new THREE.Color('#cfe2f2');
 // stays wide until a jaw angle, then turns in to a squarer chin. Applied once
 // to the geometry, with normals taken from the shape itself (finite
 // differences, not computeVertexNormals: the sphere's UV seam would crease).
+const HEAD_WIDTH = 0.86;
+
 function sculpt(x, y, z) {
   const gauss = (v, c, w) => Math.exp(-(((v - c) / w) ** 2));
   const smooth = (a, b, v) => { const t = Math.min(1, Math.max(0, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
   const front = smooth(-0.3, 0.6, z);
-  let sx = 1;
+  let sx = HEAD_WIDTH;                                        // narrower than tall: a head, not a ball
   // Cheekbones: barely wider; the edge comes from flattening (nz, below), not
   // a bump, which read as ears.
   sx += 0.015 * gauss(y, 0.05, 0.22);
@@ -40,6 +42,18 @@ function sculpt(x, y, z) {
   // face meets the side at more of an edge: a cheekbone line, not a ball.
   nz -= 0.07 * gauss(y, -0.02, 0.3) * smooth(0.35, 0.85, Math.abs(x)) * front;
   return [x * sx, ny, nz];
+}
+
+/**
+ * Where a feature sits: the point on the SCULPTED surface in the direction it
+ * used to have on the plain sphere, lifted a hair. Placing features by hand
+ * left them floating in front of the narrower head, and turned, the far eye
+ * hung past the silhouette.
+ */
+function onSurface(x0, y0, lift = 0.015) {
+  const z0 = Math.sqrt(Math.max(0, 1 - x0 * x0 - y0 * y0));
+  const [x, y, z] = sculpt(x0, y0, z0);
+  return [x, y, z + lift];
 }
 
 function sculptedBody(segments) {
@@ -293,7 +307,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
     );
     m.renderOrder = 1;
     // Sit on the sphere's front, angled to its surface.
-    m.position.set(side * 0.3, 0.12, 0.99);
+    m.position.set(...onSurface(side * 0.3, 0.12));
     m.rotation.y = side * 0.3;
     m.rotation.x = -0.1;
     head.add(m);
@@ -308,7 +322,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
       new THREE.ShaderMaterial({ uniforms: u, vertexShader: UV_VERT, fragmentShader: BROW_FRAG, transparent: true, depthWrite: false, depthTest: false }),
     );
     m.renderOrder = 1;
-    m.position.set(side * 0.3, 0.42, 0.93);
+    m.position.set(...onSurface(side * 0.3, 0.42));
     m.rotation.y = side * 0.3;
     m.rotation.x = -0.25;
     head.add(m);
@@ -325,7 +339,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
     new THREE.ShaderMaterial({ uniforms: mouthU, vertexShader: UV_VERT, fragmentShader: MOUTH_FRAG, transparent: true, depthWrite: false, depthTest: false }),
   );
   mouth.renderOrder = 1;
-  mouth.position.set(0, -0.3, 0.96);
+  mouth.position.set(...onSurface(0, -0.27));
   mouth.rotation.x = 0.3;                         // follows the sphere's curve below centre
   head.add(mouth);
 
