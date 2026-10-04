@@ -437,7 +437,7 @@ export default function RabinAIFace() {
       //     buzzing quality of every classic film robot
       //   a short comb echo (fed back): a hollow, tinny body
       //   a high-pass on the wet side: thinner, like a small speaker
-      // Analyser after the mix, so the mouth follows what you actually hear.
+      // Analyser after the mix, so the mouth follows the voice you hear.
       // The dials are set by applyVoice from VOICE.
       const out = ctx.createGain();
       const dry = ctx.createGain();
@@ -452,7 +452,21 @@ export default function RabinAIFace() {
       src.connect(dry); dry.connect(out);
       src.connect(ring); ring.connect(thin); thin.connect(comb); comb.connect(fb); fb.connect(comb);
       thin.connect(wet); comb.connect(wet); wet.connect(out);
-      out.connect(analyser); analyser.connect(ctx.destination);
+      // Loudness, after the mouth's tap. Kokoro's clips are quiet (RMS ~0.05)
+      // and the effect's own make-up left them at ~0.12 with peaks clipping at
+      // 1.27: "barely audible" on a phone (Brian, 2026-10-04). A compressor
+      // evens the level, a limiter catches the peaks, and the gains around
+      // them bring it to RMS ~0.26 with peaks ~0.94: about 7dB louder, no
+      // clipping. Measured offline on a real clip; the mouth still reads the
+      // level BEFORE this, so its calibration is unchanged.
+      const comp = ctx.createDynamicsCompressor();
+      comp.threshold.value = -30; comp.knee.value = 8; comp.ratio.value = 8; comp.attack.value = 0.003; comp.release.value = 0.2;
+      const trim = ctx.createGain(); trim.gain.value = 3;
+      const limiter = ctx.createDynamicsCompressor();
+      limiter.threshold.value = -6; limiter.knee.value = 0; limiter.ratio.value = 20; limiter.attack.value = 0.001; limiter.release.value = 0.06;
+      const ceiling = ctx.createGain(); ceiling.gain.value = 0.95;
+      out.connect(analyser); analyser.connect(comp); comp.connect(trim); trim.connect(limiter); limiter.connect(ceiling);
+      ceiling.connect(ctx.destination);
       audioRef.current = { ctx, el, analyser, buf: new Float32Array(analyser.fftSize), playing: false,
         fx: { dry, wet, out, tone, toneAmt, ring, fb, comb } };
       applyVoice(audioRef.current, VOICE);
