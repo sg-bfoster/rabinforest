@@ -193,6 +193,8 @@ export default function RabinAIFace() {
   // Answering: one question in, one short spoken answer out (plan §11).
   const [reply, setReply] = useState(null);           // { say, engine, voice, links } of the last answer
   const conversationIdRef = useRef(null);
+  const hushRef = useRef(0);                           // bumped by sleep(): cuts an answer short
+  const sleepRef = useRef(null);
   const [answering, setAnswering] = useState('');     // '' | 'thinking' | 'speaking'
   const thinkingRef = useRef(false);
   const speakLevelRef = useRef(0);                     // 0..1 loudness of its own voice, read each frame
@@ -277,6 +279,30 @@ export default function RabinAIFace() {
     };
   }, []);
 
+  // Leaving turns it off. A camera or mic left running after you've gone
+  // elsewhere is the one thing this page must never do.
+  //   - another tab, a minimised window, a locked phone: it goes to sleep, and
+  //     stays asleep when you come back (waking is always your tap)
+  //   - another page of this site (unmount): camera, mic and voice are stopped
+  //     directly, since there is no component left to hold state
+  useEffect(() => {
+    const onHidden = () => { if (document.visibilityState === 'hidden' && awakeRef.current) sleepRef.current?.(); };
+    const onPageHide = () => { if (awakeRef.current) sleepRef.current?.(); };
+    document.addEventListener('visibilitychange', onHidden);
+    window.addEventListener('pagehide', onPageHide);
+    return () => {
+      document.removeEventListener('visibilitychange', onHidden);
+      window.removeEventListener('pagehide', onPageHide);
+      awakeRef.current = false;
+      hushRef.current++;
+      trackerRef.current?.stop(); trackerRef.current = null;
+      earsRef.current?.stop(); earsRef.current = null;
+      const a = audioRef.current;
+      audioRef.current = null;
+      try { a?.el.pause(); a?.ctx.close(); } catch { /* already closed */ }
+    };
+  }, []);
+
   // ?debug: refresh the score readout five times a second (not every frame:
   // re-rendering React at 120Hz to print numbers would cost more than the face).
   useEffect(() => {
@@ -306,6 +332,7 @@ export default function RabinAIFace() {
     ensureAudio();
     try {
       const { startEars } = await import('./face/ears');
+      if (!awakeRef.current) return;                   // slept or left while loading
       let firedFor = -1, questionTimer = 0;
       earsRef.current = startEars({
         mode: micMode === 'local' ? 'local' : 'cloud',
@@ -449,7 +476,9 @@ export default function RabinAIFace() {
     await new Promise((resolve) => {
       const cap = setTimeout(resolve, 20_000);
       const done = () => { clearTimeout(cap); resolve(); };
-      a.el.onended = done; a.el.onerror = done; a.el.play().catch(done);
+      // onpause too: going to sleep pauses it, and that must end the wait now,
+      // not at the 20s cap.
+      a.el.onended = done; a.el.onerror = done; a.el.onpause = done; a.el.play().catch(done);
     });
     a.playing = false;
   }
@@ -482,6 +511,7 @@ export default function RabinAIFace() {
       },
       close() { closed = true; wake?.(); },
       async play(onStart) {
+        const gen = hushRef.current;
         for (let i = 0; ; i++) {
           while (i >= items.length) {
             if (closed) return;
@@ -490,6 +520,8 @@ export default function RabinAIFace() {
           }
           const item = items[i];
           const clip = await item.clip;
+          // Put to sleep (or the page left) since this answer began: say no more.
+          if (gen !== hushRef.current) { if (clip) URL.revokeObjectURL(clip.url); return; }
           onStart(item, clip);
           if (clip) { await playClip(a, clip.url); URL.revokeObjectURL(clip.url); }
         }
@@ -587,7 +619,11 @@ export default function RabinAIFace() {
     setCamera('starting');
     try {
       const { startTracker } = await import('./face/tracker');
-      trackerRef.current = await startTracker(videoRef.current);
+      const tracker = await startTracker(videoRef.current);
+      // Put to sleep, or the page left, while the camera was still starting:
+      // it must not come on after the fact.
+      if (!awakeRef.current) { tracker.stop(); return; }
+      trackerRef.current = tracker;
       setCamera('on');
     } catch (err) {
       console.warn('[face] camera', err);
@@ -621,11 +657,14 @@ export default function RabinAIFace() {
   /** Back to sleep: both off, and anything it was saying stops. */
   function sleep() {
     awakeRef.current = false;
+    hushRef.current++;                                 // any answer in flight says no more
     setAwake(false);
     turnOff();
     if (canHear) micOff();
     try { audioRef.current?.el.pause(); } catch { /* not playing */ }
   }
+
+  sleepRef.current = sleep;
 
   return (
     <>
