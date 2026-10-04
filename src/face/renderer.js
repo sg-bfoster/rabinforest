@@ -311,8 +311,16 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
     if (!w || !h) return;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
-    // Keep the form the same size on a tall phone as on a wide desktop.
-    camera.position.z = camera.aspect < 1 ? 5 / Math.max(camera.aspect, 0.55) : 5;
+    // Fit the pill to the stage: FILL of its width or its height, whichever
+    // runs out first, so it is as big as the panel allows and sits in the
+    // middle of it. (It used to keep a fixed distance tuned for a 4:3 stage;
+    // in the tall panel it now lives in, that left it small, with half the
+    // panel empty.) The rest is headroom for leaning in, stretching when
+    // surprised, and the slow idle drift.
+    const FILL = 0.74;
+    const tall = PILL_LEN + 2 * PILL_R, wide = 2 * PILL_R;
+    const tanHalf = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    camera.position.z = Math.max(tall / FILL, wide / FILL / camera.aspect) / (2 * tanHalf);
     camera.updateProjectionMatrix();
   }
   resize();

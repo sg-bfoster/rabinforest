@@ -2469,9 +2469,9 @@
 @media (prefers-reduced-motion: reduce) { .face-wake-hint { animation: none; } }
 
 /* ---- RabinAI Face: thought cloud while it thinks ---- */
-/* Anchored to the stage, up and to the right of its head. Puffs pop in one by
+/* Anchored to the stage's top-left corner, above its head. Puffs pop in one by
    one rising from the head, then the cloud; the cloud bobs and the dots wave. */
-.thought { position: absolute; z-index: 2; left: 50%; top: 12%; width: min(42%, 210px); pointer-events: none; }
+.thought { position: absolute; z-index: 2; left: 5%; top: 3%; width: min(40%, 190px); pointer-events: none; }
 /* Below the Seeing/Listening pills (top 12%), above the head. Solid colour, not
    translucent: overlapping bumps would show seams. The two
    bumps on top are what make it a cloud rather than a pill-shaped badge. */
@@ -2487,9 +2487,11 @@
 .thought-cloud::before { width: 46%; aspect-ratio: 1; left: 12%; top: -34%; }
 .thought-cloud::after { width: 36%; aspect-ratio: 1; right: 14%; top: -22%; }
 .thought-puff { position: absolute; border-radius: 50%; background: #cfe2f2; animation: thought-in 220ms both ease-out; }
-.thought-puff--1 { width: 9px; height: 9px; left: -14%; top: calc(100% + 40px); animation-delay: 0ms; }
-.thought-puff--2 { width: 14px; height: 14px; left: -4%; top: calc(100% + 20px); animation-delay: 140ms; }
-.thought-puff--3 { width: 20px; height: 20px; left: 8%; top: calc(100% + 2px); animation-delay: 280ms; }
+/* The cloud is top-left now (the head fills the stage, and the pills own the
+   top-right), so the puffs trail down and to the RIGHT, toward its head. */
+.thought-puff--1 { width: 9px; height: 9px; left: 92%; top: calc(100% + 36px); animation-delay: 0ms; }
+.thought-puff--2 { width: 14px; height: 14px; left: 80%; top: calc(100% + 18px); animation-delay: 140ms; }
+.thought-puff--3 { width: 20px; height: 20px; left: 64%; top: calc(100% + 2px); animation-delay: 280ms; }
 .thought-dots { display: flex; gap: 6px; }
 .thought-dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--cool); animation: thought-dot 1.1s ease-in-out infinite; }
 .thought-dots i:nth-child(2) { animation-delay: 150ms; }
@@ -2501,7 +2503,7 @@
 @media (prefers-reduced-motion: reduce) {
   .thought-cloud, .thought-puff, .thought-dots i { animation: none; }
 }
-@media (max-width: 640px) { .thought { left: 50%; width: 46%; } }
+@media (max-width: 640px) { .thought { left: 4%; width: 44%; } }
 
 /* Asleep = greyed out. Dimming alone darkened the skin, and a darker skin
    tone reads as a different person: asleep it looked African American, awake
