@@ -203,8 +203,9 @@ const MOUTH_FRAG = /* glsl */ `
       a = mix(a, max(ring, hole), k);
     }
     // Tongue: a soft rounded shape hanging from the middle of the top lip,
-    // with a groove down the centre. The one warm colour on the form, so it
-    // reads instantly.
+    // with a groove down the centre. The same glow as the outlines (it was
+    // pink, the one warm colour on the form, and didn't match); the groove is
+    // a shade of the body's blue so it still reads as a tongue.
     if (uTongue > 0.01) {
       // It hangs OUT: from inside the open mouth to well past the lower lip.
       float top0 = uCurve * 0.35 * (-0.35);
@@ -214,8 +215,8 @@ const MOUTH_FRAG = /* glsl */ `
       float tq = length((p - tc) / vec2(0.21, max(len * 0.65, 0.001)));
       float tongue = (1.0 - smoothstep(0.9, 1.0, tq)) * step(p.y, top0 + 0.01);
       float groove = 1.0 - smoothstep(0.008, 0.02, abs(p.x)) * 1.0;
-      vec3 pink = mix(vec3(1.0, 0.56, 0.66), vec3(0.85, 0.36, 0.48), groove * step(p.y, top0 - 0.04));
-      col = mix(col, pink, tongue);
+      vec3 tcol = mix(lit, vec3(0.18, 0.43, 0.6), groove * step(p.y, top0 - 0.04));
+      col = mix(col, tcol, tongue);
       a = max(a, tongue);
     }
     gl_FragColor = vec4(col, a);
