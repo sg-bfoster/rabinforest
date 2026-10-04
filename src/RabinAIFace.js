@@ -181,9 +181,9 @@ const prefersReducedMotion = () =>
 /** Who answered and who spoke, honestly: the box when it could, the cloud when it couldn't. */
 function replyBy(r) {
   if (!r) return '';
-  const mind = r.engine === 'rabinai' ? 'answered by the box' : r.engine === 'gemini' ? 'answered by Gemini (the box was busy)'
+  const mind = r.engine === 'rabinai' ? 'answered by RabinAI' : r.engine === 'gemini' ? 'answered by Gemini (RabinAI was busy)'
     : r.engine === 'canned' || r.engine === 'limit' ? 'a built-in answer' : '';
-  const voice = r.voice === 'kokoro' ? 'voice: Kokoro, on the box' : r.voice ? 'voice: the cloud' : '';
+  const voice = r.voice === 'kokoro' ? 'voice: Kokoro, on RabinAI' : r.voice ? 'voice: the cloud' : '';
   return [mind, voice].filter(Boolean).join(' · ');
 }
 
@@ -200,7 +200,7 @@ function speechVendor() {
 // (the box can take several seconds before a first word), so it should look
 // like thinking rather than like nothing happening. The line under the dots
 // changes as the wait grows, honestly: it says it is slow, not that it's done.
-const THINK_LINES = [[0, ''], [3500, 'Thinking…'], [8000, 'Still thinking…'], [14000, 'The box is taking its time…']];
+const THINK_LINES = [[0, ''], [3500, 'Thinking…'], [8000, 'Still thinking…'], [14000, 'RabinAI is taking its time…']];
 
 function ThoughtCloud() {
   const [ms, setMs] = useState(0);
