@@ -128,3 +128,27 @@ and clean. Still open there: rotate the **Textbelt key** (printed into the
 session by mistake), delete the unused `TWILIO_*` lines from elder-app's root
 `.env`, and something unknown rewrote elder-app's `server/.env` on
 2026-10-02 10:12 (DB switched to `momma`, Gemini lines dropped; both fixed).
+
+---
+
+## Also done in the elder-app session, 2026-10-03/04 (after this handoff)
+
+Brian kept working in that session by mistake. Three commits landed on top
+of yours (v0.4.144); all committed, none pushed. Pull them into your picture
+before editing `RabinAIFace.js`, `behaviour.js` or `App.css`:
+
+- `546bd76` (v0.4.145) — **layout:** from 900px wide, the face on the left
+  (sticky, portrait 3:4) and the panel on the right. CSS only.
+- `42afe83` (v0.4.146) — **one switch, asleep or awake** (Brian: "no point
+  separating" seeing and hearing). The Sight/Hearing `SenseCard`s are gone;
+  one card with *Wake RabinAI* / *Put it to sleep*, or tap the orb. `wake()`
+  starts camera + mic together (each may fail alone; the card says which).
+  `asleep` in the render loop now means "not woken" (`awakeRef`), not
+  "camera off". behaviour.js: asleep dims to 0.32; waking plays a double eye
+  flutter, brows up, small smile (~1.5s). Both privacy facts are still shown
+  before waking.
+- `dc8eb70` (v0.4.147) — **robot voice:** Web Audio effects on the Kokoro
+  voice in `ensureAudio()` — ring modulation (55Hz), a 7ms comb echo, a
+  high-pass on the wet side — 45% wet with make-up gain (level-matched
+  offline). Dials: `ROBOT_MIX`, `ROBOT_RING_HZ` at the top of the file.
+  Not yet listened to.
