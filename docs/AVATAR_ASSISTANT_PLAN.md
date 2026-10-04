@@ -2,8 +2,8 @@
 
 **Status:** phases A and B built 2026-10-03 (A: v0.4.134; B: v0.4.144); the
 typed box (half of C) and the nav/sitemap listing (most of F) 2026-10-04.
-Committed, not pushed. Not built: tap to stop (C), memory (D), spoken evals
-(E). See §13–§15.
+Memory (D) 2026-10-04, at 3 turns. Committed, not pushed. Not built: tap to
+stop (C), spoken evals (E). See §13–§15.
 
 **Decided (Brian, 2026-10-03: "build phase A, 5 turns"):** the §12
 recommendations, plus 5 turns of memory.
@@ -275,4 +275,9 @@ than mid-word.
   attempts at styling it after Brian were dropped.
 - Server: spoken mode names sites instead of describing them; "GA" is said as
   Georgia; outcomes are counted (who answered, and why not the box).
+- **Memory, phase D** (v0.4.165): the last **3** exchanges (not §7's 5; Brian
+  chose 3 to keep the box's re-read small), in the tab only. Forgotten after
+  two quiet minutes and when it goes to sleep. Only real answers are
+  remembered, as what it actually said; built-in lines and answers cut short
+  by sleep are not. The server clamps to the same 3 (`face.clampHistory`).
 

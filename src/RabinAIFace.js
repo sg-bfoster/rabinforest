@@ -89,6 +89,15 @@ function demoFace(now) {
   return null;                                   // walks away: idle
 }
 
+// Memory: the last few exchanges go with each question, so "who built it?"
+// works. Three (Brian, 2026-10-04): spoken follow-ups point at the last answer
+// or the one before, and the box re-reads all of it on every question. It
+// lives in this tab only, and is forgotten after two quiet minutes or when the
+// face goes to sleep, so the next person doesn't inherit a conversation. The
+// server enforces the same limit (bfoster-services face.clampHistory).
+const MEMORY_TURNS = 3;
+const MEMORY_IDLE_MS = 120_000;
+
 // One conversation id per page load, so Brian's conversation logs keep a
 // visit's questions together (and can tell them from Home's `conv_` ids).
 const newConversationId = () => `face_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
@@ -220,6 +229,7 @@ export default function RabinAIFace() {
   const [reply, setReply] = useState(null);           // { say, engine, voice, links } of the last answer
   const conversationIdRef = useRef(null);
   const [support] = useState(browserSupport);
+  const memoryRef = useRef({ turns: [], at: 0 });      // [{ q, a }], and when the last one ended
   const hushRef = useRef(0);                           // bumped by sleep(): cuts an answer short
   const sleepRef = useRef(null);
   const [answering, setAnswering] = useState('');     // '' | 'thinking' | 'speaking'
@@ -446,11 +456,17 @@ export default function RabinAIFace() {
    */
   async function askAssistant(question, onSay) {
     conversationIdRef.current ??= newConversationId();
+    const mem = memoryRef.current;
+    if (performance.now() - mem.at > MEMORY_IDLE_MS) mem.turns = [];   // gone quiet: start fresh
+    // Gemini's history shape, the same one Home sends.
+    const history = mem.turns.flatMap(({ q, a }) => [
+      { role: 'user', parts: [{ text: q }] }, { role: 'model', parts: [{ text: a }] },
+    ]);
     const r = await fetch(`${API_BASE_URL}/ai/gemini-assistant`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       // seeing: is the camera running right now? Only picks which honest line
       // answers "can you see me" (it sees expressions, in this browser only).
-      body: JSON.stringify({ prompt: question.slice(0, 200), conversationId: conversationIdRef.current, spoken: true, stream: true, seeing: !!trackerRef.current }),
+      body: JSON.stringify({ prompt: question.slice(0, 200), history, conversationId: conversationIdRef.current, spoken: true, stream: true, seeing: !!trackerRef.current }),
     });
     if (!r.headers.get('content-type')?.includes('text/event-stream')) {
       const data = await r.json().catch(() => null);
@@ -569,6 +585,7 @@ export default function RabinAIFace() {
     thinkingRef.current = true;
     setAnswering('thinking');
 
+    const gen = hushRef.current;
     const voice = createVoice(audioRef.current);
     const said = [];
     let ttsEngine = null;
@@ -591,6 +608,15 @@ export default function RabinAIFace() {
     if (!streamed) voice.add(whole.say, whole.engine);  // Gemini, canned, fallback: one clip
     voice.close();
     await speaking;
+
+    // Remember the exchange: what was asked and what it actually SAID. Not the
+    // built-in lines (nothing to follow up on), and not an answer that sleep
+    // cut short.
+    if (gen === hushRef.current && said.length && !['canned', 'limit', 'none'].includes(whole?.engine)) {
+      const mem = memoryRef.current;
+      mem.turns = [...mem.turns, { q: question.slice(0, 200), a: said.join(' ') }].slice(-MEMORY_TURNS);
+      mem.at = performance.now();
+    }
 
     // Links once it has finished talking, under the words it said.
     const links = whole?.links ?? [];
@@ -635,7 +661,7 @@ export default function RabinAIFace() {
     ? 'Speech is turned into words on this device. No audio leaves it.'
     : `Your browser sends what you say to ${speechVendor()}'s speech service, which sends back the words. This page never sees the audio.`;
   // The assistant logs conversations, here as on Home (AVATAR_ASSISTANT_PLAN §12 q1).
-  const keptWords = 'The questions you ask, and its answers, are kept so Brian can improve it. Audio never is.';
+  const keptWords = 'What you ask, spoken or typed, and its answers are kept so Brian can improve it. Audio never is. While you talk, it remembers your last three questions so you can follow up; it forgets them after two quiet minutes or when it goes to sleep.';
   const ACT_WORDS = {
     nod: 'nodding', shake: 'shaking its head', smile: 'smiling', wink: 'winking', grumpy: 'looking grumpy',
     surprised: 'looking surprised', ooh: 'making an O', tongue: 'sticking its tongue out', close: 'closing its eyes',
@@ -717,6 +743,7 @@ export default function RabinAIFace() {
   function sleep() {
     awakeRef.current = false;
     hushRef.current++;                                 // any answer in flight says no more
+    memoryRef.current = { turns: [], at: 0 };          // asleep forgets the conversation
     setAwake(false);
     quietRef.current = false; setQuiet(false);
     turnOff();
@@ -919,9 +946,11 @@ export default function RabinAIFace() {
                   Frames are never uploaded, saved or recorded; the model files download once, from
                   Google's model servers.
                 </p>
+                {/* Its own line, not under Hearing: typed questions are kept too. */}
+                <p><b>Your questions:</b> {keptWords}</p>
                 {canHear && (
                   <p>
-                    <b>Hearing:</b> {micWhere} {keptWords}
+                    <b>Hearing:</b> {micWhere}
                     {micMode === 'downloadable' && (
                       <span className="sense-local">
                         This browser can do it on your device instead.{' '}
