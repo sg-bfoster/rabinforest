@@ -123,6 +123,16 @@ const SAMPLE_QUESTIONS = [
 const FACING_YAW = 0.55;
 const FACING_WINDOW_MS = 3000;
 
+// It goes back to sleep by itself: two minutes with nothing happening and the
+// camera and microphone switch off, as if "Put it to sleep" were pressed. A
+// tab left open on a desk should not sit there listening (Brian, 2026-10-04).
+// "Something happening" is a question, any speech heard, typing, or a person
+// in front of the camera: it does not doze off on someone who is looking at
+// it. A warning shows for the last 15 seconds. Dev only: ?idle=10 shortens it.
+const IDLE_SLEEP_MS = (import.meta.env.DEV && typeof window !== 'undefined'
+  && Number(new URLSearchParams(window.location.search).get('idle')) * 1000) || 120_000;
+const IDLE_WARN_MS = Math.min(15_000, IDLE_SLEEP_MS / 2);
+
 // One conversation id per page load, so Brian's conversation logs keep a
 // visit's questions together (and can tell them from Home's `conv_` ids).
 const newConversationId = () => `face_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
@@ -312,6 +322,9 @@ export default function RabinAIFace() {
   const [renderFailed, setRenderFailed] = useState(false);
   const lastFaceRef = useRef(null);
   const facingAtRef = useRef(-Infinity);               // when someone last faced the camera
+  const activityAtRef = useRef(0);                     // when anything last happened (see IDLE_SLEEP_MS)
+  const [sleepySoon, setSleepySoon] = useState(false); // inside the warning window
+  const [dozed, setDozed] = useState(false);           // it put ITSELF to sleep; say so
   // Ears (the second, separate consent): 'off' | 'starting' | 'on' | 'denied' | 'error'
   const [mic, setMic] = useState('off');
   const [micMode, setMicMode] = useState(null);       // 'local' | 'downloadable' | 'cloud' | 'none', known before asking
@@ -369,7 +382,7 @@ export default function RabinAIFace() {
         // import.meta.env.DEV at the call site, not only in DEMO: a literal false
         // here is what lets the build drop demoFace altogether.
         try { face = import.meta.env.DEV && DEMO ? demoFace(now) : trackerRef.current?.read() ?? null; } catch (err) { console.warn('[face] detect', err); }
-        if (face) lastFaceSeen = now;
+        if (face) { lastFaceSeen = now; activityAtRef.current = now; }   // someone's there: stay awake
         if (face && Math.abs(face.yaw ?? 0) < FACING_YAW) facingAtRef.current = now;
         lastFaceRef.current = face;
         // "Can't see you" hint after 3s of camera with no face, so a dark room
@@ -417,6 +430,21 @@ export default function RabinAIFace() {
       form?.dispose();
     };
   }, []);
+
+  // The inactivity clock. Runs only while awake; a question in flight counts
+  // as activity for as long as it lasts.
+  useEffect(() => {
+    if (!awake) { setSleepySoon(false); return undefined; }
+    activityAtRef.current = performance.now();
+    setDozed(false);
+    const id = setInterval(() => {
+      if (busyRef.current) activityAtRef.current = performance.now();
+      const idle = performance.now() - activityAtRef.current;
+      if (idle >= IDLE_SLEEP_MS) { sleepRef.current?.(); setDozed(true); }
+      else setSleepySoon(idle >= IDLE_SLEEP_MS - IDLE_WARN_MS);
+    }, 1000);
+    return () => clearInterval(id);
+  }, [awake]);
 
   // Escape stops it talking, from anywhere on the page.
   useEffect(() => {
@@ -487,6 +515,7 @@ export default function RabinAIFace() {
           // Put back the names recognition can't spell ("Raven AI" -> RabinAI)
           // before they are shown, parsed or sent.
           const text = fixHeard(heard);
+          activityAtRef.current = performance.now();
           const { act, question } = parse(text);
           // One move per phrase: interim results repeat, and "nod" must not
           // nod five times while the sentence is still arriving.
@@ -506,7 +535,7 @@ export default function RabinAIFace() {
           if (isFinal && !act) setHeardAct(question ? (addressed ? 'question' : 'unseen') : '');
           if (isFinal && question && !act && addressed) answer(text.trim());
         },
-        onSpeaking(on) { heardRef.current = { ...heardRef.current, speaking: on }; },
+        onSpeaking(on) { if (on) activityAtRef.current = performance.now(); heardRef.current = { ...heardRef.current, speaking: on }; },
         onStop(reason) {
           if (reason === 'denied') setMic('denied');
           else if (reason === 'error') setMic('error');
@@ -1084,7 +1113,7 @@ export default function RabinAIFace() {
                   <label htmlFor="face-ask" className="sr-only">Type a question for RabinAI</label>
                   <input
                     id="face-ask" type="text" className="ask-typed-input" value={typed} maxLength={200}
-                    onChange={(e) => setTyped(e.target.value)} autoComplete="off" enterKeyHint="send"
+                    onChange={(e) => { activityAtRef.current = performance.now(); setTyped(e.target.value); }} autoComplete="off" enterKeyHint="send"
                     placeholder="Type a question"
                   />
                   <button type="submit" className="btn btn-secondary ask-typed-btn" disabled={!typed.trim() || !!answering}>Ask</button>
@@ -1100,6 +1129,8 @@ export default function RabinAIFace() {
               {asked && (answering || reply) && <p className="sense-live">You asked “{asked}”</p>}
 
               {/* Partial wakes are fine; say what didn't come on, and why. */}
+              {awake && sleepySoon && !answering && <p className="sense-live" role="status">Nobody's here, so it's about to go back to sleep.</p>}
+              {!awake && dozed && <p className="sense-live" role="status">It went back to sleep after two quiet minutes. Its camera and microphone are off.</p>}
               {awake && camera === 'starting' && <p className="sense-live">Opening its eyes…</p>}
               {awake && (camera === 'denied' || camera === 'error') && (
                 <p className="sense-problem" role="status">
@@ -1164,6 +1195,7 @@ export default function RabinAIFace() {
                   <ul className="ask-ideas-how">
                     <li>{canHear ? 'Ask out loud once it\'s awake, or type.' : 'Wake it and type your question.'} It answers in a sentence or two, and remembers your last three questions.</li>
                     <li>Tap the face, or press Esc, to stop it talking.</li>
+                    <li>It goes back to sleep, camera and microphone off, after two minutes with nobody there.</li>
                     {!cantSee && <li>Look at it when you ask. With its camera on, it only answers someone facing it.</li>}
                     {!cantSee && <li>Smile, wink or point a finger at it: it reacts.</li>}
                   </ul>
