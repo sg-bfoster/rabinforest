@@ -85,6 +85,12 @@ function linkLabel(url) {
   } catch { return url; }
 }
 
+// How robotic its voice is: 0 = Kokoro as-is, 1 = all robot. ~0.45 keeps
+// every word clear. ROBOT_RING_HZ sets the buzz: 30-40 is the Dalek growl,
+// 50-70 a friendlier droid, 100+ starts to sound like a bad phone line.
+const ROBOT_MIX = 0.45;
+const ROBOT_RING_HZ = 55;
+
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
@@ -304,7 +310,28 @@ export default function RabinAIFace() {
       const src = ctx.createMediaElementSource(el);
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 1024;
-      src.connect(analyser); analyser.connect(ctx.destination);
+      // The robot: the same Kokoro voice, processed, half dry and half wet,
+      // so it sounds like a friendly machine and stays easy to follow.
+      //   ring modulation (the voice multiplied by a 55Hz tone): the metallic,
+      //     buzzing quality of every classic film robot
+      //   a short comb echo (7ms, fed back): a hollow, tinny body
+      //   a high-pass on the wet side: thinner, like a small speaker
+      // Analyser after the mix, so the mouth follows what you actually hear.
+      // Make-up gain: dry and wet partly cancel, so the mix measured ~4dB quieter
+      // than the plain voice (RMS 0.086 vs 0.134 at mix 0.45). 1.5 restores it,
+      // peaks stay ~0.7, and the mouth (calibrated on the dry voice) still moves.
+      const out = ctx.createGain(); out.gain.value = 1 + ROBOT_MIX * 1.1;
+      const dry = ctx.createGain(); dry.gain.value = 1 - ROBOT_MIX;
+      const ring = ctx.createGain(); ring.gain.value = 0;          // 0 + the tone = pure multiplication
+      const tone = ctx.createOscillator(); tone.frequency.value = ROBOT_RING_HZ; tone.connect(ring.gain); tone.start();
+      const thin = ctx.createBiquadFilter(); thin.type = 'highpass'; thin.frequency.value = 220;
+      const comb = ctx.createDelay(0.05); comb.delayTime.value = 0.007;
+      const fb = ctx.createGain(); fb.gain.value = 0.35;
+      const wet = ctx.createGain(); wet.gain.value = ROBOT_MIX * 1.6;  // ring mod halves the level; make it up
+      src.connect(dry); dry.connect(out);
+      src.connect(ring); ring.connect(thin); thin.connect(comb); comb.connect(fb); fb.connect(comb);
+      thin.connect(wet); comb.connect(wet); wet.connect(out);
+      out.connect(analyser); analyser.connect(ctx.destination);
       audioRef.current = { ctx, el, analyser, buf: new Float32Array(analyser.fftSize), playing: false };
     } catch (err) { console.warn('[face] audio', err); }
   }
