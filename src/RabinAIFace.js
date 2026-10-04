@@ -338,25 +338,48 @@ export default function RabinAIFace() {
   }
 
   /**
-   * The site's assistant, answering through the face (AVATAR_ASSISTANT_PLAN
-   * phase A): the same brain as Home, in spoken mode, so the server gates the
-   * question, never emails anyone, and returns two speakable sentences plus
-   * links for cards. -> { say, links, engine } or null.
+   * The site's assistant, answering through the face: the same brain as Home,
+   * in spoken mode, so the server gates the question, never emails anyone,
+   * and returns at most two speakable sentences plus links for cards.
+   *
+   * Streamed (AVATAR_ASSISTANT_PLAN phase B): when the box answers, each whole
+   * sentence arrives as a `say` frame and goes straight to onSay, so the first
+   * one can be voiced while the second is still being written. Gemini and the
+   * canned lines come back whole instead. -> { say, links, engine } or null.
    */
-  async function askAssistant(question) {
+  async function askAssistant(question, onSay) {
     conversationIdRef.current ??= newConversationId();
     const r = await fetch(`${API_BASE_URL}/ai/gemini-assistant`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: question.slice(0, 200), conversationId: conversationIdRef.current, spoken: true }),
+      body: JSON.stringify({ prompt: question.slice(0, 200), conversationId: conversationIdRef.current, spoken: true, stream: true }),
     });
-    const data = await r.json().catch(() => null);
-    if (r.status === 429 && data?.say) return { say: data.say, links: [], engine: 'limit' };
-    if (!r.ok || typeof data?.response !== 'string') return null;
-    let parsed = null;
-    try { parsed = JSON.parse(data.response); } catch { /* not JSON: use it as words */ }
-    const say = (parsed ? parsed.text : data.response)?.trim();
-    if (!say) return null;
-    return { say, links: Array.isArray(parsed?.links) ? parsed.links : [], engine: data.engine };
+    if (!r.headers.get('content-type')?.includes('text/event-stream')) {
+      const data = await r.json().catch(() => null);
+      if (r.status === 429 && data?.say) return { say: data.say, links: [], engine: 'limit' };
+      if (!r.ok || typeof data?.response !== 'string') return null;
+      let parsed = null;
+      try { parsed = JSON.parse(data.response); } catch { /* not JSON: use it as words */ }
+      const say = (parsed ? parsed.text : data.response)?.trim();
+      return say ? { say, links: Array.isArray(parsed?.links) ? parsed.links : [], engine: data.engine } : null;
+    }
+    const reader = r.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '', final = null;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        let evt;
+        try { evt = JSON.parse(line.slice(6)); } catch { continue; }
+        if (evt.say) onSay(evt.say, evt.engine);       // `waiting` heartbeats are ignored
+        if (evt.done) final = { say: (evt.text ?? '').trim(), links: Array.isArray(evt.links) ? evt.links : [], engine: evt.engine };
+      }
+    }
+    return final?.say ? final : null;
   }
 
   /** The face's own small talk: the fallback when the assistant can't answer (§12 q4). */
@@ -369,67 +392,109 @@ export default function RabinAIFace() {
     return said?.say ? { say: said.say, links: [], engine: said.engine } : null;
   }
 
+  /** Play one clip through the analysed <audio>, so the mouth follows it. */
+  async function playClip(a, url) {
+    a.el.src = url;
+    // A touch higher and quicker on playback, pitch NOT preserved: it sounds
+    // small, like the orb, without tipping into a chipmunk.
+    a.el.preservesPitch = false; a.el.mozPreservesPitch = false; a.el.webkitPreservesPitch = false;
+    a.el.playbackRate = 1.05;
+    a.playing = true;
+    // Never wait forever: a blocked or stalled play() must not leave it stuck
+    // 'busy' and deaf. One sentence is well under 20s.
+    await new Promise((resolve) => {
+      const cap = setTimeout(resolve, 20_000);
+      const done = () => { clearTimeout(cap); resolve(); };
+      a.el.onended = done; a.el.onerror = done; a.el.play().catch(done);
+    });
+    a.playing = false;
+  }
+
   /**
-   * One question -> one short spoken answer. Words go to the server (never
-   * audio or images); the answer comes back gated, Kokoro speaks it, and the
-   * ears are paused meanwhile so it never hears, and answers, itself.
+   * Its voice, a sentence at a time. Each sentence's audio is requested the
+   * moment the sentence exists, so sentence 2's voice is being made while
+   * sentence 1 plays; they still play strictly in order.
+   *   add(text, engine)   a sentence to say
+   *   close()             nothing more is coming
+   *   play(onStart)       resolves once everything added has been said
+   */
+  function createVoice(a) {
+    const items = [];
+    let closed = false, wake = null;
+    const tts = async (text) => {
+      const res = await fetch(`${API_BASE_URL}/ai/readaloud`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        // Its own voice, not the narrator's: see VOICE_PERSONAS in bfoster-services.
+        body: JSON.stringify({ prompt: text, persona: 'face' }),
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      return { url: URL.createObjectURL(await res.blob()), engine: res.headers.get('X-TTS-Engine') };
+    };
+    return {
+      add(text, engine) {
+        const clip = a ? tts(text).catch((err) => { console.warn('[face] speak', err); return null; }) : Promise.resolve(null);
+        items.push({ text, engine, clip });
+        wake?.();
+      },
+      close() { closed = true; wake?.(); },
+      async play(onStart) {
+        for (let i = 0; ; i++) {
+          while (i >= items.length) {
+            if (closed) return;
+            await new Promise((resolve) => { wake = resolve; });
+            wake = null;
+          }
+          const item = items[i];
+          const clip = await item.clip;
+          onStart(item, clip);
+          if (clip) { await playClip(a, clip.url); URL.revokeObjectURL(clip.url); }
+        }
+      },
+    };
+  }
+
+  /**
+   * One question -> a short spoken answer. Words go to the server (never audio
+   * or images); the answer comes back gated, a sentence at a time when the box
+   * streams it, Kokoro speaks each as soon as it can, and the ears are paused
+   * meanwhile so it never hears, and answers, itself.
    */
   async function answer(question) {
     if (busyRef.current) return;                       // one at a time
     busyRef.current = true;
     thinkingRef.current = true;
     setAnswering('thinking');
-    let said = null;
-    try { said = await askAssistant(question); } catch (err) { console.warn('[face] assistant', err); }
-    if (!said) {
-      try { said = await askFace(question); } catch (err) { console.warn('[face] reply', err); }
-    }
-    if (!said?.say) { setReply({ say: "I couldn't think of an answer just then.", engine: 'none', links: [] }); finish(); return; }
 
-    let voice = null;
-    const a = audioRef.current;
+    const voice = createVoice(audioRef.current);
+    const said = [];
+    let ttsEngine = null;
+    // Keep thinking until the first voice is ready; only then stop and speak.
+    const speaking = voice.play((item, clip) => {
+      if (!said.length) { earsRef.current?.pause(); thinkingRef.current = false; setAnswering('speaking'); }
+      said.push(item.text);
+      if (clip?.engine) ttsEngine = clip.engine;
+      setReply({ say: said.join(' '), engine: item.engine, voice: ttsEngine, links: [] });
+    });
+
+    let streamed = 0, whole = null;
     try {
-      if (!a) throw new Error('no audio');
-      const tts = await fetch(`${API_BASE_URL}/ai/readaloud`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        // Its own voice, not the narrator's: see VOICE_PERSONAS in bfoster-services.
-        body: JSON.stringify({ prompt: said.say, persona: 'face' }),
-      });
-      if (!tts.ok) throw new Error(String(tts.status));
-      voice = tts.headers.get('X-TTS-Engine');
-      const url = URL.createObjectURL(await tts.blob());
-      earsRef.current?.pause();
-      setReply({ say: said.say, engine: said.engine, voice, links: said.links });
-      // Keep thinking until the voice is ready; only then stop and speak.
-      thinkingRef.current = false;
-      setAnswering('speaking');
-      a.el.src = url;
-      // A touch higher and quicker on playback, pitch NOT preserved: it sounds
-      // small, like the orb, without tipping into a chipmunk.
-      a.el.preservesPitch = false; a.el.mozPreservesPitch = false; a.el.webkitPreservesPitch = false;
-      a.el.playbackRate = 1.05;
-      a.playing = true;
-      // Never wait forever: a blocked or stalled play() must not leave it
-      // stuck 'busy' and deaf. A two-sentence answer is well under 20s.
-      await new Promise((resolve) => {
-        const cap = setTimeout(resolve, 20_000);
-        const done = () => { clearTimeout(cap); resolve(); };
-        a.el.onended = done; a.el.onerror = done; a.el.play().catch(done);
-      });
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.warn('[face] speak', err);
-      setReply({ say: said.say, engine: said.engine, voice: null, links: said.links });   // the words, at least
+      whole = await askAssistant(question, (sentence, engine) => { streamed++; voice.add(sentence, engine); });
+    } catch (err) { console.warn('[face] assistant', err); }
+    if (!whole && !streamed) {
+      try { whole = await askFace(question); } catch (err) { console.warn('[face] reply', err); }
     }
-    if (a) a.playing = false;
-    finish();
+    if (!whole && !streamed) whole = { say: "I couldn't think of an answer just then.", links: [], engine: 'none' };
+    if (!streamed) voice.add(whole.say, whole.engine);  // Gemini, canned, fallback: one clip
+    voice.close();
+    await speaking;
 
-    function finish() {
-      thinkingRef.current = false;
-      setAnswering('');
-      // A beat before listening again, so the tail of its own voice isn't heard.
-      setTimeout(() => { earsRef.current?.resume(); busyRef.current = false; }, 400);
-    }
+    // Links once it has finished talking, under the words it said.
+    const links = whole?.links ?? [];
+    setReply((r) => (r ? { ...r, links } : r));
+    thinkingRef.current = false;
+    setAnswering('');
+    // A beat before listening again, so the tail of its own voice isn't heard.
+    setTimeout(() => { earsRef.current?.resume(); busyRef.current = false; }, 400);
   }
 
   // Dev only: window.__face.ask('why is the sky blue') runs the whole answer

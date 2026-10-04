@@ -1,7 +1,7 @@
 # Avatar Assistant — scope plan
 
-**Status:** phase A built 2026-10-03 (v0.4.134, bfoster-services `7612c44`),
-committed, not pushed. B–F not started. See §13.
+**Status:** phases A and B built 2026-10-03 (A: v0.4.134; B: v0.4.144),
+committed, not pushed. C–F not started. See §13 and §14.
 
 **Decided (Brian, 2026-10-03: "build phase A, 5 turns"):** the §12
 recommendations, plus 5 turns of memory.
@@ -235,4 +235,26 @@ and phase E should measure it properly before anyone promises a number.
 
 **Not yet checked by a person:** the page in a browser with a real voice
 question, link cards on a phone, and how the answers SOUND.
+
+## 14. What phase B built (2026-10-03)
+
+**Server:** `{ spoken: true, stream: true }` streams. `face.createSpokenStream`
+turns the box's text deltas into whole sentences, gates each one (same rules as
+§13), and the route sends each as a `say` frame the moment it is complete; the
+done frame carries what was said, plus links. Gemini and canned answers still
+come whole. A `say` frame commits content, so after sentence 1 there is no
+failover: a box that dies mid-answer leaves one whole sentence, never a
+fragment.
+
+**Page:** a small voice queue (`createVoice`). Each sentence's Kokoro audio is
+requested the moment the sentence arrives and the clips play strictly in order,
+so sentence 2's voice is being made while sentence 1 plays.
+
+**Measured locally (box warm):** sentence 1's voice requested at 5.2-6.1s
+against an answer stream that ran to 10.0-10.8s: about 4-5s sooner to the first
+word. gpt-oss often writes ONE long sentence regardless of the steering, which
+caps the gain; a run-on now ends at its last clause break as a full stop rather
+than mid-word.
+
+**Not yet:** listened to by a person; measured on production (phase E).
 
