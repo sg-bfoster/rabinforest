@@ -85,25 +85,16 @@ function linkLabel(url) {
   } catch { return url; }
 }
 
-// Its voice: a Kokoro persona (bfoster-services VOICE_PERSONAS) plus what the
-// page does to it. `rate` shifts speed AND pitch together (pitch is not
-// preserved): above 1 is quicker and higher. `mix` is how much robot (0 = the
-// plain voice). `ringHz` is the buzz: 30-45 is the Dalek growl, 60-90 a
-// friendlier droid. `ring` 0 skips the buzz and leaves only the comb echo,
-// which is the hollow tin-can sound; `comb` is how much it resonates.
-//
-// 'droid' is the default since 2026-10-04: the first male voice ('deep') was
-// "too slow and creepy" (Brian). In dev, ?voices adds buttons to hear each.
-const VOICES = {
-  droid: { label: 'Droid', persona: 'face', rate: 1.05, mix: 0.35, ringHz: 65, ring: 1, comb: 0.35, combMs: 7 },
-  toon: { label: 'Cartoon', persona: 'face-toon', rate: 1.17, mix: 0.15, ringHz: 85, ring: 1, comb: 0.2, combMs: 7 },
-  tin: { label: 'Tin can', persona: 'face-tin', rate: 1.02, mix: 0.55, ringHz: 65, ring: 0, comb: 0.6, combMs: 4 },
-  plain: { label: 'No effect', persona: 'face', rate: 1, mix: 0, ringHz: 65, ring: 1, comb: 0.35, combMs: 7 },
-  deep: { label: 'Deep (the old one)', persona: 'face-deep', rate: 0.94, mix: 0.6, ringHz: 42, ring: 1, comb: 0.35, combMs: 7 },
-};
-const VOICE_LAB = import.meta.env.DEV && typeof window !== 'undefined'
-  && new URLSearchParams(window.location.search).has('voices');
-const VOICE_SAMPLE = "Hi, I'm RabinAI. Ask me about Brian's work, or anything else.";
+// Its voice: the Kokoro persona 'face' (bfoster-services VOICE_PERSONAS) plus
+// what the page does to it. This is the "tin can" robot Brian picked by ear
+// (2026-10-04) from five: no buzz, a strong short comb echo, which is the
+// hollow metal-box sound. The dials, should it need retuning:
+//   rate    speed AND pitch together (pitch is not preserved); above 1 is quicker and higher
+//   mix     how much robot, 0 = the plain voice
+//   ring    1 multiplies the voice by a ringHz tone (the classic buzz; 30-45Hz
+//           is the Dalek growl, 60-90 a friendlier droid); 0 skips it
+//   comb    how much the echo resonates; combMs its length (shorter = tinnier)
+const VOICE = { rate: 1.02, mix: 0.55, ringHz: 65, ring: 0, comb: 0.6, combMs: 4 };
 
 /** Set the effect graph's dials for a voice. Safe before the graph exists. */
 function applyVoice(a, v) {
@@ -202,8 +193,6 @@ export default function RabinAIFace() {
   // Answering: one question in, one short spoken answer out (plan §11).
   const [reply, setReply] = useState(null);           // { say, engine, voice, links } of the last answer
   const conversationIdRef = useRef(null);
-  const voiceRef = useRef(VOICES.droid);
-  const [voiceKey, setVoiceKey] = useState('droid');   // dev ?voices only
   const [answering, setAnswering] = useState('');     // '' | 'thinking' | 'speaking'
   const thinkingRef = useRef(false);
   const speakLevelRef = useRef(0);                     // 0..1 loudness of its own voice, read each frame
@@ -370,7 +359,7 @@ export default function RabinAIFace() {
       //   a short comb echo (fed back): a hollow, tinny body
       //   a high-pass on the wet side: thinner, like a small speaker
       // Analyser after the mix, so the mouth follows what you actually hear.
-      // The dials are set by applyVoice from VOICES.
+      // The dials are set by applyVoice from VOICE.
       const out = ctx.createGain();
       const dry = ctx.createGain();
       const ring = ctx.createGain();
@@ -387,7 +376,7 @@ export default function RabinAIFace() {
       out.connect(analyser); analyser.connect(ctx.destination);
       audioRef.current = { ctx, el, analyser, buf: new Float32Array(analyser.fftSize), playing: false,
         fx: { dry, wet, out, tone, toneAmt, ring, fb, comb } };
-      applyVoice(audioRef.current, voiceRef.current);
+      applyVoice(audioRef.current, VOICE);
     } catch (err) { console.warn('[face] audio', err); }
   }
 
@@ -451,9 +440,9 @@ export default function RabinAIFace() {
   /** Play one clip through the analysed <audio>, so the mouth follows it. */
   async function playClip(a, url) {
     a.el.src = url;
-    // Pitch NOT preserved, so the rate shifts the pitch too (see VOICES).
+    // Pitch NOT preserved, so the rate shifts the pitch too (see VOICE).
     a.el.preservesPitch = false; a.el.mozPreservesPitch = false; a.el.webkitPreservesPitch = false;
-    a.el.playbackRate = voiceRef.current.rate;
+    a.el.playbackRate = VOICE.rate;
     a.playing = true;
     // Never wait forever: a blocked or stalled play() must not leave it stuck
     // 'busy' and deaf. One sentence is well under 20s.
@@ -480,7 +469,7 @@ export default function RabinAIFace() {
       const res = await fetch(`${API_BASE_URL}/ai/readaloud`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         // Its own voice, not the narrator's: see VOICE_PERSONAS in bfoster-services.
-        body: JSON.stringify({ prompt: text, persona: voiceRef.current.persona }),
+        body: JSON.stringify({ prompt: text, persona: 'face' }),
       });
       if (!res.ok) throw new Error(String(res.status));
       return { url: URL.createObjectURL(await res.blob()), engine: res.headers.get('X-TTS-Engine') };
@@ -549,22 +538,6 @@ export default function RabinAIFace() {
     thinkingRef.current = false;
     setAnswering('');
     // A beat before listening again, so the tail of its own voice isn't heard.
-    setTimeout(() => { earsRef.current?.resume(); busyRef.current = false; }, 400);
-  }
-
-  // Dev only (?voices): switch voice and hear a sample line in it.
-  async function tryVoice(key) {
-    if (busyRef.current) return;
-    busyRef.current = true;
-    ensureAudio();
-    voiceRef.current = VOICES[key];
-    setVoiceKey(key);
-    applyVoice(audioRef.current, voiceRef.current);
-    earsRef.current?.pause();
-    const voice = createVoice(audioRef.current);
-    voice.add(VOICE_SAMPLE, 'none');
-    voice.close();
-    await voice.play(() => {});
     setTimeout(() => { earsRef.current?.resume(); busyRef.current = false; }, 400);
   }
 
@@ -786,18 +759,6 @@ export default function RabinAIFace() {
                     ? <>Heard “{heardText}”{ACT_WORDS[heardAct] ? <> <span className="sense-did">→ {ACT_WORDS[heardAct]}</span></> : null}</>
                     : 'Listening. Ask it a question.'}
                 </p>
-              )}
-
-              {import.meta.env.DEV && VOICE_LAB && (
-                <div className="voice-lab">
-                  <span className="voice-lab-label">Voice (dev):</span>
-                  {Object.entries(VOICES).map(([key, v]) => (
-                    <button key={key} type="button" className={`btn btn-secondary sense-small${voiceKey === key ? ' is-on' : ''}`}
-                      aria-pressed={voiceKey === key} onClick={() => tryVoice(key)}>
-                      {v.label}
-                    </button>
-                  ))}
-                </div>
               )}
 
               <details className="sense-details">

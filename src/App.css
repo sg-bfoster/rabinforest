@@ -2510,8 +2510,3 @@
 .rabinai-face-canvas { transition: filter 1.2s ease; }
 .rabinai-face-stage.is-asleep .rabinai-face-canvas { filter: grayscale(1) brightness(1.12) contrast(0.92); }
 @media (prefers-reduced-motion: reduce) { .rabinai-face-canvas { transition: none; } }
-
-/* ---- RabinAI Face: dev-only voice audition (?voices) ---- */
-.voice-lab { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
-.voice-lab-label { color: var(--muted); font-size: 0.85rem; }
-.voice-lab .is-on { border-color: var(--cool); color: var(--cool); font-weight: 700; }
