@@ -96,9 +96,6 @@ const prefersReducedMotion = () =>
 
 // --- Pieces of the senses panel ------------------------------------------
 
-const TRY_CHIPS = [['Nod', 'nod'], ['Wink', 'wink'], ['Smile', 'smile'], ['Look left', 'look-left'],
-  ['Shake your head', 'shake'], ['Make an O', 'ooh']];
-
 /** Who answered and who spoke, honestly: the box when it could, the cloud when it couldn't. */
 function replyBy(r) {
   if (!r) return '';
@@ -740,20 +737,8 @@ export default function RabinAIFace() {
                 <p className="sense-live" aria-live="polite">
                   {heardText
                     ? <>Heard “{heardText}”{ACT_WORDS[heardAct] ? <> <span className="sense-did">→ {ACT_WORDS[heardAct]}</span></> : null}</>
-                    : 'Listening. Ask it a question, or say one of these:'}
+                    : 'Listening. Ask it a question.'}
                 </p>
-              )}
-              {/* Tappable too: the same moves, for anyone without a mic. */}
-              {awake && (
-                <div className="sense-chips" role="group" aria-label="Directions it knows">
-                  {mic !== 'on' && <span className="sense-chips-label">Try one:</span>}
-                  {TRY_CHIPS.map(([label, act]) => (
-                    <button key={act} type="button" className="sense-chip"
-                      onClick={() => { behaviourRef.current?.act(act, performance.now()); setHeardAct(act); }}>
-                      {label}
-                    </button>
-                  ))}
-                </div>
               )}
 
               <details className="sense-details">
