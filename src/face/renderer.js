@@ -35,8 +35,9 @@ function sculpt(x, y, z) {
   sx += 0.015 * gauss(y, 0.05, 0.22);
   sx -= 0.035 * gauss(y, -0.3, 0.2) * front;                  // a shallow hollow under them
   sx *= 1 - 0.22 * smooth(-0.45, -1.0, y);                    // jaw angle, then in toward the chin
+  sx *= 1 - 0.26 * smooth(-0.5, -1.08, y);                    // ...and in harder toward the bottom: a pointed chin
   let ny = y < 0 ? y * 1.12 : y;                              // a longer lower face
-  ny = Math.max(ny, -1.06);                                   // a flatter chin, not a point
+  ny = Math.max(ny, -1.1);                                    // the tip rounded off, not a spike
   let nz = z + 0.05 * smooth(-0.6, -1.0, y) * Math.max(z, 0);   // chin forward a touch
   // ...and the front corners at cheek height pulled back, so the front of the
   // face meets the side at more of an edge: a cheekbone line, not a ball.
