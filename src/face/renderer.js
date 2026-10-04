@@ -84,7 +84,9 @@ const BODY_FRAG = /* glsl */ `
     vec3 skin = mix(uShade, uSkin, 0.3 + 0.5 * facing + 0.25 * key);
     // The bald shine: a soft highlight up on the dome.
     vec3 H = normalize(normalize(vec3(0.3, 0.85, 0.5)) + V);
-    float spec = pow(max(dot(N, H), 0.0), 48.0) * 0.5 * smoothstep(0.15, 0.7, vPos.y);
+    // Soft and wide, a sheen rather than a hot spot: at 48/0.5 on the lighter
+    // skin it blew out to white.
+    float spec = pow(max(dot(N, H), 0.0), 20.0) * 0.16 * smoothstep(0.15, 0.7, vPos.y);
     // Beard and mustache: everything below a line that sits just under the
     // nose in the middle and climbs the sides to the sideburns; front and
     // sides only. A hashed speckle makes it hair, and ragged at the edge.
