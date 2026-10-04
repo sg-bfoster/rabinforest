@@ -125,6 +125,22 @@ function linkLabel(url) {
 //   comb    how much the echo resonates; combMs its length (shorter = tinnier)
 const VOICE = { rate: 1.02, mix: 0.55, ringHz: 65, ring: 0, comb: 0.6, combMs: 4 };
 
+/**
+ * iPhone Safari: while a page has the microphone, iOS puts audio in its
+ * "play and record" mode (the one phone calls use) and playback comes out
+ * quiet, or from the earpiece. Brian: "barely audible on my phone" (iPhone
+ * Safari, 2026-10-04). Safari 16.4+ lets a page say which mode it wants, so:
+ * 'playback' while it speaks (the ears are paused then anyway), 'auto' again
+ * before it listens. Other browsers have no navigator.audioSession and skip
+ * this. NOT yet confirmed on a phone.
+ */
+function audioSessionType(type) {
+  try {
+    const session = typeof navigator !== 'undefined' ? navigator.audioSession : null;
+    if (session && session.type !== type) session.type = type;
+  } catch { /* unsupported type, or not allowed right now */ }
+}
+
 /** Set the effect graph's dials for a voice. Safe before the graph exists. */
 function applyVoice(a, v) {
   if (!a?.fx) return;
@@ -624,7 +640,7 @@ export default function RabinAIFace() {
     let ttsEngine = null;
     // Keep thinking until the first voice is ready; only then stop and speak.
     const speaking = voice.play((item, clip) => {
-      if (!said.length) { earsRef.current?.pause(); thinkingRef.current = false; setAnswering('speaking'); }
+      if (!said.length) { earsRef.current?.pause(); audioSessionType('playback'); thinkingRef.current = false; setAnswering('speaking'); }
       said.push(item.text);
       if (clip?.engine) ttsEngine = clip.engine;
       setReply({ say: said.join(' '), engine: item.engine, voice: ttsEngine, links: [] });
@@ -661,7 +677,7 @@ export default function RabinAIFace() {
     thinkingRef.current = false;
     setAnswering('');
     // A beat before listening again, so the tail of its own voice isn't heard.
-    setTimeout(() => { earsRef.current?.resume(); busyRef.current = false; }, 400);
+    setTimeout(() => { audioSessionType('auto'); earsRef.current?.resume(); busyRef.current = false; }, 400);
   }
 
   // Dev only: window.__face.ask('why is the sky blue') runs the whole answer
@@ -810,6 +826,7 @@ export default function RabinAIFace() {
     if (canHear) micOff();
     try { audioRef.current?.el.pause(); } catch { /* not playing */ }
     audioRef.current?.finish?.();
+    audioSessionType('auto');
   }
 
   sleepRef.current = sleep;
