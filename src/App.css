@@ -2446,3 +2446,17 @@
 .face-link:hover, .face-link:focus-visible { background: var(--cool); color: var(--hero); }
 .face-link-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .face-link-arrow { flex: none; }
+
+/* ---- RabinAI Face: side-by-side on wide screens ---- */
+/* The face left, the senses stacked right. Stacked under the stage, the cards
+   ran off the bottom of the screen and the face scrolled away as soon as you
+   read them. The stage is sticky, so it stays in view (and keeps looking at
+   you) while you scroll the panels; it's portrait now, to suit the pill. */
+@media (min-width: 900px) {
+  .rabinai-face { grid-template-columns: minmax(0, 1.1fr) minmax(300px, 1fr); align-items: start; gap: var(--space-6); }
+  .rabinai-face-stage {
+    position: sticky; top: var(--scroll-clear);
+    aspect-ratio: 3 / 4; max-height: calc(100vh - var(--scroll-clear) - 24px);
+  }
+  .rabinai-senses { grid-template-columns: 1fr; }
+}
