@@ -113,6 +113,16 @@ const SAMPLE_QUESTIONS = [
   'Is he available for work?',
 ];
 
+// It only answers someone who is FACING it (Brian, 2026-10-04). An open mic
+// hears the whole room: the logs had it answering "Is Lily a bridesmaid",
+// which nobody asked it. So while the camera is on, a spoken question counts
+// only if a face was turned toward it at some point in the last few seconds.
+// Head yaw runs -1..1 (0 = straight at the camera); 0.55 is roughly a
+// three-quarter view. With no camera it cannot tell, so it answers as before,
+// and a typed question is always answered.
+const FACING_YAW = 0.55;
+const FACING_WINDOW_MS = 3000;
+
 // One conversation id per page load, so Brian's conversation logs keep a
 // visit's questions together (and can tell them from Home's `conv_` ids).
 const newConversationId = () => `face_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
@@ -301,6 +311,7 @@ export default function RabinAIFace() {
   const [noFace, setNoFace] = useState(false);
   const [renderFailed, setRenderFailed] = useState(false);
   const lastFaceRef = useRef(null);
+  const facingAtRef = useRef(-Infinity);               // when someone last faced the camera
   // Ears (the second, separate consent): 'off' | 'starting' | 'on' | 'denied' | 'error'
   const [mic, setMic] = useState('off');
   const [micMode, setMicMode] = useState(null);       // 'local' | 'downloadable' | 'cloud' | 'none', known before asking
@@ -359,6 +370,7 @@ export default function RabinAIFace() {
         // here is what lets the build drop demoFace altogether.
         try { face = import.meta.env.DEV && DEMO ? demoFace(now) : trackerRef.current?.read() ?? null; } catch (err) { console.warn('[face] detect', err); }
         if (face) lastFaceSeen = now;
+        if (face && Math.abs(face.yaw ?? 0) < FACING_YAW) facingAtRef.current = now;
         lastFaceRef.current = face;
         // "Can't see you" hint after 3s of camera with no face, so a dark room
         // or a covered lens doesn't look like the page ignoring them.
@@ -488,9 +500,11 @@ export default function RabinAIFace() {
           if (question && !isFinal) heardRef.current = { ...heardRef.current, question: true };
           else if (isFinal) questionTimer = setTimeout(() => { heardRef.current = { ...heardRef.current, question: false }; }, 250);
           setHeardText(text.trim());
-          if (isFinal && !act) setHeardAct(question ? 'question' : '');
-          // A finished question that wasn't a direction gets an answer.
-          if (isFinal && question && !act) answer(text.trim());
+          // A finished question that wasn't a direction gets an answer, if it
+          // was asked OF it: with the camera on, by someone facing it.
+          const addressed = !trackerRef.current || performance.now() - facingAtRef.current < FACING_WINDOW_MS;
+          if (isFinal && !act) setHeardAct(question ? (addressed ? 'question' : 'unseen') : '');
+          if (isFinal && question && !act && addressed) answer(text.trim());
         },
         onSpeaking(on) { heardRef.current = { ...heardRef.current, speaking: on }; },
         onStop(reason) {
@@ -794,6 +808,7 @@ export default function RabinAIFace() {
     surprised: 'looking surprised', ooh: 'making an O', tongue: 'sticking its tongue out', close: 'closing its eyes',
     tilt: 'tilting its head', 'look-left': 'looking left', 'look-right': 'looking right', 'look-up': 'looking up',
     'look-down': 'looking down', question: 'listening to your question',
+    unseen: 'not answering: it only answers someone facing it',
   };
 
   async function turnOn() {
@@ -1149,6 +1164,7 @@ export default function RabinAIFace() {
                   <ul className="ask-ideas-how">
                     <li>{canHear ? 'Ask out loud once it\'s awake, or type.' : 'Wake it and type your question.'} It answers in a sentence or two, and remembers your last three questions.</li>
                     <li>Tap the face, or press Esc, to stop it talking.</li>
+                    {!cantSee && <li>Look at it when you ask. With its camera on, it only answers someone facing it.</li>}
                     {!cantSee && <li>Smile, wink or point a finger at it: it reacts.</li>}
                   </ul>
                 </details>
