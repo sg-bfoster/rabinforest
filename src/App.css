@@ -2570,3 +2570,17 @@
     background: var(--surface); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   }
 }
+
+/* ---- RabinAI Face: "What can I ask?" ---- */
+.ask-ideas-how { margin: var(--space-2) 0 0; padding: var(--space-2) 0 0 1.1em; display: grid; gap: 4px; border-top: 1px solid var(--hairline); }
+.ask-ideas-list { display: grid; margin-top: 2px; }
+.ask-idea {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); width: 100%;
+  padding: 10px 2px; background: none; border: 0; border-top: 1px solid var(--hairline);
+  font: inherit; font-size: 0.95rem; color: var(--ink); text-align: left; cursor: pointer;
+}
+.ask-idea:first-child { border-top: 0; }
+.ask-idea span { color: var(--cool); flex: none; }
+.ask-idea:hover:not(:disabled) { color: var(--cool); }
+.ask-idea:disabled { opacity: 0.5; cursor: default; }
+.ask-idea:focus-visible { outline: 2px solid var(--cool); outline-offset: 1px; border-radius: 4px; }

@@ -98,6 +98,18 @@ function demoFace(now) {
 const MEMORY_TURNS = 3;
 const MEMORY_IDLE_MS = 120_000;
 
+// "What can I ask?": a few questions that show what it knows, like Home's
+// popular questions. Short ones, since the answer is spoken: each of these
+// names things rather than explaining them. Tapping one asks it (typed path,
+// so no camera or microphone is needed to try the page).
+const SAMPLE_QUESTIONS = [
+  'What sites has Brian built?',
+  "What's RabinAI?",
+  'Tell me about the odometer project',
+  "What's his frontend stack?",
+  'Is he available for work?',
+];
+
 // One conversation id per page load, so Brian's conversation logs keep a
 // visit's questions together (and can tell them from Home's `conv_` ids).
 const newConversationId = () => `face_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
@@ -245,6 +257,7 @@ export default function RabinAIFace() {
   const quietRef = useRef(false);
   const [typed, setTyped] = useState('');
   const [typeOpen, setTypeOpen] = useState(false);    // "Type instead" was clicked
+  const [ideasOpen, setIdeasOpen] = useState(true);   // "What can I ask?": open until the first question
   const [asked, setAsked] = useState('');             // the typed question being answered, shown back
   const awakeRef = useRef(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -648,6 +661,7 @@ export default function RabinAIFace() {
   async function answer(question, { typed: wasTyped = false } = {}) {
     if (busyRef.current) return;                       // one at a time
     busyRef.current = true;
+    setIdeasOpen(false);                               // they've got the idea; make room for the answer
     setAsked(wasTyped ? question : '');
     thinkingRef.current = true;
     setAnswering('thinking');
@@ -814,6 +828,15 @@ export default function RabinAIFace() {
     ensureAudio();
   }
 
+  /** A sample question, tapped: asked like a typed one, waking it quietly if it's asleep. */
+  function askSample(q) {
+    if (busyRef.current) return;
+    ensureAudio();                                     // inside the click, or the voice is muted
+    wakeQuiet();
+    setHeardText(''); setHeardAct('');
+    answer(q, { typed: true });
+  }
+
   /** A typed question: same answer path as a spoken one, no camera or mic needed. */
   function askTyped(e) {
     e.preventDefault();
@@ -848,6 +871,7 @@ export default function RabinAIFace() {
     abortRef.current?.abort();
     memoryRef.current = { turns: [], at: 0 };          // asleep forgets the conversation
     setAwake(false);
+    setReply(null); setAsked('');                      // a sleeping face shouldn't still be showing its last answer
     quietRef.current = false; setQuiet(false);
     turnOff();
     if (canHear) micOff();
@@ -1067,6 +1091,26 @@ export default function RabinAIFace() {
                     ? <>Heard “{heardText}”{ACT_WORDS[heardAct] ? <> <span className="sense-did">→ {ACT_WORDS[heardAct]}</span></> : null}</>
                     : 'Listening. Ask it a question.'}
                 </p>
+              )}
+
+              {/* How to use it, and things to ask. Open until the first question. */}
+              {!nothingToWake && (
+                <details className="sense-details ask-ideas" open={ideasOpen} onToggle={(e) => setIdeasOpen(e.currentTarget.open)}>
+                  <summary>What can I ask?</summary>
+                  {/* Samples first: on a short screen they are what should be in view. */}
+                  <div className="ask-ideas-list">
+                    {SAMPLE_QUESTIONS.map((q) => (
+                      <button key={q} type="button" className="ask-idea" onClick={() => askSample(q)} disabled={!!answering}>
+                        {q}<span aria-hidden="true">→</span>
+                      </button>
+                    ))}
+                  </div>
+                  <ul className="ask-ideas-how">
+                    <li>{canHear ? 'Ask out loud once it\'s awake, or type.' : 'Wake it and type your question.'} It answers in a sentence or two, and remembers your last three questions.</li>
+                    <li>Tap the face, or press Esc, to stop it talking.</li>
+                    {!cantSee && <li>Smile, wink or point a finger at it: it reacts.</li>}
+                  </ul>
+                </details>
               )}
 
               <details className="sense-details">
