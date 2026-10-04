@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Hero, ScreenBody } from './components/Hero';
 import { createBehaviour } from './face/behaviour';
 import { parse } from './face/commands';
@@ -34,6 +35,26 @@ const DEBUG_SHAPES = ['jawOpen', 'mouthSmileLeft', 'mouthSmileRight', 'browInner
 const DEMO_PARAM = import.meta.env.DEV && typeof window !== 'undefined'
   ? new URLSearchParams(window.location.search).get('demo') : null;
 const DEMO = DEMO_PARAM !== null;
+// ?missing=hearing,camera,voice,drawing (dev only) pretends the browser lacks
+// them, to see the "this browser can't..." messages without another browser.
+const MISSING = import.meta.env.DEV && typeof window !== 'undefined'
+  ? (new URLSearchParams(window.location.search).get('missing') ?? '').split(',').filter(Boolean) : [];
+
+/**
+ * What this browser can do, checked before anything is asked of the visitor.
+ * Hearing is separate (earsMode, async): it's the one most often missing.
+ *   camera   getUserMedia in a secure context, and WebAssembly for the tracker
+ *   voice    Web Audio, for its voice and the mouth that follows it
+ */
+function browserSupport() {
+  if (typeof window === 'undefined') return { camera: true, secure: true, voice: true };
+  const secure = window.isSecureContext !== false;
+  return {
+    secure,
+    camera: !MISSING.includes('camera') && secure && !!navigator.mediaDevices?.getUserMedia && typeof WebAssembly === 'object',
+    voice: !MISSING.includes('voice') && !!(window.AudioContext || window.webkitAudioContext),
+  };
+}
 const DEMO_HOLD = { smile: 5, brows: 11, squint: 8.5, talk: 14, tilt: 16.5, away: 19 };
 function demoFace(now) {
   // Wink: the visitor's left eye shuts for 0.4s every 2.5s. Tongue: out 2s, in 1s.
@@ -193,6 +214,7 @@ export default function RabinAIFace() {
   // Answering: one question in, one short spoken answer out (plan §11).
   const [reply, setReply] = useState(null);           // { say, engine, voice, links } of the last answer
   const conversationIdRef = useRef(null);
+  const [support] = useState(browserSupport);
   const hushRef = useRef(0);                           // bumped by sleep(): cuts an answer short
   const sleepRef = useRef(null);
   const [answering, setAnswering] = useState('');     // '' | 'thinking' | 'speaking'
@@ -639,7 +661,14 @@ export default function RabinAIFace() {
     setNoFace(false);
   }
 
-  const canHear = !!(micMode && micMode !== 'none' && earsSupported());
+  const canHear = !MISSING.includes('hearing') && !!(micMode && micMode !== 'none' && earsSupported());
+  // What's missing in this browser, said BEFORE the visitor wakes it. micMode
+  // is null until the speech check comes back, so nothing is claimed early.
+  const cantDraw = renderFailed || MISSING.includes('drawing');
+  const cantSee = !support.camera;
+  const cantHear = micMode !== null && !canHear;
+  const cantSpeak = !support.voice;
+  const nothingToWake = cantDraw || (cantSee && cantHear);
 
   /**
    * Wake it: camera and microphone together, from this click (which is also
@@ -647,11 +676,11 @@ export default function RabinAIFace() {
    * refused camera still leaves it hearing you, and the other way round.
    */
   async function wake() {
-    if (awakeRef.current) return;
+    if (awakeRef.current || nothingToWake) return;     // the orb is tappable too: same rule as the button
     awakeRef.current = true;
     setAwake(true);
     ensureAudio();
-    await Promise.allSettled([turnOn(), canHear ? micOn() : Promise.resolve()]);
+    await Promise.allSettled([cantSee ? Promise.resolve() : turnOn(), canHear ? micOn() : Promise.resolve()]);
   }
 
   /** Back to sleep: both off, and anything it was saying stops. */
@@ -697,7 +726,7 @@ export default function RabinAIFace() {
             }}
             onPointerLeave={() => { pointerRef.current = null; }}
             onClick={() => { if (!awake) wake(); }}
-            style={{ cursor: awake ? undefined : 'pointer' }}
+            style={{ cursor: awake || nothingToWake ? undefined : 'pointer' }}
           >
             {renderFailed ? (
               <p className="rabinai-face-fallback">This browser can't draw it — WebGL is off or unavailable.</p>
@@ -716,7 +745,7 @@ export default function RabinAIFace() {
                 {debugRows.length ? debugRows.map(([k, v]) => `${k.padEnd(16)} ${v.toFixed(2)}`).join('\n') : 'no face'}
               </pre>
             )}
-            {!awake && !renderFailed && <div className="face-wake-hint" aria-hidden="true">Tap to wake</div>}
+            {!awake && !nothingToWake && <div className="face-wake-hint" aria-hidden="true">Tap to wake</div>}
             {answering === 'thinking' && !renderFailed && <ThoughtCloud />}
             {/* What's on, at a glance, right by the face. */}
             {(camera === 'on' || mic === 'on') && (
@@ -742,13 +771,19 @@ export default function RabinAIFace() {
               </div>
               <p className="sense-blurb">
                 {awake
-                  ? 'It sees and hears you. Ask it about Brian and his work, or anything else, and it answers out loud.'
-                  : 'Wake it and it keeps eye contact, answers your expressions, follows your finger, and talks with you.'}
+                  ? (canHear
+                    ? `It ${cantSee ? 'hears' : 'sees and hears'} you. Ask it about Brian and his work, or anything else, and it answers out loud.`
+                    : 'It sees you and answers your expressions. It can\'t hear in this browser, so it can\'t take questions here.')
+                  : cantHear
+                    ? 'Wake it and it keeps eye contact, answers your expressions, and follows your finger.'
+                    : cantSee
+                      ? 'Wake it and it listens: ask it a question and it answers out loud.'
+                      : 'Wake it and it keeps eye contact, answers your expressions, follows your finger, and talks with you.'}
               </p>
 
               {/* Where each sense goes, before you agree: they differ, so both are said. */}
               <ul className="wake-facts">
-                <li><EyeIcon /> <span><b>Seeing</b> stays on this device</span></li>
+                {!cantSee && <li><EyeIcon /> <span><b>Seeing</b> stays on this device</span></li>}
                 {canHear && (
                   <li><EarIcon /> <span><b>Hearing</b> {micMode === 'local' ? 'stays on this device' : <>uses {speechVendor()}'s speech service</>}</span></li>
                 )}
@@ -757,7 +792,33 @@ export default function RabinAIFace() {
               {awake ? (
                 <button type="button" className="btn btn-secondary wake-btn" onClick={sleep}>Put it to sleep</button>
               ) : (
-                <button type="button" className="btn btn-primary wake-btn" onClick={wake} disabled={renderFailed}>Wake RabinAI</button>
+                <button type="button" className="btn btn-primary wake-btn" onClick={wake} disabled={nothingToWake}>Wake RabinAI</button>
+              )}
+
+              {/* What this browser can't do, and what to do about it. Shown before
+                  waking, so nobody grants a camera to find out it can't be asked
+                  anything. */}
+              {(cantDraw || cantSee || cantHear || cantSpeak) && (
+                <div className="wake-needs" role="status">
+                  <p className="wake-needs-title">{nothingToWake ? 'This browser can\'t run it' : 'This browser is missing something'}</p>
+                  <ul>
+                    {cantDraw && <li><b>It can't be drawn.</b> WebGL is switched off or unavailable here.</li>}
+                    {!cantDraw && cantHear && (
+                      <li>
+                        <b>It can't hear you.</b> This browser has no speech recognition, so you can't ask it
+                        questions out loud. Chrome, Edge and Safari can. Or type to the same assistant
+                        on the <Link to="/">Assistant page</Link>.
+                      </li>
+                    )}
+                    {!cantDraw && cantSee && (
+                      <li>
+                        <b>It can't see you.</b> {support.secure ? 'This browser has no camera access here' : 'The camera needs a secure (https) page'},
+                        so it won't follow your face or expressions.{!cantHear && ' It can still hear you and answer.'}
+                      </li>
+                    )}
+                    {!cantDraw && cantSpeak && <li><b>It can't speak.</b> This browser has no Web Audio, so answers appear as text only.</li>}
+                  </ul>
+                </div>
               )}
 
               {/* Partial wakes are fine; say what didn't come on, and why. */}

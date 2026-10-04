@@ -2510,3 +2510,10 @@
 .rabinai-face-canvas { transition: filter 1.2s ease; }
 .rabinai-face-stage.is-asleep .rabinai-face-canvas { filter: grayscale(1) brightness(1.12) contrast(0.92); }
 @media (prefers-reduced-motion: reduce) { .rabinai-face-canvas { transition: none; } }
+
+/* ---- RabinAI Face: what this browser can't do ---- */
+.wake-needs { padding: var(--space-3) var(--space-4); border-radius: var(--radius-sm); border: 1px solid rgba(176, 112, 20, 0.35);
+  background: rgba(176, 112, 20, 0.08); color: var(--ink-2); font-size: 0.92rem; }
+.wake-needs-title { margin: 0 0 var(--space-2); font-weight: 700; color: #8a5a0f; }
+.wake-needs ul { margin: 0; padding-left: 1.1em; display: grid; gap: var(--space-2); }
+.wake-needs a { color: var(--cool); font-weight: 600; }
