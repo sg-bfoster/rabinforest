@@ -47,3 +47,29 @@ export function parse(text) {
     question: QUESTION_START.test(t) || QUESTION_TAG.test(t),
   };
 }
+
+/**
+ * The names speech recognition gets wrong. "RabinAI" is not a word it knows,
+ * so it writes the nearest thing it does know: Brian said "what is RabinAI"
+ * and it heard "What is Raven AI", which the assistant has never heard of
+ * (2026-10-04). Typing never has this problem; hearing always will.
+ *
+ * So the names this site is ABOUT are put back before the words are shown or
+ * sent. Only whole phrases that sound like one of them, and only these names:
+ * a general spell-checker here would rewrite what people actually said.
+ * Longest first, so "Raven AI" wins before a bare "Raven" could.
+ */
+const NAME = '(?:raven|ravin|raving|robin|robyn|rabbin|rabin|rabbit|ruben|reuben|ray[- ]?ban|ray[- ]?bin|raybin)';
+const HEARD_NAMES = [
+  [new RegExp(`\\b${NAME}[\\s-]*(?:a\\.?\\s?i\\.?|ay eye|a eye)(?![a-z])`, 'gi'), 'RabinAI'],
+  [new RegExp(`\\b${NAME}\\s+(?:forest|forrest)\\b`, 'gi'), 'Rabin Forest'],
+  [/\bask\s+(?:gwinnett?|gwyn+ett?e?|gwen+ett?e?|gwyneth|gwen it|gwin it|quinn? ?ett?e?)\b/gi, 'AskGwinnett'],
+  [/\b(?:call ?mat+a|call ?mada|cal ?mata|kalamata|calamata)\b(?!\s+olives?)/gi, 'Callmata'],
+  [/\btell\s+spinners?\b/gi, 'Tellspinners'],
+  [/\bstill\s+true\b(?=\s+(?:package|library|project|app|site|do|does|is)\b)/gi, 'stilltrue'],
+];
+
+export function fixHeard(text) {
+  return HEARD_NAMES.reduce((s, [re, to]) => s.replace(re, to), String(text ?? ''));
+}
+

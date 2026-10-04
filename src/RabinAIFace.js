@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Hero, ScreenBody } from './components/Hero';
 import { createBehaviour } from './face/behaviour';
-import { parse } from './face/commands';
+import { parse, fixHeard } from './face/commands';
 import { earsMode, earsSupported } from './face/ears';
 import API_BASE_URL from './config/api';
 
@@ -385,7 +385,10 @@ export default function RabinAIFace() {
       let firedFor = -1, questionTimer = 0;
       earsRef.current = startEars({
         mode: micMode === 'local' ? 'local' : 'cloud',
-        onWords(text, isFinal, index) {
+        onWords(heard, isFinal, index) {
+          // Put back the names recognition can't spell ("Raven AI" -> RabinAI)
+          // before they are shown, parsed or sent.
+          const text = fixHeard(heard);
           const { act, question } = parse(text);
           // One move per phrase: interim results repeat, and "nod" must not
           // nod five times while the sentence is still arriving.
