@@ -2535,3 +2535,38 @@
   color: var(--cool); font: inherit; font-size: 0.9rem; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 .type-instead:hover { color: var(--ink); }
 .type-instead:focus-visible { outline: 2px solid var(--cool); outline-offset: 3px; border-radius: 2px; }
+
+/* ---- RabinAI Face: one fixed workspace on wide screens ---- */
+/* The stage was sticky and the card was not, so the page scrolled the card up
+   under the header while the face stayed put: its title slid out of view and
+   the two columns never lined up (Brian, 2026-10-04: "the right and left
+   panels scroll haphazardly"). Now both columns pin at the same top and share
+   one height, the space between the header and the footer; the card scrolls
+   INSIDE itself when it has more to say, with its title pinned. The page only
+   scrolls the hero away. */
+@media (min-width: 900px) {
+  .rabinai-face {
+    --face-h: calc(100vh - var(--scroll-clear) - var(--footer-height) - 20px);
+    --face-h: calc(100dvh - var(--scroll-clear) - var(--footer-height) - 20px);
+    scroll-margin-top: var(--scroll-clear);
+  }
+  /* The space under the workspace must be exactly what --face-h assumes (the
+     footer + 20px). The site's usual page padding is ~170px; left alone, the
+     page scrolled that much further and dragged both panels up under the
+     header, which is the very thing this block fixes. */
+  .page:has(.rabinai-face) { padding-bottom: 0; }
+  .page-body:has(> .rabinai-face) { padding-bottom: calc(var(--footer-height) + 20px); }
+  .rabinai-face-stage { aspect-ratio: auto; height: var(--face-h); max-height: none; min-height: 360px; }
+  .rabinai-senses { position: sticky; top: var(--scroll-clear); }
+  .rabinai-senses .wake-card {
+    max-height: var(--face-h); min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+    scrollbar-width: thin; scrollbar-gutter: stable;
+  }
+  /* The title stays put while the card's contents scroll under it. */
+  .rabinai-senses .wake-card .sense-head {
+    position: sticky; top: calc(-1 * var(--space-4)); z-index: 1; align-self: stretch; width: auto;
+    margin: calc(-1 * var(--space-4)) calc(-1 * var(--space-6)) 0;
+    padding: var(--space-4) var(--space-6) var(--space-3);
+    background: var(--surface); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+}

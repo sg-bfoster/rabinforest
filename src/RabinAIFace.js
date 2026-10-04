@@ -788,9 +788,15 @@ export default function RabinAIFace() {
    * the gesture the browser needs for audio). Each can fail on its own — a
    * refused camera still leaves it hearing you, and the other way round.
    */
+  /** Bring the face and its card into view under the header: waking is when you start using them. */
+  function settle() {
+    document.querySelector('.rabinai-face')?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
+  }
+
   async function wake() {
     if (nothingToWake) return;                         // the orb is tappable too: same rule as the button
     if (awakeRef.current && !quietRef.current) return; // already fully awake; from quiet, this adds the senses
+    settle();
     awakeRef.current = true;
     setAwake(true);
     quietRef.current = noSenses; setQuiet(noSenses);   // nothing to switch on: awake, to be typed to
@@ -801,6 +807,7 @@ export default function RabinAIFace() {
   /** Awake without its senses: what typing a question to a sleeping face does. */
   function wakeQuiet() {
     if (awakeRef.current || nothingToWake) return;
+    settle();
     awakeRef.current = true;
     setAwake(true);
     quietRef.current = true; setQuiet(true);
