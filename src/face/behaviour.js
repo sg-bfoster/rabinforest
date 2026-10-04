@@ -557,6 +557,9 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     s.quizzical = approach(s.quizzical, quizT, 6, dt);
     s.lean = approach(s.lean, t.lean, 2.5, dt);
     s.bright = approach(s.bright, t.bright, 1.5, dt);
+    // The overhead light: on while it's awake, off asleep. It comes up a beat
+    // after the eyes open and fades slowly when it dozes off.
+    s.lamp = approach(s.lamp ?? 0, input?.asleep ? 0 : 1, input?.asleep ? 1.2 : 2.5, dt);
     // Mouth reads from the SMOOTHED mood, so it moves with the eyes instead
     // of ahead of them; only speech (fast by nature) is eased separately.
     const m = mouthFor(s);

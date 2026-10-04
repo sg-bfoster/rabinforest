@@ -72,7 +72,7 @@ const BODY_VERT = /* glsl */ `
 `;
 const BODY_FRAG = /* glsl */ `
   uniform vec3 uDeep, uCool, uGlow, uSkin, uShade, uBeardA, uBeardB;
-  uniform float uBright, uWarm;
+  uniform float uBright, uWarm, uLamp;
   varying vec3 vNormal, vView, vPos;
   float hash(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
   void main() {
@@ -101,6 +101,13 @@ const BODY_FRAG = /* glsl */ `
     float gray = clamp(0.5 + 0.4 * (1.0 - smoothstep(0.1, 0.6, ax)) + (n - 0.5) * 0.45, 0.0, 1.0);
     vec3 hair = mix(uBeardA, uBeardB, gray) * (0.88 + 0.2 * n) * (0.5 + 0.35 * facing + 0.2 * key);
     vec3 c = mix(skin, hair, beard) + vec3(1.0, 0.97, 0.92) * spec * (1.0 - beard);
+    // Overhead light, while it's awake: warm light pooling on the top of the
+    // head and falling off down the face, with the underside in soft shadow.
+    // N is in view space and the camera never rolls, so the lamp stays put
+    // overhead while the head turns and nods beneath it.
+    float over = clamp(dot(N, normalize(vec3(0.0, 1.0, 0.3))), 0.0, 1.0);
+    c += c * vec3(1.0, 0.93, 0.8) * pow(over, 1.4) * 0.24 * uLamp;   // 0.55 washed the dome out to white
+    c *= 1.0 - 0.38 * uLamp * clamp(-N.y + 0.15, 0.0, 1.0);
     // The RabinAI signature: a faint cool rim.
     c += uGlow * rim * 0.4;
     // Grumpy: the rim warms toward a soft ember. A tint, not a red alarm.
@@ -112,12 +119,18 @@ const BODY_FRAG = /* glsl */ `
 // A soft halo behind the body, additive.
 const HALO_FRAG = /* glsl */ `
   uniform vec3 uGlow;
-  uniform float uBright;
+  uniform float uBright, uLamp;
   varying vec2 vUv;
   void main() {
     float d = length(vUv - 0.5) * 2.0;
     float a = smoothstep(1.0, 0.35, d) * 0.35 * uBright;
-    gl_FragColor = vec4(uGlow * a, a);
+    // The lamp's beam: a soft warm cone from top centre, widening as it falls,
+    // so you can see where the light on its head comes from.
+    vec2 q = vUv - vec2(0.5, 1.0);
+    float down = -q.y;
+    float halfW = 0.05 + down * 0.3;
+    float beam = (1.0 - smoothstep(halfW * 0.25, halfW, abs(q.x))) * smoothstep(0.0, 0.1, down) * (1.0 - smoothstep(0.25, 0.85, down)) * 0.2 * uLamp;
+    gl_FragColor = vec4(uGlow * a + vec3(1.0, 0.92, 0.78) * beam, a + beam);
   }
 `;
 const UV_VERT = /* glsl */ `
@@ -285,7 +298,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
 
   const bodyU = {
     uTime: { value: 0 }, uStretch: { value: 0 }, uWobble: { value: reducedMotion ? 0.012 : 0.035 },
-    uBright: { value: 0.6 }, uWarm: { value: 0 }, uDeep: { value: DEEP }, uCool: { value: COOL }, uGlow: { value: GLOW },
+    uBright: { value: 0.6 }, uWarm: { value: 0 }, uLamp: { value: 0 }, uDeep: { value: DEEP }, uCool: { value: COOL }, uGlow: { value: GLOW },
     uSkin: { value: SKIN }, uShade: { value: SKIN_SHADE }, uBeardA: { value: BEARD_BROWN }, uBeardB: { value: BEARD_GRAY },
   };
   const body = new THREE.Mesh(
@@ -294,7 +307,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
   );
   head.add(body);
 
-  const haloU = { uGlow: { value: GLOW }, uBright: { value: 0.6 } };
+  const haloU = { uGlow: { value: GLOW }, uBright: { value: 0.6 }, uLamp: { value: 0 } };
   const halo = new THREE.Mesh(
     new THREE.PlaneGeometry(3.6, 3.6),
     new THREE.ShaderMaterial({
@@ -374,6 +387,8 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
     bodyU.uStretch.value = s.widen;
     bodyU.uBright.value = s.bright + s.happy * 0.25;
     bodyU.uWarm.value = s.angry ?? 0;
+    bodyU.uLamp.value = s.lamp ?? 0;
+    haloU.uLamp.value = s.lamp ?? 0;
     haloU.uBright.value = s.bright + s.happy * 0.3 + s.lean * 0.15 * (0.5 + 0.5 * Math.sin(t * 4));
 
     head.rotation.y = s.yaw;
