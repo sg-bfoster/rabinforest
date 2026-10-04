@@ -22,10 +22,10 @@ const GLOW = new THREE.Color('#cfe2f2');
 // beard and mustache, brown eyes, heavy gray-brown brows. The cool rim glow
 // stays, faint, as the RabinAI signature; the robot voice and the captions
 // keep it from passing as Brian himself.
-const SKIN = new THREE.Color('#e6bfa8');
-const SKIN_SHADE = new THREE.Color('#a87862');
-const BEARD_BROWN = new THREE.Color('#6a4a33');
-const BEARD_GRAY = new THREE.Color('#c9c4bb');
+const SKIN = new THREE.Color('#f3d9c9');          // lighter (Brian, 2026-10-04)
+const SKIN_SHADE = new THREE.Color('#c79f8b');
+const BEARD_BROWN = new THREE.Color('#6e6259');   // the dark hairs: gray-brown now, not brown
+const BEARD_GRAY = new THREE.Color('#dedbd6');
 const BROW = new THREE.Color('#7d6858');
 const EYE_WHITE = new THREE.Color('#f4f0ea');
 const IRIS = new THREE.Color('#6e4b2c');
@@ -94,8 +94,9 @@ const BODY_FRAG = /* glsl */ `
     // Clear cheeks under the eyes; the line only climbs at the far sides.
     float line = -0.215 + 0.34 * smoothstep(0.5, 0.8, ax) + (n - 0.5) * 0.04;
     float beard = (1.0 - smoothstep(line - 0.025, line + 0.025, vPos.y)) * smoothstep(-0.5, -0.15, vPos.z);
-    // Salt and pepper: grayer in the mustache and chin, browner at the sides.
-    float gray = clamp(0.3 + 0.45 * (1.0 - smoothstep(0.1, 0.6, ax)) + (n - 0.5) * 0.45, 0.0, 1.0);
+    // Mostly salt now, a little pepper: grayest in the mustache and chin,
+    // slightly darker at the sides.
+    float gray = clamp(0.5 + 0.4 * (1.0 - smoothstep(0.1, 0.6, ax)) + (n - 0.5) * 0.45, 0.0, 1.0);
     vec3 hair = mix(uBeardA, uBeardB, gray) * (0.88 + 0.2 * n) * (0.5 + 0.35 * facing + 0.2 * key);
     vec3 c = mix(skin, hair, beard) + vec3(1.0, 0.97, 0.92) * spec * (1.0 - beard);
     // The RabinAI signature: a faint cool rim.
