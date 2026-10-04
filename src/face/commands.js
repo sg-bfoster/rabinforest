@@ -64,8 +64,10 @@ const HEARD_NAMES = [
   [new RegExp(`\\b${NAME}[\\s-]*(?:a\\.?\\s?i\\.?|ay eye|a eye)(?![a-z])`, 'gi'), 'RabinAI'],
   [new RegExp(`\\b${NAME}\\s+(?:forest|forrest)\\b`, 'gi'), 'Rabin Forest'],
   [/\bask\s+(?:gwinnett?|gwyn+ett?e?|gwen+ett?e?|gwyneth|gwen it|gwin it|quinn? ?ett?e?)\b/gi, 'AskGwinnett'],
-  [/\b(?:call ?mat+a|call ?mada|cal ?mata|kalamata|calamata)\b(?!\s+olives?)/gi, 'Callmata'],
-  [/\btell\s+spinners?\b/gi, 'Tellspinners'],
+  // From the logs, 2026-10-04: "What is called Mata", "What is Kal Mata",
+  // "What is Comata Callmata", "What is Te spinners".
+  [/\b(?:(?:co ?mata|comatta)\s+)?(?:call(?:ed)? ?mat+a|call ?mada|k?c?al ?mata|co ?mata|kalamata|calamata)\b(?!\s+olives?)/gi, 'Callmata'],
+  [/\b(?:tell|te|tale|tail)\s+spinners?\b/gi, 'Tellspinners'],
   [/\bstill\s+true\b(?=\s+(?:package|library|project|app|site|do|does|is)\b)/gi, 'stilltrue'],
 ];
 

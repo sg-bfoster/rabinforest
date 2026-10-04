@@ -135,6 +135,22 @@ function linksFor(said, fromAssistant) {
   return out.slice(0, 6);
 }
 
+/**
+ * "I don't know" on its own tells a visitor nothing when the real problem is
+ * that it MISHEARD. Brian asked "what sites has he built", recognition wrote
+ * "When I get my heart empty", and the honest answer to that was "I don't
+ * know" (2026-10-04) — which looked like a hole in the knowledge base. So a
+ * bare don't-know to a SPOKEN question says back what it heard, and asks for
+ * another go. Typed questions were not misheard; they get a plain line.
+ */
+const DONT_KNOW = /^(i don['’]t know|i['’]ll have to look into that|i['’]m not sure)[.!]?$/i;
+function sayable(sentence, question, wasTyped) {
+  if (!DONT_KNOW.test(String(sentence).trim())) return sentence;
+  if (wasTyped) return "I don't know that one.";
+  const heard = question.length > 90 ? `${question.slice(0, 90)}…` : question;
+  return `I heard, “${heard}”. I don't know that one. Try asking it another way?`;
+}
+
 /** A link card's label: what a visitor would call the place, not the raw URL. */
 function linkLabel(url) {
   try {
@@ -703,7 +719,7 @@ export default function RabinAIFace() {
 
     let streamed = 0, whole = null;
     try {
-      whole = await askAssistant(question, (sentence, engine) => { streamed++; voice.add(sentence, engine); });
+      whole = await askAssistant(question, (sentence, engine) => { streamed++; voice.add(sayable(sentence, question, wasTyped), engine); });
     } catch (err) { if (!cut()) console.warn('[face] assistant', err); }
     // Stopped while it was thinking: no fallback, no "couldn't think", nothing said.
     if (!cut()) {
@@ -711,7 +727,7 @@ export default function RabinAIFace() {
         try { whole = await askFace(question); } catch (err) { console.warn('[face] reply', err); }
       }
       if (!whole && !streamed) whole = { say: "I couldn't think of an answer just then.", links: [], engine: 'none' };
-      if (!streamed && !cut()) voice.add(whole.say, whole.engine);  // Gemini, canned, fallback: one clip
+      if (!streamed && !cut()) voice.add(sayable(whole.say, question, wasTyped), whole.engine);  // Gemini, canned, fallback: one clip
     }
     voice.close();
     await speaking;
