@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { Hero, ScreenBody } from './components/Hero';
 import { createBehaviour } from './face/behaviour';
 import { parse } from './face/commands';
@@ -196,6 +195,12 @@ export default function RabinAIFace() {
   // ONE switch: asleep, or awake (seeing and hearing together). Brian, 2026-10-04:
   // two switches for one creature was a settings page, not a character.
   const [awake, setAwake] = useState(false);
+  // Awake because a question was TYPED: eyes open, voice on, camera and mic
+  // never asked for. The accessible path, and the one for quiet places.
+  const [quiet, setQuiet] = useState(false);
+  const quietRef = useRef(false);
+  const [typed, setTyped] = useState('');
+  const [asked, setAsked] = useState('');             // the typed question being answered, shown back
   const awakeRef = useRef(false);
   const [showPreview, setShowPreview] = useState(false);
   const [noFace, setNoFace] = useState(false);
@@ -557,9 +562,10 @@ export default function RabinAIFace() {
    * streams it, Kokoro speaks each as soon as it can, and the ears are paused
    * meanwhile so it never hears, and answers, itself.
    */
-  async function answer(question) {
+  async function answer(question, { typed: wasTyped = false } = {}) {
     if (busyRef.current) return;                       // one at a time
     busyRef.current = true;
+    setAsked(wasTyped ? question : '');
     thinkingRef.current = true;
     setAnswering('thinking');
 
@@ -668,7 +674,8 @@ export default function RabinAIFace() {
   const cantSee = !support.camera;
   const cantHear = micMode !== null && !canHear;
   const cantSpeak = !support.voice;
-  const nothingToWake = cantDraw || (cantSee && cantHear);
+  const noSenses = cantSee && cantHear;                // it can still be typed to
+  const nothingToWake = cantDraw;
 
   /**
    * Wake it: camera and microphone together, from this click (which is also
@@ -676,11 +683,34 @@ export default function RabinAIFace() {
    * refused camera still leaves it hearing you, and the other way round.
    */
   async function wake() {
-    if (awakeRef.current || nothingToWake) return;     // the orb is tappable too: same rule as the button
+    if (nothingToWake) return;                         // the orb is tappable too: same rule as the button
+    if (awakeRef.current && !quietRef.current) return; // already fully awake; from quiet, this adds the senses
     awakeRef.current = true;
     setAwake(true);
+    quietRef.current = noSenses; setQuiet(noSenses);   // nothing to switch on: awake, to be typed to
     ensureAudio();
     await Promise.allSettled([cantSee ? Promise.resolve() : turnOn(), canHear ? micOn() : Promise.resolve()]);
+  }
+
+  /** Awake without its senses: what typing a question to a sleeping face does. */
+  function wakeQuiet() {
+    if (awakeRef.current || nothingToWake) return;
+    awakeRef.current = true;
+    setAwake(true);
+    quietRef.current = true; setQuiet(true);
+    ensureAudio();
+  }
+
+  /** A typed question: same answer path as a spoken one, no camera or mic needed. */
+  function askTyped(e) {
+    e.preventDefault();
+    const q = typed.replace(/\s+/g, ' ').trim();
+    if (!q || busyRef.current) return;
+    ensureAudio();                                     // inside the submit gesture, or the voice is muted
+    wakeQuiet();
+    setTyped('');
+    setHeardText(''); setHeardAct('');
+    answer(q, { typed: true });
   }
 
   /** Back to sleep: both off, and anything it was saying stops. */
@@ -688,6 +718,7 @@ export default function RabinAIFace() {
     awakeRef.current = false;
     hushRef.current++;                                 // any answer in flight says no more
     setAwake(false);
+    quietRef.current = false; setQuiet(false);
     turnOff();
     if (canHear) micOff();
     try { audioRef.current?.el.pause(); } catch { /* not playing */ }
@@ -771,11 +802,15 @@ export default function RabinAIFace() {
               </div>
               <p className="sense-blurb">
                 {awake
-                  ? (canHear
+                  ? quiet
+                    ? 'It\'s awake, without its camera or microphone. Type a question and it answers out loud.'
+                    : (canHear
                     ? `It ${cantSee ? 'hears' : 'sees and hears'} you. Ask it about Brian and his work, or anything else, and it answers out loud.`
-                    : 'It sees you and answers your expressions. It can\'t hear in this browser, so it can\'t take questions here.')
+                    : 'It sees you and answers your expressions. It can\'t hear in this browser: type your question below.')
+                  : noSenses
+                    ? 'Type a question and it wakes up and answers out loud.'
                   : cantHear
-                    ? 'Wake it and it keeps eye contact, answers your expressions, and follows your finger.'
+                    ? 'Wake it and it keeps eye contact, answers your expressions, and follows your finger. Type to ask it something.'
                     : cantSee
                       ? 'Wake it and it listens: ask it a question and it answers out loud.'
                       : 'Wake it and it keeps eye contact, answers your expressions, follows your finger, and talks with you.'}
@@ -790,7 +825,12 @@ export default function RabinAIFace() {
               </ul>
 
               {awake ? (
-                <button type="button" className="btn btn-secondary wake-btn" onClick={sleep}>Put it to sleep</button>
+                <>
+                  {quiet && !noSenses && (
+                    <button type="button" className="btn btn-primary wake-btn" onClick={wake}>Let it see and hear you</button>
+                  )}
+                  <button type="button" className="btn btn-secondary wake-btn" onClick={sleep}>Put it to sleep</button>
+                </>
               ) : (
                 <button type="button" className="btn btn-primary wake-btn" onClick={wake} disabled={nothingToWake}>Wake RabinAI</button>
               )}
@@ -806,8 +846,7 @@ export default function RabinAIFace() {
                     {!cantDraw && cantHear && (
                       <li>
                         <b>It can't hear you.</b> This browser has no speech recognition, so you can't ask it
-                        questions out loud. Chrome, Edge and Safari can. Or type to the same assistant
-                        on the <Link to="/">Assistant page</Link>.
+                        questions out loud (Chrome, Edge and Safari can). Type your question in the box below instead.
                       </li>
                     )}
                     {!cantDraw && cantSee && (
@@ -820,6 +859,19 @@ export default function RabinAIFace() {
                   </ul>
                 </div>
               )}
+
+              {/* Type instead of talking: no mic, a quiet room, or just preference.
+                  Needs neither camera nor microphone, and works asleep (it wakes). */}
+              <form className="ask-typed" onSubmit={askTyped}>
+                <label htmlFor="face-ask" className="sr-only">Type a question for RabinAI</label>
+                <input
+                  id="face-ask" type="text" className="ask-typed-input" value={typed} maxLength={200}
+                  onChange={(e) => setTyped(e.target.value)} autoComplete="off" enterKeyHint="send"
+                  placeholder={canHear ? 'Or type a question' : 'Type a question'}
+                />
+                <button type="submit" className="btn btn-secondary ask-typed-btn" disabled={!typed.trim() || !!answering}>Ask</button>
+              </form>
+              {asked && (answering || reply) && <p className="sense-live">You asked “{asked}”</p>}
 
               {/* Partial wakes are fine; say what didn't come on, and why. */}
               {awake && camera === 'starting' && <p className="sense-live">Opening its eyes…</p>}

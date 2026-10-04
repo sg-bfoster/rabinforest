@@ -2517,3 +2517,12 @@
 .wake-needs-title { margin: 0 0 var(--space-2); font-weight: 700; color: #8a5a0f; }
 .wake-needs ul { margin: 0; padding-left: 1.1em; display: grid; gap: var(--space-2); }
 .wake-needs a { color: var(--cool); font-weight: 600; }
+
+/* ---- RabinAI Face: the typed question box ---- */
+.ask-typed { display: flex; gap: var(--space-2); width: 100%; }
+.ask-typed-input {
+  flex: 1; min-width: 0; padding: 10px 14px; border: 1px solid var(--hairline); border-radius: var(--radius-md);
+  background: var(--field); color: var(--ink); font: inherit; font-size: 1rem;   /* 16px: iOS zooms the page under that */
+}
+.ask-typed-input:focus-visible { outline: 2px solid var(--cool); outline-offset: 1px; border-color: var(--cool); }
+.ask-typed-btn { flex: none; }

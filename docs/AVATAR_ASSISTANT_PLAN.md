@@ -1,7 +1,9 @@
 # Avatar Assistant — scope plan
 
-**Status:** phases A and B built 2026-10-03 (A: v0.4.134; B: v0.4.144),
-committed, not pushed. C–F not started. See §13 and §14.
+**Status:** phases A and B built 2026-10-03 (A: v0.4.134; B: v0.4.144); the
+typed box (half of C) and the nav/sitemap listing (most of F) 2026-10-04.
+Committed, not pushed. Not built: tap to stop (C), memory (D), spoken evals
+(E). See §13–§15.
 
 **Decided (Brian, 2026-10-03: "build phase A, 5 turns"):** the §12
 recommendations, plus 5 turns of memory.
@@ -257,4 +259,20 @@ caps the gain; a run-on now ends at its last clause break as a full stop rather
 than mid-word.
 
 **Not yet:** listened to by a person; measured on production (phase E).
+
+## 15. Since phase B (2026-10-04)
+
+- **Typed question box** (v0.4.164): under the wake button, always there.
+  Typing to a sleeping face wakes it "quiet": eyes open, voice on, camera and
+  microphone never requested. "Let it see and hear you" adds the senses.
+  This is the path for browsers with no speech recognition, for quiet places,
+  and for anyone who can't or won't use a mic.
+- **Browser checks** (v0.4.163): says what this browser can't do before waking.
+- **Leaving turns it off** (v0.4.162): hidden tab or another page stops the
+  camera, mic and voice.
+- **Listed** (v0.4.160): "Avatar" in the nav, in the sitemap, indexable.
+- **Voice:** the "tin can" robot, picked by ear. **Look:** the blue pill; two
+  attempts at styling it after Brian were dropped.
+- Server: spoken mode names sites instead of describing them; "GA" is said as
+  Georgia; outcomes are counted (who answered, and why not the box).
 
