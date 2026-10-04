@@ -8,12 +8,11 @@
 - **An abstract RabinAI presence, not a human face** (§3a). No uncanny valley
   to fall into, and it belongs to the brand instead of imitating a person.
 - **Lives in rabinforest**, as a new route alongside `LookAtIt.js`.
-- **Blue line art, with Brian's beard as an outline (2026-10-04).** A skin-and-
-  beard caricature of Brian was tried the same morning and dropped: "I don't
-  want skin and beard tones." The body is the blue glowing pill again, and the
-  only nod to him is a beard drawn as line art (its upper edge and the patch
-  around the mouth), nothing filled. Voice: the "tin can" robot he picked by
-  ear from five.
+- **Still the abstract blue presence (2026-10-04).** Styling it after Brian
+  was tried twice that morning and dropped both times: a skin-and-beard
+  caricature ("I don't want skin and beard tones"), then a beard as line art
+  ("looks bad, just remove it"). Blue glowing pill, line-art eyes, brows and
+  mouth, nothing else. Voice: the "tin can" robot he picked by ear from five.
 - ~~**One RabinAI voice:** the same Kokoro `af_heart` as read-aloud.~~ **Revised
   2026-10-03 (Brian): the face has its own voice**, because the orb is a character,
   not the site's narrator. Kokoro `af_bella(2)+af_sky(1)` at 1.08 speed, lifted

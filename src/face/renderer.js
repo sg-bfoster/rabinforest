@@ -38,14 +38,13 @@ function onSurface(x, y, lift = 0.015) {
 
 const BODY_VERT = /* glsl */ `
   uniform float uTime, uStretch, uWobble;
-  varying vec3 vNormal, vView, vPos;
+  varying vec3 vNormal, vView;
   // Cheap smooth noise: sums of sines. Enough for a slow, living surface.
   float wob(vec3 p, float t) {
     return sin(p.x * 2.1 + t * 0.9) * sin(p.y * 2.7 + t * 0.7) * sin(p.z * 1.9 + t * 1.1);
   }
   void main() {
     vec3 p = position;
-    vPos = position;                            // undeformed, so the beard line doesn't swim
     p += normal * wob(p, uTime) * uWobble;
     p.y *= 1.0 + uStretch * 0.08;
     p.y += 0.02 * sin(uTime * 1.3);            // breathing
@@ -58,27 +57,11 @@ const BODY_VERT = /* glsl */ `
 const BODY_FRAG = /* glsl */ `
   uniform vec3 uDeep, uCool, uGlow;
   uniform float uBright, uWarm;
-  varying vec3 vNormal, vView, vPos;
+  varying vec3 vNormal, vView;
   void main() {
     float facing = clamp(dot(normalize(vNormal), normalize(vView)), 0.0, 1.0);
     float rim = pow(1.0 - facing, 2.2);
     vec3 c = mix(uDeep, uCool, facing * 0.8) + uGlow * rim * 0.9;
-    // The beard, as line art: ONE glowing stroke along its upper edge, in the
-    // same light as the eyes and mouth. It sits under the nose in the middle
-    // (a mustache line above the mouth), runs across the cheeks, and climbs
-    // to the sideburns at the sides, where it meets the body's own rim; the
-    // rim along the chin closes the outline. Nothing is filled in. Small
-    // scallops along it make it read as hair rather than a seam.
-    float ax = abs(vPos.x);
-    float edge = -0.2 + 0.36 * smoothstep(0.42, 0.8, ax) + 0.011 * sin(ax * 46.0);
-    float beard = 1.0 - smoothstep(0.012, 0.024, abs(vPos.y - edge));
-    // ...and the clear patch around the mouth: a U hanging from the mustache
-    // line, down under the lower lip. Without it the edge alone reads as a
-    // bandana; with it, as a beard with a mouth in it.
-    float u = length(vec2(vPos.x / 0.2, (vPos.y + 0.2) / 0.25));
-    float lipU = (1.0 - smoothstep(0.06, 0.12, abs(u - 1.0))) * step(vPos.y, -0.2);
-    beard = max(beard, lipU) * smoothstep(-0.25, 0.05, vPos.z);
-    c = mix(c, uGlow * 1.05, beard * 0.9);
     // Grumpy: the rim warms toward a soft ember. A tint, not a red alarm.
     c += vec3(0.35, -0.05, -0.2) * rim * uWarm;
     gl_FragColor = vec4(c * (0.55 + 0.6 * uBright), 1.0);
