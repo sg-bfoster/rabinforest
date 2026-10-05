@@ -13,39 +13,89 @@ import * as THREE from 'three';
 import { browsFor } from './behaviour';
 
 // Palette from styles/tokens.css: --hero, --cool, --glow.
-const DEEP = new THREE.Color('#0d2a40');
-const COOL = new THREE.Color('#2f6d99');
+// These reach the screen in linear light (three converts the hex, and the
+// shaders write the value out as it is), so each displays darker than its hex
+// reads: DEEP shows as about #1a2b57, the navy in Brian's picture.
+const DEEP = new THREE.Color('#4c6294');   // the head's navy
+const COOL = new THREE.Color('#6c84b4');   // a shade lighter, toward its edge
 const GLOW = new THREE.Color('#cfe2f2');
+const BEARD = new THREE.Color('#b3c0dc');  // the stubble: a pale slate blue
 
-// The body's shape: a pill. Rounded top and bottom, straight sides, a little
-// narrower than it is tall. Still a presence, not a head (§3a): no jaw, no
-// cheekbones, no chin. Three's CapsuleGeometry gives exact normals, which the
-// rim glow depends on.
-const PILL_R = 0.82;      // radius: half the width, and the size of each rounded end
-const PILL_LEN = 0.4;     // the straight middle section
+// The body's shape: an egg-shaped head, from the picture Brian sent on
+// 2026-10-05 ("can you work with this?"): a broad dome, sides that run nearly
+// straight to mouth level, then in to a soft chin. Still line art in the
+// site's blue; the nod to him is the head shape and the beard, which is drawn
+// in the body shader as soft stippled shading rather than an outline.
+//
+// It is a unit sphere, sculpted once at load. Normals come from the sculpted
+// shape itself by finite differences (computeVertexNormals would crease along
+// the sphere's UV seam, and the rim glow is all normal-driven).
+const HEAD_W = 0.84;      // half-width at its widest
+const LOWER = 1.16;       // the lower half runs longer than the upper
+const CHIN = 0.06;        // how far the very bottom is drawn down into a soft point
+const LIFT_Y = (LOWER + CHIN - 1) / 2;   // shift up so the head is centred on its own height
+const HEAD_HALF_H = (1 + LOWER + CHIN) / 2;
 const EYE_SIZE = 0.54;    // each eye's square; the shape inside is drawn by EYE_FRAG
 const MOUTH_SCALE = 1.35; // the mouth's plane, against its original 0.62 x 0.42 (Brian, 2026-10-04: "bigger")
 
+const smooth = (a, b, v) => { const t = Math.min(1, Math.max(0, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+/** A point on the unit sphere -> the same point on the head. */
+function sculpt(x, y, z) {
+  // A sphere already closes to a point at the bottom, so narrowing it further
+  // makes a teardrop (the first two tries). The picture's jaw is FULLER than a
+  // sphere's at mouth level, so the lower face is widened there instead.
+  const sx = HEAD_W * (1 + 0.08 * Math.exp(-(((y + 0.58) / 0.32) ** 2)));
+  let ny = y < 0 ? y * LOWER : y;
+  ny -= CHIN * smooth(-0.7, -1.0, y) ** 2;                    // the chin comes to a soft point
+  return [x * sx, ny + LIFT_Y, z * 0.9];
+}
+
 /**
- * Where a feature sits: on the pill's front surface at this x,y, lifted a
- * hair. Features placed by hand floated in front of a narrowed body, and,
- * turned, the far eye hung past the silhouette.
+ * Where a feature sits: the point on the head that this x,y on the plain
+ * sphere became, lifted a hair. So features are placed in the sphere's own
+ * simple coordinates and follow whatever sculpt() does to the surface.
  */
-function onSurface(x, y, lift = 0.015) {
-  const overshoot = Math.max(0, Math.abs(y) - PILL_LEN / 2);   // how far into a rounded end
-  const z = Math.sqrt(Math.max(0, PILL_R * PILL_R - x * x - overshoot * overshoot));
+function onSurface(x0, y0, lift = 0.015) {
+  const z0 = Math.sqrt(Math.max(0, 1 - x0 * x0 - y0 * y0));
+  const [x, y, z] = sculpt(x0, y0, z0);
   return [x, y, z + lift];
+}
+
+function sculptedHead(segments) {
+  const g = new THREE.SphereGeometry(1, segments, segments);
+  const pos = g.attributes.position, nor = g.attributes.normal;
+  const d = new THREE.Vector3(), t1 = new THREE.Vector3(), t2 = new THREE.Vector3();
+  const P = new THREE.Vector3(), A = new THREE.Vector3(), B = new THREE.Vector3(), n = new THREE.Vector3();
+  const X = new THREE.Vector3(1, 0, 0), Y = new THREE.Vector3(0, 1, 0);
+  const at = (v, out) => out.set(...sculpt(v.x, v.y, v.z));
+  const eps = 0.01;
+  for (let i = 0; i < pos.count; i++) {
+    d.fromBufferAttribute(pos, i).normalize();
+    t1.crossVectors(d, Math.abs(d.y) > 0.9 ? X : Y).normalize();
+    t2.crossVectors(d, t1);
+    at(d, P);
+    at(t1.clone().multiplyScalar(eps).add(d).normalize(), A);
+    at(t2.clone().multiplyScalar(eps).add(d).normalize(), B);
+    n.crossVectors(A.sub(P), B.sub(P)).normalize();
+    if (n.dot(d) < 0) n.negate();
+    pos.setXYZ(i, P.x, P.y, P.z);
+    nor.setXYZ(i, n.x, n.y, n.z);
+  }
+  g.computeBoundingSphere();
+  return g;
 }
 
 const BODY_VERT = /* glsl */ `
   uniform float uTime, uStretch, uWobble;
-  varying vec3 vNormal, vView;
+  varying vec3 vNormal, vView, vPos;
   // Cheap smooth noise: sums of sines. Enough for a slow, living surface.
   float wob(vec3 p, float t) {
     return sin(p.x * 2.1 + t * 0.9) * sin(p.y * 2.7 + t * 0.7) * sin(p.z * 1.9 + t * 1.1);
   }
   void main() {
     vec3 p = position;
+    vPos = position;                            // undeformed, so the beard doesn't swim with the wobble
     p += normal * wob(p, uTime) * uWobble;
     p.y *= 1.0 + uStretch * 0.08;
     p.y += 0.02 * sin(uTime * 1.3);            // breathing
@@ -56,13 +106,28 @@ const BODY_VERT = /* glsl */ `
   }
 `;
 const BODY_FRAG = /* glsl */ `
-  uniform vec3 uDeep, uCool, uGlow;
+  uniform vec3 uDeep, uCool, uGlow, uBeard;
   uniform float uBright, uWarm;
-  varying vec3 vNormal, vView;
+  varying vec3 vNormal, vView, vPos;
+  float hash(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
   void main() {
     float facing = clamp(dot(normalize(vNormal), normalize(vView)), 0.0, 1.0);
-    float rim = pow(1.0 - facing, 2.2);
-    vec3 c = mix(uDeep, uCool, facing * 0.8) + uGlow * rim * 0.9;
+    float rim = pow(1.0 - facing, 4.0);
+    // Flat navy, a shade lighter toward the edge, with a thin bright rim: the
+    // picture's look, flatter than the old glowing orb.
+    vec3 c = mix(uCool, uDeep, smoothstep(0.0, 0.45, facing)) + uGlow * rim * 0.7;
+    // The beard: stippled lighter blue over the jaw and chin, fading up into
+    // the navy. It starts below the mouth in the middle and climbs the cheeks
+    // at the sides, which leaves a clear patch around the mouth. No outline.
+    float n = 0.55 * hash(floor(vPos * 85.0)) + 0.45 * hash(floor(vPos * 170.0));
+    float ax = abs(vPos.x);
+    // The beard's upper edge: a rounded dip around the mouth, so it closes
+    // again across the chin underneath (a straight V left the chin bare).
+    float top = -0.2 - 0.5 * exp(-pow(ax / 0.3, 2.0));
+    float depth = smoothstep(top + 0.1, top - 0.24, vPos.y);       // 0 at the edge, 1 well inside
+    float beard = smoothstep(0.25, 0.75, depth + (n - 0.5) * 0.55) * smoothstep(-0.45, -0.05, vPos.z);
+    vec3 hair = uBeard * (0.78 + 0.34 * n) * (0.72 + 0.28 * facing);
+    c = mix(c, hair, beard * 0.9);
     // Grumpy: the rim warms toward a soft ember. A tint, not a red alarm.
     c += vec3(0.35, -0.05, -0.2) * rim * uWarm;
     gl_FragColor = vec4(c * (0.55 + 0.6 * uBright), 1.0);
@@ -237,9 +302,10 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
   const bodyU = {
     uTime: { value: 0 }, uStretch: { value: 0 }, uWobble: { value: reducedMotion ? 0.012 : 0.035 },
     uBright: { value: 0.6 }, uWarm: { value: 0 }, uDeep: { value: DEEP }, uCool: { value: COOL }, uGlow: { value: GLOW },
+    uBeard: { value: BEARD },
   };
   const body = new THREE.Mesh(
-    new THREE.CapsuleGeometry(PILL_R, PILL_LEN, 32, 96),
+    sculptedHead(112),
     new THREE.ShaderMaterial({ uniforms: bodyU, vertexShader: BODY_VERT, fragmentShader: BODY_FRAG }),
   );
   head.add(body);
@@ -270,9 +336,9 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
     );
     m.renderOrder = 1;
     // Sit on the sphere's front, angled to its surface.
-    m.position.set(...onSurface(side * 0.26, 0.12));
-    m.rotation.y = side * 0.3;
-    m.rotation.x = -0.1;
+    m.position.set(...onSurface(side * 0.34, -0.06));
+    m.rotation.y = side * 0.34;
+    m.rotation.x = 0.05;
     head.add(m);
     return { m, u, side };
   });
@@ -285,9 +351,9 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
       new THREE.ShaderMaterial({ uniforms: u, vertexShader: UV_VERT, fragmentShader: BROW_FRAG, transparent: true, depthWrite: false, depthTest: false }),
     );
     m.renderOrder = 1;
-    m.position.set(...onSurface(side * 0.26, 0.42));
-    m.rotation.y = side * 0.3;
-    m.rotation.x = -0.25;
+    m.position.set(...onSurface(side * 0.34, 0.2));
+    m.rotation.y = side * 0.34;
+    m.rotation.x = -0.2;
     head.add(m);
     return { m, u, side };
   });
@@ -302,8 +368,8 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
     new THREE.ShaderMaterial({ uniforms: mouthU, vertexShader: UV_VERT, fragmentShader: MOUTH_FRAG, transparent: true, depthWrite: false, depthTest: false }),
   );
   mouth.renderOrder = 1;
-  mouth.position.set(...onSurface(0, -0.33));       // a touch lower, so the bigger mouth keeps clear of the eyes
-  mouth.rotation.x = 0.3;                         // follows the sphere's curve below centre
+  mouth.position.set(...onSurface(0, -0.56));       // low on the face, inside the beard's clear patch
+  mouth.rotation.x = 0.45;                        // follows the head's curve, well below centre
   head.add(mouth);
 
   function resize() {
@@ -318,7 +384,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
     // panel empty.) The rest is headroom for leaning in, stretching when
     // surprised, and the slow idle drift.
     const FILL = 0.74;
-    const tall = PILL_LEN + 2 * PILL_R, wide = 2 * PILL_R;
+    const tall = 2 * HEAD_HALF_H, wide = 2 * HEAD_W;
     const tanHalf = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
     camera.position.z = Math.max(tall / FILL, wide / FILL / camera.aspect) / (2 * tanHalf);
     camera.updateProjectionMatrix();
