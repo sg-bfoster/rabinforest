@@ -2588,18 +2588,15 @@
 .ask-idea:focus-visible { outline: 2px solid var(--cool); outline-offset: 1px; border-radius: 4px; }
 
 /* ---- The RabinAI face, small, on the Assistant page ---- */
-/* Beside the newest reply, in the white message panel, like the avatar of
-   whoever is answering in a chat. It stays in view while a long reply scrolls. */
+/* At the foot of the newest reply, first in the row with the engine tag and
+   the speaker button: it signs the answer off, next to the controls it
+   belongs with. */
 .mini-face { display: block; flex: none; border-radius: 50%; outline-offset: 3px; }
-.mini-face-canvas { width: 56px; height: 56px; display: block; transition: transform 200ms ease; }
+.mini-face-canvas { width: 52px; height: 52px; display: block; transition: transform 200ms ease; }
 .mini-face:hover .mini-face-canvas, .mini-face:focus-visible .mini-face-canvas { transform: scale(1.08); }
-.ask-card-thread .msg-with-face { grid-template-columns: 56px minmax(0, 1fr); column-gap: 12px; }
-.msg-with-face > .mini-face { grid-column: 1; grid-row: 1 / span 8; align-self: start; position: sticky; top: var(--scroll-clear); margin-top: -8px; }
-.msg-with-face > :not(.mini-face) { grid-column: 2; }
-.msg-pending-row { display: flex; align-items: center; gap: 12px; }
+.msg-meta .mini-face { margin: -6px 2px -6px -8px; }
+.msg-pending-row { display: flex; align-items: center; gap: 8px; }
+.msg-pending-row .mini-face { margin: -6px 0 -6px -8px; }
 .msg-pending-row .msg-pending { margin: 0; }
-@media (max-width: 640px) {
-  .mini-face-canvas { width: 44px; height: 44px; }
-  .ask-card-thread .msg-with-face { grid-template-columns: 44px minmax(0, 1fr); column-gap: 10px; }
-}
+@media (max-width: 640px) { .mini-face-canvas { width: 44px; height: 44px; } }
 @media (prefers-reduced-motion: reduce) { .mini-face-canvas { transition: none; } }

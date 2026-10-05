@@ -753,16 +753,16 @@ const Home = () => {
                                     const canSpeak =
                                         FEATURES.readAloud && !isStreaming && !!messageText.trim();
 
-                                    // The avatar sits beside the NEWEST reply only, as the one
-                                    // who is answering: brow up while the text is still
-                                    // arriving, mouth moving while this reply is read aloud.
-                                    // Above the heading it floated over the forest with
-                                    // nothing to do (Brian, 2026-10-05).
+                                    // The avatar signs off the NEWEST reply only, at its foot,
+                                    // in the row with the engine tag and the speaker: brow up
+                                    // while the text is still arriving, mouth moving while this
+                                    // reply is read aloud. (Above the heading it floated over
+                                    // the forest; at the top of the reply it was away from the
+                                    // controls it belongs with. Brian, 2026-10-05.)
                                     const withFace = index === messages.length - 1;
 
                                     return (
-                                        <div key={index} className={`msg-assistant${withFace ? ' msg-with-face' : ''}`}>
-                                            {withFace && <MiniFace thinking={isStreaming} speaking={speakingIndex === index} />}
+                                        <div key={index} className="msg-assistant">
                                             <span className="msg-text">
                                                 <LinkedText text={messageText} />
                                             </span>
@@ -789,9 +789,10 @@ const Home = () => {
                                                     ))}
                                                 </div>
                                             )}
-                                            {!isStreaming && (engineLabel || canSpeak) && (
+                                            {(withFace || (!isStreaming && (engineLabel || canSpeak))) && (
                                                 <div className="msg-meta">
-                                                    {engineLabel && (
+                                                    {withFace && <MiniFace thinking={isStreaming} speaking={speakingIndex === index} />}
+                                                    {!isStreaming && engineLabel && (
                                                         <span
                                                             className={`engine-tag engine-${msg.engine}`}
                                                             title={
