@@ -35,8 +35,8 @@ const LOWER = 1.16;       // the lower half runs longer than the upper
 const CHIN = 0;           // 0 = a round chin (Brian, 2026-10-05: "round the chin more"); 0.06 drew it to a soft point
 const LIFT_Y = (LOWER + CHIN - 1) / 2;   // shift up so the head is centred on its own height
 const HEAD_HALF_H = (1 + LOWER + CHIN) / 2;
-const EYE_SIZE = 0.54;    // each eye's square; the shape inside is drawn by EYE_FRAG
-const MOUTH_SCALE = 1.35; // the mouth's plane, against its original 0.62 x 0.42 (Brian, 2026-10-04: "bigger")
+const EYE_SIZE = 0.66;    // each eye's square; the shape inside is drawn by EYE_FRAG (0.54 until 2026-10-05: "bigger")
+const MOUTH_SCALE = 1.7;  // the mouth's plane, against its original 0.62 x 0.42 (1.35 until 2026-10-05: "bigger")
 
 const smooth = (a, b, v) => { const t = Math.min(1, Math.max(0, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
 
@@ -357,7 +357,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
       new THREE.ShaderMaterial({ uniforms: u, vertexShader: UV_VERT, fragmentShader: BROW_FRAG, transparent: true, depthWrite: false, depthTest: false }),
     );
     m.renderOrder = 1;
-    m.position.set(...onSurface(side * 0.34, 0.2));
+    m.position.set(...onSurface(side * 0.34, 0.27));  // up a little, clear of the bigger eyes
     m.rotation.y = side * 0.34;
     m.rotation.x = -0.2;
     head.add(m);
