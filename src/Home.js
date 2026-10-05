@@ -10,6 +10,7 @@ import { detectSitesInText, screenshotModalFor } from './utils/siteDetector';
 import { LinkedText } from './utils/linkedText';
 import { Hero, ScreenBody } from './components/Hero';
 import { NavLink } from 'react-router-dom';
+import MiniFace from './face/MiniFace';
 import { PLAYGROUND_FACT_CHECK } from './playgroundRoutes';
 import { SpeakerIcon, StopIcon } from './components/SpeakerIcons';
 
@@ -710,6 +711,10 @@ const Home = () => {
     return (
         <>
             <Hero variant="assistant">
+                {/* The avatar, small: a mascot for the "me" in the heading, and the
+                    way into the page where it sees, hears and talks. It asks for
+                    no camera or microphone here. */}
+                <MiniFace thinking={isLoading} speaking={speakingIndex !== null} />
                 <h1 className="hero-h1">Ask me about Brian Foster.</h1>
                 <p className="hero-sub">
                     Senior UI engineer in Metro Atlanta. This project: RabinAI, runs on hardware in his basement he configured himself.
