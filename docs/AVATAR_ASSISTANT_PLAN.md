@@ -286,4 +286,12 @@ than mid-word.
   stops and no further sentence plays. It stays awake and goes back to
   listening. A stopped answer is remembered as far as it got; one cut by sleep
   is not. Voice barge-in (§6) is still not built.
+- **Confirmed on a real phone (Brian, 2026-10-05):** in the LinkedIn iOS app's
+  built-in browser, on an iPhone, the page loads, HEARS spoken questions
+  (speech recognition is available there, which was not expected) and the
+  voice is loud enough. That settles the two fixes shipped blind on
+  2026-10-04: the louder mix (v0.4.171) and asking iOS for playback audio
+  while it speaks (v0.4.172). To open your own link inside the LinkedIn app,
+  paste it into a message thread and tap it there; tapping it on your own
+  profile opens the editor instead.
 
