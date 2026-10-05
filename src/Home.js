@@ -759,7 +759,8 @@ const Home = () => {
                                     // reply is read aloud. (Above the heading it floated over
                                     // the forest; at the top of the reply it was away from the
                                     // controls it belongs with. Brian, 2026-10-05.)
-                                    const withFace = index === messages.length - 1;
+                                    // Parked behind FEATURES.assistantAvatar (off): see features.js.
+                                    const withFace = FEATURES.assistantAvatar && index === messages.length - 1;
 
                                     return (
                                         <div key={index} className="msg-assistant">
@@ -848,7 +849,7 @@ const Home = () => {
                                     <div className="msg-pending-row">
                                         {/* Thinking, beside the wait, until the reply itself
                                             appears and takes the face over. */}
-                                        {messages[messages.length - 1]?.role !== 'model' && <MiniFace thinking />}
+                                        {FEATURES.assistantAvatar && messages[messages.length - 1]?.role !== 'model' && <MiniFace thinking />}
                                         <div className="msg-pending" role="status" aria-live="polite">
                                             <span className="msg-pending-dot" aria-hidden="true" />
                                             <span>RabinAI is building an answer</span>

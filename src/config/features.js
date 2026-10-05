@@ -32,6 +32,19 @@ export const FEATURES = {
   readAloud: true,
 
   /**
+   * The small RabinAI avatar on the Assistant page (face/MiniFace.js): a ball
+   * in the newest reply's footer row, beside the engine tag and the speaker.
+   *
+   * OFF. It was built and moved three times on 2026-10-05 (above the heading,
+   * beside the reply, in its footer) and Brian's verdict each time was that
+   * it looked "hokey and added on" here, while the full Avatar page is good.
+   * Parked "until I decide to pursue it more". Everything is still wired:
+   * turning this on brings it back exactly where it was. Nothing of it loads
+   * while this is off, Three.js included.
+   */
+  assistantAvatar: false,
+
+  /**
    * Chat Bots: let the visitor choose which model fills the local seat.
    *
    * OFF until gpt-oss-20b is actually downloaded on the box. The server
