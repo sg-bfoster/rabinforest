@@ -393,8 +393,8 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
     new THREE.ShaderMaterial({ uniforms: mouthU, vertexShader: UV_VERT, fragmentShader: MOUTH_FRAG, transparent: true, depthWrite: false, depthTest: false }),
   );
   mouth.renderOrder = 1;
-  mouth.position.set(...onSurface(0, -0.56));       // low on the face, inside the beard's clear patch
-  mouth.rotation.x = 0.45;                        // follows the head's curve, well below centre
+  mouth.position.set(...onSurface(0, -0.45));       // inside the beard's clear patch (-0.56 until 2026-10-05: "a little higher")
+  mouth.rotation.x = 0.38;                        // follows the head's curve, below centre
   head.add(mouth);
 
   function resize() {
