@@ -15,15 +15,17 @@ import { browsFor } from './behaviour';
 // Palette from styles/tokens.css: --hero, --cool, --glow.
 // These reach the screen in linear light (three converts the hex, and the
 // shaders write the value out as it is), so each displays darker than its hex
-// reads: DEEP shows as about #2b1e5e.
+// reads: DEEP shows as about #2f6d99.
 //
-// Purple since 2026-10-05 (Brian: "change the avatar to more of a purplish
-// look"). It was the site's navy: DEEP #4c6294, COOL #6c84b4, GLOW #cfe2f2,
-// BEARD #b3c0dc.
-const DEEP = new THREE.Color('#7261a3');   // the ball: a deep violet
-const COOL = new THREE.Color('#8f7ac2');   // a shade lighter, toward its edge
-const GLOW = new THREE.Color('#e8e4f5');   // eyes, brows, mouth, rim: a pale lavender
-const BEARD = new THREE.Color('#d4cceb');  // the beard shade: a soft lilac
+// That is --cool, the blue the site uses for highlights (the Awake icon, the
+// links, the focus rings): Brian, 2026-10-05, "match the blue we use for
+// highlights". Before it, the same day: a purple (DEEP #7261a3, COOL #8f7ac2,
+// GLOW #e8e4f5, BEARD #d4cceb), and before that a navy (DEEP #4c6294,
+// COOL #6c84b4, GLOW #cfe2f2, BEARD #b3c0dc).
+const DEEP = new THREE.Color('#72a8c3');   // the ball: the site's highlight blue
+const COOL = new THREE.Color('#8dbcd6');   // a shade lighter, toward its edge
+const GLOW = new THREE.Color('#e6f1fa');   // eyes, brows, mouth, rim: nearly white, for contrast on a mid blue
+const BEARD = new THREE.Color('#d0e2ed');  // the beard shade: a pale blue
 
 // The body's shape: an egg-shaped head, from the picture Brian sent on
 // 2026-10-05 ("can you work with this?"): a broad dome, sides that run nearly
