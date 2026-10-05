@@ -30,8 +30,8 @@ const BEARD = new THREE.Color('#b3c0dc');  // the stubble: a pale slate blue
 // It is a unit sphere, sculpted once at load. Normals come from the sculpted
 // shape itself by finite differences (computeVertexNormals would crease along
 // the sphere's UV seam, and the rim glow is all normal-driven).
-const HEAD_W = 0.84;      // half-width at its widest
-const LOWER = 1.1;        // the lower half runs a little longer than the upper (rounder reads friendlier)
+const HEAD_W = 0.93;      // half-width at its widest (0.84 until 2026-10-05: "more round")
+const LOWER = 1.04;       // the lower half runs only a touch longer than the upper: nearly a ball
 const CHIN = 0;           // 0 = a round chin (Brian, 2026-10-05: "round the chin more"); 0.06 drew it to a soft point
 const LIFT_Y = (LOWER + CHIN - 1) / 2;   // shift up so the head is centred on its own height
 const HEAD_HALF_H = (1 + LOWER + CHIN) / 2;
@@ -51,10 +51,10 @@ function sculpt(x, y, z) {
   // opposite: a round, soft head with nothing on it but big eyes and a smile.
   // So this is only a gentle egg: slightly longer below, a little full at the
   // jaw so it does not come to a point.
-  const sx = HEAD_W * (1 + 0.06 * Math.exp(-(((y + 0.55) / 0.34) ** 2)));
+  const sx = HEAD_W * (1 + 0.03 * Math.exp(-(((y + 0.55) / 0.34) ** 2)));
   let ny = y < 0 ? y * LOWER : y;
   ny -= CHIN * smooth(-0.7, -1.0, y) ** 2;
-  return [x * sx, ny + LIFT_Y, z * 0.9];
+  return [x * sx, ny + LIFT_Y, z * 0.95];
 }
 
 /**
