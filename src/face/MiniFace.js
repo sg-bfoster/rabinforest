@@ -4,22 +4,24 @@ import { PLAYGROUND_RABINAI_FACE } from '../playgroundRoutes';
 
 /**
  * The RabinAI face, small, on the Assistant page: the same ball that lives on
- * the Avatar page, as a mascot beside the chat and a way into the full thing.
+ * the Avatar page, sitting beside the newest reply as the one who is
+ * answering, and a way into the full thing.
  *
  * It asks for NOTHING. No camera, no microphone, no audio graph: this page is
  * where hiring managers land, and a permission prompt or a broken read-aloud
  * here would cost far more than the ball earns. So:
  *   - it looks at the pointer (and straight ahead when the pointer rests)
- *   - `thinking` raises a brow while an answer is on its way
- *   - `speaking` moves its mouth while read-aloud plays. The movement is a
- *     made-up talking rhythm, not the audio's loudness: reading the real level
- *     would mean routing the page's <audio> through Web Audio, and that is the
- *     one thing on this page that must not be put at risk.
+ *   - `thinking` raises a brow while an answer is on its way or still arriving
+ *   - `speaking` moves its mouth while that reply is read aloud. The movement
+ *     is a made-up talking rhythm, not the audio's loudness: reading the real
+ *     level would mean routing the page's <audio> through Web Audio, and that
+ *     is the one thing on this page that must not be put at risk.
  *   - clicking it goes to the Avatar page, where it sees, hears and talks.
  *
- * Three.js loads only when the browser is idle, after the page is up, and the
- * loop stops while the ball is scrolled out of view. If WebGL is missing it
- * renders nothing at all.
+ * It is mounted afresh beside each new reply and disposed with the old one
+ * (see dispose in renderer.js). Three.js loads only when
+ * the browser is idle, the loop stops while the ball is scrolled out of view,
+ * and if WebGL is missing it renders nothing at all.
  */
 const FACING = { x: 0.5, y: 0.5, roll: 0, yaw: 0, shapes: {} };   // "someone is here": awake, bright, eye contact
 const POINTER_REST_MS = 2500;
@@ -101,9 +103,8 @@ export default function MiniFace({ thinking = false, speaking = false }) {
 
   if (failed) return null;
   return (
-    <NavLink to={PLAYGROUND_RABINAI_FACE} className="mini-face" aria-label="Meet the RabinAI avatar: talk to it out loud">
+    <NavLink to={PLAYGROUND_RABINAI_FACE} className="mini-face" title="Talk to it out loud" aria-label="Meet the RabinAI avatar: talk to it out loud">
       <canvas ref={canvasRef} className="mini-face-canvas" aria-hidden="true" />
-      <span className="mini-face-label">Talk to it <span aria-hidden="true">→</span></span>
     </NavLink>
   );
 }

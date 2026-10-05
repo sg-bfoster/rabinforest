@@ -464,6 +464,11 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
   function dispose() {
     scene.traverse((o) => { o.geometry?.dispose(); o.material?.dispose(); });
     renderer.dispose();
+    // NOT forceContextLoss(): React re-runs an effect on the same <canvas> in
+    // development, and a canvas whose context was deliberately lost can never
+    // draw again. A detached canvas's context is collected with it; if a long
+    // conversation ever piles up more than the browser allows (about 16), it
+    // drops the oldest, which are exactly these.
   }
 
   return { render, resize, dispose };

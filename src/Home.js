@@ -711,10 +711,6 @@ const Home = () => {
     return (
         <>
             <Hero variant="assistant">
-                {/* The avatar, small: a mascot for the "me" in the heading, and the
-                    way into the page where it sees, hears and talks. It asks for
-                    no camera or microphone here. */}
-                <MiniFace thinking={isLoading} speaking={speakingIndex !== null} />
                 <h1 className="hero-h1">Ask me about Brian Foster.</h1>
                 <p className="hero-sub">
                     Senior UI engineer in Metro Atlanta. This project: RabinAI, runs on hardware in his basement he configured himself.
@@ -757,8 +753,16 @@ const Home = () => {
                                     const canSpeak =
                                         FEATURES.readAloud && !isStreaming && !!messageText.trim();
 
+                                    // The avatar sits beside the NEWEST reply only, as the one
+                                    // who is answering: brow up while the text is still
+                                    // arriving, mouth moving while this reply is read aloud.
+                                    // Above the heading it floated over the forest with
+                                    // nothing to do (Brian, 2026-10-05).
+                                    const withFace = index === messages.length - 1;
+
                                     return (
-                                        <div key={index} className="msg-assistant">
+                                        <div key={index} className={`msg-assistant${withFace ? ' msg-with-face' : ''}`}>
+                                            {withFace && <MiniFace thinking={isStreaming} speaking={speakingIndex === index} />}
                                             <span className="msg-text">
                                                 <LinkedText text={messageText} />
                                             </span>
@@ -840,10 +844,15 @@ const Home = () => {
                                     so the number is the box's actual elapsed work
                                     rather than the browser's guess about it. */}
                                 {isLoading && waitingMs !== null && (
-                                    <div className="msg-pending" role="status" aria-live="polite">
-                                        <span className="msg-pending-dot" aria-hidden="true" />
-                                        <span>RabinAI is building an answer</span>
-                                        <span className="msg-pending-secs">{Math.floor(waitingMs / 1000)}s</span>
+                                    <div className="msg-pending-row">
+                                        {/* Thinking, beside the wait, until the reply itself
+                                            appears and takes the face over. */}
+                                        {messages[messages.length - 1]?.role !== 'model' && <MiniFace thinking />}
+                                        <div className="msg-pending" role="status" aria-live="polite">
+                                            <span className="msg-pending-dot" aria-hidden="true" />
+                                            <span>RabinAI is building an answer</span>
+                                            <span className="msg-pending-secs">{Math.floor(waitingMs / 1000)}s</span>
+                                        </div>
                                     </div>
                                 )}
                             </div>
