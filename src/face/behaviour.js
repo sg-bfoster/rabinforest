@@ -99,7 +99,10 @@ export function mouthFor(s) {
   // Surprise is a round "oh" too. The narrow curve-and-depth mouth it used to
   // make came out as a pinched shape with ticks at its corners, more of a
   // grimace than a gasp; the clean ring is the friendly version.
-  lips = Math.max(lips, clamp(s.widen * 1.1, 0, 0.85));
+  // Only for real surprise (widen past ~0.45; raised eyebrows alone reach 0.6
+  // at their strongest). Mapping all of widen to the ring made an "o" appear
+  // for every small lift of the brows.
+  lips = Math.max(lips, clamp((s.widen - 0.42) * 4, 0, 0.85));
   return { curve: clamp(curve, -0.8, 0.8), width: clamp(width, 0.06, 0.26), open: clamp(open, 0, 1), tilt, lips };
 }
 
@@ -146,6 +149,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
   let winkByVisitor = false, winkLetGo = -1;   // answering THEIR wink: hold it as long as they do
   let tongueSince = -1, tongueAt = -1, tongueT = 0;
   let oohSince = -1, oohT = 0;
+  let lastSpokeAt = -Infinity;       // when its own voice was last audible
   let angrySince = -1, angryT = 0, worryT = 0;
   let visitorBlinkWas = false, lastBlinkAt = -Infinity;
   let avertSince = -1, followUntil = 0, followX = 0;
@@ -565,8 +569,15 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     s.bright = approach(s.bright, t.bright, 1.5, dt);
     // Mouth reads from the SMOOTHED mood, so it moves with the eyes instead
     // of ahead of them; only speech (fast by nature) is eased separately.
-    const m = mouthFor(s);
+    // While it is TALKING its mouth belongs to the words. The reactions that
+    // reshape the mouth (the surprised "oh", and copying a visitor's rounded
+    // lips) are held off until it has finished: Brian saw the "o" mouth pop up
+    // mid-sentence (2026-10-05), set off by his own eyebrows and mouth moving
+    // while he listened. The eyes and brows still react.
     const speak = clamp(input?.speak ?? 0, 0, 1);
+    if (speak > 0.03) lastSpokeAt = now;
+    const itsTalking = now - lastSpokeAt < 350;
+    const m = mouthFor(itsTalking ? { ...s, widen: 0, ooh: 0 } : s);
     s.mouthCurve = m.curve;
     s.mouthWidth = m.width;
     s.mouthTilt = m.tilt;

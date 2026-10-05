@@ -15,11 +15,15 @@ import { browsFor } from './behaviour';
 // Palette from styles/tokens.css: --hero, --cool, --glow.
 // These reach the screen in linear light (three converts the hex, and the
 // shaders write the value out as it is), so each displays darker than its hex
-// reads: DEEP shows as about #1a2b57, the navy in Brian's picture.
-const DEEP = new THREE.Color('#4c6294');   // the head's navy
-const COOL = new THREE.Color('#6c84b4');   // a shade lighter, toward its edge
-const GLOW = new THREE.Color('#cfe2f2');
-const BEARD = new THREE.Color('#b3c0dc');  // the stubble: a pale slate blue
+// reads: DEEP shows as about #2b1e5e.
+//
+// Purple since 2026-10-05 (Brian: "change the avatar to more of a purplish
+// look"). It was the site's navy: DEEP #4c6294, COOL #6c84b4, GLOW #cfe2f2,
+// BEARD #b3c0dc.
+const DEEP = new THREE.Color('#7261a3');   // the ball: a deep violet
+const COOL = new THREE.Color('#8f7ac2');   // a shade lighter, toward its edge
+const GLOW = new THREE.Color('#e8e4f5');   // eyes, brows, mouth, rim: a pale lavender
+const BEARD = new THREE.Color('#d4cceb');  // the beard shade: a soft lilac
 
 // The body's shape: an egg-shaped head, from the picture Brian sent on
 // 2026-10-05 ("can you work with this?"): a broad dome, sides that run nearly

@@ -79,8 +79,12 @@ const Header = () => {
             Assistant
           </NavLink>
           {/* "Avatar" for now (Brian, 2026-10-04); the assistant with a face. */}
-          <NavLink to={PLAYGROUND_RABINAI_FACE} className={navClass}>
+          <NavLink to={PLAYGROUND_RABINAI_FACE} className={(state) => `${navClass(state)} site-nav-link--new`}>
             Avatar
+            {/* Decoration only: a screen reader hears "Avatar, new". Take the
+                tag off once the page is no longer news. */}
+            <span className="nav-new" aria-hidden="true">New!</span>
+            <span className="sr-only">, new</span>
           </NavLink>
           {FEATURES.rabinaiImagery && (
             <NavLink to={PLAYGROUND_RABINAI_IMAGERY} className={navClass}>

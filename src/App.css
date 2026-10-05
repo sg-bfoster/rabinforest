@@ -2476,7 +2476,7 @@
    translucent: overlapping bumps would show seams. The two
    bumps on top are what make it a cloud rather than a pill-shaped badge. */
 .thought-cloud {
-  --cloud: #cfe2f2;
+  --cloud: #e2dcf5;   /* lavender, to go with the purple avatar (was the site's pale blue #cfe2f2) */
   position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px;
   padding: 12px 16px 13px; border-radius: 999px; text-align: center;
   background: var(--cloud); color: var(--hero);
@@ -2486,7 +2486,7 @@
 .thought-cloud::before, .thought-cloud::after { content: ''; position: absolute; z-index: -1; border-radius: 50%; background: var(--cloud); }
 .thought-cloud::before { width: 46%; aspect-ratio: 1; left: 12%; top: -34%; }
 .thought-cloud::after { width: 36%; aspect-ratio: 1; right: 14%; top: -22%; }
-.thought-puff { position: absolute; border-radius: 50%; background: #cfe2f2; animation: thought-in 220ms both ease-out; }
+.thought-puff { position: absolute; border-radius: 50%; background: #e2dcf5; animation: thought-in 220ms both ease-out; }
 /* The cloud is top-left now (the head fills the stage, and the pills own the
    top-right), so the puffs trail down and to the RIGHT, toward its head. */
 .thought-puff--1 { width: 9px; height: 9px; left: 92%; top: calc(100% + 36px); animation-delay: 0ms; }
@@ -2600,3 +2600,16 @@
 .msg-pending-row .msg-pending { margin: 0; }
 @media (max-width: 640px) { .mini-face-canvas { width: 44px; height: 44px; } }
 @media (prefers-reduced-motion: reduce) { .mini-face-canvas { transition: none; } }
+
+/* ---- "New!" on a nav link: a small tag pinned to its top-right corner, at an angle ---- */
+.site-nav-link--new { position: relative; }
+.nav-new {
+  position: absolute; top: -7px; right: -12px; transform: rotate(12deg); pointer-events: none;
+  padding: 1px 6px 2px; border-radius: 6px; background: var(--action); color: #fff;
+  font-size: 10px; font-weight: 700; line-height: 1.3; letter-spacing: 0.03em; text-transform: uppercase;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+/* In the phone menu the links are full-width rows: sit it beside the word, level. */
+@media (max-width: 820px) {
+  .nav-new { position: static; display: inline-block; margin-left: 8px; transform: rotate(-4deg); vertical-align: 2px; }
+}
