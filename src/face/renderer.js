@@ -45,10 +45,17 @@ function sculpt(x, y, z) {
   // A sphere already closes to a point at the bottom, so narrowing it further
   // makes a teardrop (the first two tries). The picture's jaw is FULLER than a
   // sphere's at mouth level, so the lower face is widened there instead.
-  const sx = HEAD_W * (1 + 0.08 * Math.exp(-(((y + 0.58) / 0.32) ** 2)));
+  const g = (v, c, w) => Math.exp(-(((v - c) / w) ** 2));
+  // More of a human head (Brian, 2026-10-05: "add cheekbones, try and make it
+  // look more human"): widest at the cheekbones, a little narrower at the
+  // temples, the cheekbones standing forward, and a nose.
+  const sx = HEAD_W * (1 + 0.08 * g(y, -0.58, 0.32) + 0.05 * g(y, -0.18, 0.2) - 0.05 * g(y, 0.5, 0.32));
   let ny = y < 0 ? y * LOWER : y;
   ny -= CHIN * smooth(-0.7, -1.0, y) ** 2;                    // the chin comes to a soft point
-  return [x * sx, ny + LIFT_Y, z * 0.9];
+  const front = Math.max(z, 0);
+  const cheeks = 0.07 * g(y, -0.2, 0.16) * g(Math.abs(x), 0.5, 0.2);
+  const nose = 0.11 * g(y, -0.24, 0.13) * g(x, 0, 0.1);          // 0.15 threw a bright streak down its side when turned
+  return [x * sx, ny + LIFT_Y, z * 0.9 + front * (cheeks + nose)];
 }
 
 /**
@@ -121,6 +128,18 @@ const BODY_FRAG = /* glsl */ `
     // at the sides, which leaves a clear patch around the mouth. No outline.
     float n = 0.55 * hash(floor(vPos * 85.0)) + 0.45 * hash(floor(vPos * 170.0));
     float ax = abs(vPos.x);
+    float frontOnly = smoothstep(0.0, 0.3, vPos.z);
+    // Cheekbones, as line art: a soft lighter plane running out and slightly
+    // up from beside the nose, with a faint line along its lower edge.
+    float cy = (vPos.y + 0.15) - 0.35 * (ax - 0.44);
+    float cheek = exp(-pow((ax - 0.44) / 0.2, 2.0) - pow(cy / 0.08, 2.0)) * frontOnly;
+    c = mix(c, uCool * 1.2, 0.4 * cheek);
+    c += uGlow * 0.22 * exp(-pow((cy + 0.085) / 0.014, 2.0) - pow((ax - 0.47) / 0.15, 2.0)) * frontOnly;
+    // The nose: a lighter bridge and a small curved line under its tip.
+    float bridge = exp(-pow(vPos.x / 0.035, 2.0)) * smoothstep(-0.26, -0.12, vPos.y) * (1.0 - smoothstep(0.0, 0.14, vPos.y));
+    c = mix(c, uCool * 1.2, 0.3 * bridge * frontOnly);
+    float tip = exp(-pow((length(vec2(vPos.x, vPos.y + 0.2)) - 0.07) / 0.013, 2.0)) * smoothstep(-0.19, -0.215, vPos.y);
+    c += uGlow * 0.5 * tip * frontOnly;
     // The beard's upper edge: a rounded dip around the mouth, so it closes
     // again across the chin underneath (a straight V left the chin bare).
     float top = -0.2 - 0.5 * exp(-pow(ax / 0.3, 2.0));

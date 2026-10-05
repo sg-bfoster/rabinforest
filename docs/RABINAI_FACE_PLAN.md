@@ -13,7 +13,10 @@
   (a skin-and-beard caricature, then a beard as an outline). What worked was
   his mock-up: the same navy line-art face, on a head that is a broad dome
   running down to a soft chin, with the beard as soft speckled shading over
-  the jaw and a clear patch around the mouth. Voice: the "tin can" robot.
+  the jaw and a clear patch around the mouth. Later the same day, at his
+  request ("try and make it look more human"): a moustache, cheekbones and a
+  nose, still in the blue line-art style. This is a deliberate step away from
+  "an abstract presence, not a human face". Voice: the "tin can" robot.
 - ~~**One RabinAI voice:** the same Kokoro `af_heart` as read-aloud.~~ **Revised
   2026-10-03 (Brian): the face has its own voice**, because the orb is a character,
   not the site's narrator. Kokoro `af_bella(2)+af_sky(1)` at 1.08 speed, lifted
