@@ -228,6 +228,25 @@ function cameraProblem(err) {
   return `Its eyes couldn't start. Try again; if it keeps failing, reload the page. (${name})`;
 }
 
+/**
+ * Open the line BEFORE it speaks. Speakers, Bluetooth headphones and the
+ * browser's own audio pipeline go idle in silence and take a moment to come
+ * back, and that moment was being taken out of the first word (Brian,
+ * 2026-10-05: "it's clipping the first few milliseconds of the first word").
+ * So as soon as a question is asked, an inaudible 30Hz tone at -62dB starts
+ * running to the output and the audio context is resumed; by the time there is
+ * a voice to play, seconds later, everything is already awake. Closed again
+ * when it has finished.
+ */
+const LINE_LEVEL = 0.0008;
+const LINE_LEAD_MS = 300;            // the least time the line is open before a word
+function openLine(a) {
+  if (!a?.line) return;
+  try { a.ctx.resume?.(); } catch { /* already running */ }
+  if (a.line.gain.value === 0) { a.line.gain.value = LINE_LEVEL; a.lineOpenAt = performance.now(); }
+}
+function closeLine(a) { if (a?.line) a.line.gain.value = 0; }
+
 /** Set the effect graph's dials for a voice. Safe before the graph exists. */
 function applyVoice(a, v) {
   if (!a?.fx) return;
@@ -596,7 +615,11 @@ export default function RabinAIFace() {
       const ceiling = ctx.createGain(); ceiling.gain.value = 0.95;
       out.connect(analyser); analyser.connect(comp); comp.connect(trim); trim.connect(limiter); limiter.connect(ceiling);
       ceiling.connect(ctx.destination);
-      audioRef.current = { ctx, el, analyser, buf: new Float32Array(analyser.fftSize), playing: false,
+      // The keep-awake tone (see openLine): straight to the output, silent until opened.
+      const hum = ctx.createOscillator(); hum.frequency.value = 30;
+      const line = ctx.createGain(); line.gain.value = 0;
+      hum.connect(line); line.connect(ctx.destination); hum.start();
+      audioRef.current = { ctx, el, analyser, buf: new Float32Array(analyser.fftSize), playing: false, line, lineOpenAt: 0,
         fx: { dry, wet, out, tone, toneAmt, ring, fb, comb } };
       applyVoice(audioRef.current, VOICE);
     } catch (err) { console.warn('[face] audio', err); }
@@ -667,11 +690,23 @@ export default function RabinAIFace() {
   }
 
   /** Play one clip through the analysed <audio>, so the mouth follows it. */
-  async function playClip(a, url) {
+  async function playClip(a, url, isCut = () => false) {
     a.el.src = url;
     // Pitch NOT preserved, so the rate shifts the pitch too (see VOICE).
     a.el.preservesPitch = false; a.el.mozPreservesPitch = false; a.el.webkitPreservesPitch = false;
     a.el.playbackRate = VOICE.rate;
+    // Everything ready BEFORE play(), so the first word starts whole: the clip
+    // decoded, the audio context running, and the line open for a moment.
+    await new Promise((resolve) => {
+      if (a.el.readyState >= 3) { resolve(); return; }
+      const t = setTimeout(resolve, 1500);
+      a.el.oncanplay = () => { clearTimeout(t); resolve(); };
+    });
+    openLine(a);
+    try { await a.ctx.resume?.(); } catch { /* already running */ }
+    const lead = LINE_LEAD_MS - (performance.now() - a.lineOpenAt);
+    if (lead > 0) await new Promise((resolve) => { setTimeout(resolve, lead); });
+    if (isCut()) return;                               // stopped or put to sleep while getting ready
     a.playing = true;
     // Never wait forever: a blocked or stalled play() must not leave it stuck
     // 'busy' and deaf. One sentence is well under 20s.
@@ -727,7 +762,7 @@ export default function RabinAIFace() {
           // Put to sleep (or the page left) since this answer began: say no more.
           if (gen !== hushRef.current) { if (clip) URL.revokeObjectURL(clip.url); return; }
           onStart(item, clip);
-          if (clip) { await playClip(a, clip.url); URL.revokeObjectURL(clip.url); }
+          if (clip) { await playClip(a, clip.url, () => gen !== hushRef.current); URL.revokeObjectURL(clip.url); }
         }
       },
     };
@@ -746,6 +781,12 @@ export default function RabinAIFace() {
     setAsked(wasTyped ? question : '');
     thinkingRef.current = true;
     setAnswering('thinking');
+    // Get ready to speak NOW, while it thinks, so nothing has to switch on at
+    // the moment of the first word: stop listening, tell iOS this is playback,
+    // and open the line to the speakers.
+    earsRef.current?.pause();
+    audioSessionType('playback');
+    openLine(audioRef.current);
 
     const gen = hushRef.current, sleptGen = sleptRef.current;
     const cut = () => gen !== hushRef.current;         // stopped, or put to sleep, since this began
@@ -794,7 +835,7 @@ export default function RabinAIFace() {
     thinkingRef.current = false;
     setAnswering('');
     // A beat before listening again, so the tail of its own voice isn't heard.
-    setTimeout(() => { audioSessionType('auto'); earsRef.current?.resume(); busyRef.current = false; }, 400);
+    setTimeout(() => { closeLine(audioRef.current); audioSessionType('auto'); earsRef.current?.resume(); busyRef.current = false; }, 400);
   }
 
   // Dev only: window.__face.ask('why is the sky blue') runs the whole answer
@@ -962,6 +1003,7 @@ export default function RabinAIFace() {
     if (canHear) micOff();
     try { audioRef.current?.el.pause(); } catch { /* not playing */ }
     audioRef.current?.finish?.();
+    closeLine(audioRef.current);
     audioSessionType('auto');
   }
 

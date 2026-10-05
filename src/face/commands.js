@@ -69,6 +69,15 @@ const HEARD_NAMES = [
   [/\b(?:(?:co ?mata|comatta)\s+)?(?:call(?:ed)? ?mat+a|call ?mada|k?c?al ?mata|co ?mata|kalamata|calamata)\b(?!\s+olives?)/gi, 'Callmata'],
   [/\b(?:tell|te|tale|tail)\s+spinners?\b/gi, 'Tellspinners'],
   [/\bstill\s+true\b(?=\s+(?:package|library|project|app|site|do|does|is)\b)/gi, 'stilltrue'],
+  // WHOOP, a past employer, arrives as "Loop" or "Hoop" (Brian, 2026-10-05),
+  // and then it cannot answer about his time there. "Loop" is an ordinary
+  // word and a programming one, so only where it is clearly a place or a
+  // name: after at/about/from/joined/left or "work(ed) for/with", as the whole
+  // of "what is ...", or before experience/job/role/company/team/days.
+  // "a for loop", "in the loop" and "loops" are left alone.
+  [/\b((?:at|about|from|joined|left|leave|leaving|work(?:ed|s|ing)?\s+(?:for|with|at))\s+)(?:the\s+)?(?:loop|hoop|woop|whup|whoop)\b(?!s)/gi, '$1Whoop'],
+  [/\b(what(?:'s|\s+is|\s+was)\s+)(?:loop|hoop|woop|whup)\b(?=\s*\??\s*$)/gi, '$1Whoop'],
+  [/\b(?:loop|hoop|woop|whup)(?=\s+(?:experience|job|role|company|team|days|position)\b)/gi, 'Whoop'],
 ];
 
 export function fixHeard(text) {
