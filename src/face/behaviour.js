@@ -69,9 +69,8 @@ export function mouthFor(s) {
   curve += s.happy * 0.6;
   width += s.happy * 0.08;
   open += Math.max(0, s.happy - 0.35) * 1.0;
-  width -= s.widen * 0.15;
-  open += s.widen * 1.2;
-  curve -= s.widen * 1.15;          // the top arches UP too, so it closes into an oval, not a cup (1.15 since the resting curve rose to 0.4)
+  // (Raised eyebrows used to move the mouth as well, through s.widen. They
+  // no longer do: see the gasp below.)
   curve -= s.squint * 0.25;
   width -= s.squint * 0.04;
   tilt += s.squint * 0.35;
@@ -96,13 +95,20 @@ export function mouthFor(s) {
   // A wink pulls the mouth up on the winking side: the smirk.
   tilt += (s.winkRight - s.winkLeft) * 0.35;
   curve += Math.max(s.winkLeft, s.winkRight) * 0.2;
-  // Surprise is a round "oh" too. The narrow curve-and-depth mouth it used to
-  // make came out as a pinched shape with ticks at its corners, more of a
-  // grimace than a gasp; the clean ring is the friendly version.
-  // Only for real surprise (widen past ~0.45; raised eyebrows alone reach 0.6
-  // at their strongest). Mapping all of widen to the ring made an "o" appear
-  // for every small lift of the brows.
-  lips = Math.max(lips, clamp((s.widen - 0.42) * 4, 0, 0.85));
+  // A gasp is the round "oh" too, and ONLY a gasp is: eyebrows up AND the
+  // mouth dropping open, together (s.gasp). Raised eyebrows alone are not
+  // surprise; people lift them while listening, asking, being expressive.
+  // For two days they drove the mouth through s.widen, first as a pinched
+  // oval and then as this ring, and Brian asked why it made an o face every
+  // time he raised his eyebrows (2026-10-05). Now brows alone widen its eyes
+  // and lift its brows, and the mouth stays as it was.
+  const g = s.gasp ?? 0;
+  if (g > 0.02) {
+    width = width + (0.085 - width) * g;
+    open = Math.max(open, 0.9 * g);
+    curve = curve + (-0.75 - curve) * g;
+    lips = Math.max(lips, 0.85 * g);
+  }
   return { curve: clamp(curve, -0.8, 0.8), width: clamp(width, 0.06, 0.26), open: clamp(open, 0, 1), tilt, lips };
 }
 
@@ -118,6 +124,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     winkLeft: 0, winkRight: 0,   // one eye shut, by SCREEN side (left = the eye on the viewer's left), 0..1
     tongue: 0,                   // tongue out, 0..1
     ooh: 0,                      // O face, lips rounded, 0..1
+    gasp: 0,                     // real surprise: their brows up AND mouth open, 0..1
     angry: 0,                    // grumpy pout: lids slant down to the middle, frown, 0..1
     worry: 0,                    // concerned: lids slant UP to the middle, 0..1
     slant: 0,                    // for the renderer: angry - worry
@@ -149,6 +156,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
   let winkByVisitor = false, winkLetGo = -1;   // answering THEIR wink: hold it as long as they do
   let tongueSince = -1, tongueAt = -1, tongueT = 0;
   let oohSince = -1, oohT = 0;
+  let gaspSince = -1, gaspT = 0;
   let lastSpokeAt = -Infinity;       // when its own voice was last audible
   let angrySince = -1, angryT = 0, worryT = 0;
   let visitorBlinkWas = false, lastBlinkAt = -Infinity;
@@ -405,6 +413,11 @@ export function createBehaviour({ reducedMotion = false } = {}) {
       if (browSince < 0) browSince = now;
       t.widen = now - browSince > 200 ? clamp(brow * 0.6, 0, 0.6) : t.widen;
     } else { browSince = -1; t.widen = 0; }
+    // Brows up AND jaw dropped, held 200ms: that is surprise, and it gets the "oh".
+    if (brow > 0.4 && (sh.jawOpen ?? 0) > 0.3) {
+      if (gaspSince < 0) gaspSince = now;
+      if (now - gaspSince > 200) gaspT = 1;
+    } else { gaspSince = -1; gaspT = 0; }
 
     // --- They're talking -> lean in and listen. jawOpen flickers while
     //     speaking, so average it rather than react to each frame. ---
@@ -491,7 +504,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     //     asked to look left, it looks left even though you're in the middle.
     if (doing('smile', now)) t.happy = 0.75;
     if (doing('grumpy', now)) { angryT = 0.65; worryT = 0; }
-    if (doing('surprised', now)) t.widen = 0.6;
+    if (doing('surprised', now)) { t.widen = 0.6; gaspT = 1; }   // told to look surprised: the whole look
     if (doing('ooh', now)) oohT = 0.8;
     if (doing('tongue', now)) { tongueT = 1; t.happy = Math.max(t.happy, 0.45); }
     if (doing('tilt', now)) tiltTarget = 0.25;
@@ -560,6 +573,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     const on = hasFace || anyAct;
     s.tongue = approach(s.tongue, on ? tongueT : 0, 7, dt);
     s.ooh = approach(s.ooh, on ? oohT : 0, 7, dt);
+    s.gasp = approach(s.gasp, on ? gaspT : 0, 7, dt);
     s.angry = approach(s.angry, on ? angryT : 0, 5, dt);
     s.worry = approach(s.worry, on ? worryT : 0, 3, dt);
     s.slant = s.angry - s.worry;
@@ -577,7 +591,7 @@ export function createBehaviour({ reducedMotion = false } = {}) {
     const speak = clamp(input?.speak ?? 0, 0, 1);
     if (speak > 0.03) lastSpokeAt = now;
     const itsTalking = now - lastSpokeAt < 350;
-    const m = mouthFor(itsTalking ? { ...s, widen: 0, ooh: 0 } : s);
+    const m = mouthFor(itsTalking ? { ...s, ooh: 0, gasp: 0 } : s);
     s.mouthCurve = m.curve;
     s.mouthWidth = m.width;
     s.mouthTilt = m.tilt;
