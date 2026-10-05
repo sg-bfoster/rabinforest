@@ -8,15 +8,17 @@
 - **An abstract RabinAI presence, not a human face** (§3a). No uncanny valley
   to fall into, and it belongs to the brand instead of imitating a person.
 - **Lives in rabinforest**, as a new route alongside `LookAtIt.js`.
-- **An egg-shaped blue head with a stippled beard (2026-10-05), from Brian's
-  own picture.** Two attempts on 2026-10-04 to style it after him were dropped
-  (a skin-and-beard caricature, then a beard as an outline). What worked was
-  his mock-up: the same navy line-art face, on a head that is a broad dome
-  running down to a soft chin, with the beard as soft speckled shading over
-  the jaw and a clear patch around the mouth. Later the same day, at his
-  request ("try and make it look more human"): a moustache, cheekbones and a
-  nose, still in the blue line-art style. This is a deliberate step away from
-  "an abstract presence, not a human face". Voice: the "tin can" robot.
+- **Cute, not human (2026-10-05).** The head is a soft, round egg in the site's
+  navy, from Brian's own mock-up, with a faint airbrushed beard shade on the
+  jaw. The face is big eyes with large pupils and a sparkle, simple brows and
+  a mouth that rests in a gentle smile. NOTHING realistic goes on it. The same
+  day a moustache, cheekbones, cheek lines and a nose were added to "make it
+  look more human" and Brian's verdict was "ugly and creepy": real anatomy on
+  a glowing blue head is the uncanny valley, exactly what "an abstract
+  presence, not a human face" was written to avoid. The rules that came out
+  of it: round over angular, large pupils (a small pupil in a wide white is a
+  stare), a smile at rest (a flat mouth reads deadpan), smooth shading (heavy
+  stipple reads as fuzz). Voice: the "tin can" robot.
 - ~~**One RabinAI voice:** the same Kokoro `af_heart` as read-aloud.~~ **Revised
   2026-10-03 (Brian): the face has its own voice**, because the orb is a character,
   not the site's narrator. Kokoro `af_bella(2)+af_sky(1)` at 1.08 speed, lifted

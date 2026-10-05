@@ -63,13 +63,15 @@ export function browsFor(s) {
 }
 
 export function mouthFor(s) {
-  let curve = 0.15, width = 0.16, open = 0, tilt = 0;
+  // A gentle smile at rest (0.4), not a flat line (0.15): a straight mouth
+  // under wide eyes reads as deadpan, and deadpan on a face reads as unfriendly.
+  let curve = 0.4, width = 0.16, open = 0, tilt = 0;
   curve += s.happy * 0.6;
   width += s.happy * 0.08;
   open += Math.max(0, s.happy - 0.35) * 1.0;
   width -= s.widen * 0.15;
   open += s.widen * 1.2;
-  curve -= s.widen * 0.9;           // the top arches UP too, so it closes into an oval, not a cup
+  curve -= s.widen * 1.15;          // the top arches UP too, so it closes into an oval, not a cup (1.15 since the resting curve rose to 0.4)
   curve -= s.squint * 0.25;
   width -= s.squint * 0.04;
   tilt += s.squint * 0.35;
@@ -94,6 +96,10 @@ export function mouthFor(s) {
   // A wink pulls the mouth up on the winking side: the smirk.
   tilt += (s.winkRight - s.winkLeft) * 0.35;
   curve += Math.max(s.winkLeft, s.winkRight) * 0.2;
+  // Surprise is a round "oh" too. The narrow curve-and-depth mouth it used to
+  // make came out as a pinched shape with ticks at its corners, more of a
+  // grimace than a gasp; the clean ring is the friendly version.
+  lips = Math.max(lips, clamp(s.widen * 1.1, 0, 0.85));
   return { curve: clamp(curve, -0.8, 0.8), width: clamp(width, 0.06, 0.26), open: clamp(open, 0, 1), tilt, lips };
 }
 

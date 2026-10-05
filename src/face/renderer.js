@@ -31,7 +31,7 @@ const BEARD = new THREE.Color('#b3c0dc');  // the stubble: a pale slate blue
 // shape itself by finite differences (computeVertexNormals would crease along
 // the sphere's UV seam, and the rim glow is all normal-driven).
 const HEAD_W = 0.84;      // half-width at its widest
-const LOWER = 1.16;       // the lower half runs longer than the upper
+const LOWER = 1.1;        // the lower half runs a little longer than the upper (rounder reads friendlier)
 const CHIN = 0;           // 0 = a round chin (Brian, 2026-10-05: "round the chin more"); 0.06 drew it to a soft point
 const LIFT_Y = (LOWER + CHIN - 1) / 2;   // shift up so the head is centred on its own height
 const HEAD_HALF_H = (1 + LOWER + CHIN) / 2;
@@ -45,17 +45,16 @@ function sculpt(x, y, z) {
   // A sphere already closes to a point at the bottom, so narrowing it further
   // makes a teardrop (the first two tries). The picture's jaw is FULLER than a
   // sphere's at mouth level, so the lower face is widened there instead.
-  const g = (v, c, w) => Math.exp(-(((v - c) / w) ** 2));
-  // More of a human head (Brian, 2026-10-05: "add cheekbones, try and make it
-  // look more human"): widest at the cheekbones, a little narrower at the
-  // temples, the cheekbones standing forward, and a nose.
-  const sx = HEAD_W * (1 + 0.08 * g(y, -0.58, 0.32) + 0.05 * g(y, -0.18, 0.2) - 0.05 * g(y, 0.5, 0.32));
+  // CUTE, NOT HUMAN. Cheekbones, a nose and cheek lines were tried on
+  // 2026-10-05 and Brian's verdict was "ugly and creepy": realistic anatomy on
+  // a glowing blue head is the uncanny valley. What reads as friendly is the
+  // opposite: a round, soft head with nothing on it but big eyes and a smile.
+  // So this is only a gentle egg: slightly longer below, a little full at the
+  // jaw so it does not come to a point.
+  const sx = HEAD_W * (1 + 0.06 * Math.exp(-(((y + 0.55) / 0.34) ** 2)));
   let ny = y < 0 ? y * LOWER : y;
-  ny -= CHIN * smooth(-0.7, -1.0, y) ** 2;                    // the chin comes to a soft point
-  const front = Math.max(z, 0);
-  const cheeks = 0.07 * g(y, -0.2, 0.16) * g(Math.abs(x), 0.5, 0.2);
-  const nose = 0.11 * g(y, -0.24, 0.13) * g(x, 0, 0.1);          // 0.15 threw a bright streak down its side when turned
-  return [x * sx, ny + LIFT_Y, z * 0.9 + front * (cheeks + nose)];
+  ny -= CHIN * smooth(-0.7, -1.0, y) ** 2;
+  return [x * sx, ny + LIFT_Y, z * 0.9];
 }
 
 /**
@@ -128,31 +127,15 @@ const BODY_FRAG = /* glsl */ `
     // at the sides, which leaves a clear patch around the mouth. No outline.
     float n = 0.55 * hash(floor(vPos * 85.0)) + 0.45 * hash(floor(vPos * 170.0));
     float ax = abs(vPos.x);
-    float frontOnly = smoothstep(0.0, 0.3, vPos.z);
-    // Cheekbones, as line art: a soft lighter plane running out and slightly
-    // up from beside the nose, with a faint line along its lower edge.
-    float cy = (vPos.y + 0.15) - 0.35 * (ax - 0.44);
-    float cheek = exp(-pow((ax - 0.44) / 0.2, 2.0) - pow(cy / 0.08, 2.0)) * frontOnly;
-    c = mix(c, uCool * 1.2, 0.4 * cheek);
-    c += uGlow * 0.22 * exp(-pow((cy + 0.085) / 0.014, 2.0) - pow((ax - 0.47) / 0.15, 2.0)) * frontOnly;
-    // The nose: a lighter bridge and a small curved line under its tip.
-    float bridge = exp(-pow(vPos.x / 0.035, 2.0)) * smoothstep(-0.26, -0.12, vPos.y) * (1.0 - smoothstep(0.0, 0.14, vPos.y));
-    c = mix(c, uCool * 1.2, 0.3 * bridge * frontOnly);
-    float tip = exp(-pow((length(vec2(vPos.x, vPos.y + 0.2)) - 0.07) / 0.013, 2.0)) * smoothstep(-0.19, -0.215, vPos.y);
-    c += uGlow * 0.5 * tip * frontOnly;
-    // The beard's upper edge: a rounded dip around the mouth, so it closes
-    // again across the chin underneath (a straight V left the chin bare).
-    float top = -0.2 - 0.5 * exp(-pow(ax / 0.3, 2.0));
-    float depth = smoothstep(top + 0.1, top - 0.24, vPos.y);       // 0 at the edge, 1 well inside
-    // The moustache: a band above the mouth, thickest in the middle, drooping
-    // a little toward its ends, where it runs into the beard on the cheeks.
-    float lipY = -0.43 - 0.5 * ax * ax;
-    float thick = 0.075 - 0.07 * ax;
-    float mous = (1.0 - smoothstep(thick * 0.5, thick, abs(vPos.y - lipY))) * (1.0 - smoothstep(0.34, 0.44, ax));
-    float beard = max(smoothstep(0.25, 0.75, depth + (n - 0.5) * 0.55), smoothstep(0.3, 0.7, mous + (n - 0.5) * 0.5))
-      * smoothstep(-0.45, -0.05, vPos.z);
-    vec3 hair = uBeard * (0.78 + 0.34 * n) * (0.72 + 0.28 * facing);
-    c = mix(c, hair, beard * 0.9);
+    // The beard, as in Brian's picture: a SOFT airbrushed shade over the jaw
+    // and chin, fading smoothly up into the navy, with a wide clear area
+    // around the mouth. Only a whisper of grain: heavy stipple read as fuzz or
+    // grime, and a stippled moustache band made a muzzle. No moustache, no
+    // outline, nothing drawn on the face but eyes, brows and mouth.
+    float top = -0.16 - 0.56 * exp(-pow(ax / 0.38, 2.0));
+    float beard = smoothstep(top + 0.12, top - 0.3, vPos.y) * smoothstep(-0.45, -0.05, vPos.z);
+    vec3 hair = uBeard * (0.94 + 0.08 * n) * (0.8 + 0.2 * facing);
+    c = mix(c, hair, beard * 0.78);
     // Grumpy: the rim warms toward a soft ember. A tint, not a red alarm.
     c += vec3(0.35, -0.05, -0.2) * rim * uWarm;
     gl_FragColor = vec4(c * (0.55 + 0.6 * uBright), 1.0);
@@ -211,19 +194,30 @@ const EYE_FRAG = /* glsl */ `
       eye *= 1.0 - smoothstep(lidY - 0.03, lidY + 0.01, p.y);
     }
     // Pupil fades out as the eye becomes a crescent (^ ^ has no pupils).
-    vec2 pp = p - uPupil * vec2(0.22, 0.2);
-    float pupil = (1.0 - smoothstep(0.17, 0.21, length(pp / vec2(1.0, max(uOpen, 0.2))))) * (1.0 - uHappy);
+    // Big pupils with a catchlight. A small pupil in a wide white is a stare,
+    // which is where "creepy" came from; a large one with a sparkle is the
+    // oldest trick there is for a friendly cartoon eye.
+    vec2 pp = p - uPupil * vec2(0.13, 0.14);
+    float pr = length(pp / vec2(1.0, max(uOpen, 0.2)));
+    // The pupil stays fully dark while the smile's crescent rises over it,
+    // and goes only at the end, when the eye is nearly ^. Fading it gradually
+    // left a pale, blind-looking disc at a half smile.
+    float pupil = (1.0 - smoothstep(0.31, 0.35, pr)) * (1.0 - smoothstep(0.62, 0.74, uHappy));
+    float sparkle = max(1.0 - smoothstep(0.085, 0.115, length(pp - vec2(-0.12, 0.15))),
+                        1.0 - smoothstep(0.03, 0.05, length(pp - vec2(0.13, -0.12)))) * pupil;
     // Shut: a squashed ellipse with a pupil painted over it breaks into dashes,
     // so near zero openness hand over to one clean closed-lid curve (a soft
     // smile shape, like sleeping). Asleep (Sight off), "close your eyes", and
     // the bottom of every blink all pass through here.
     float shut = 1.0 - smoothstep(0.04, 0.2, uOpen);
     pupil *= 1.0 - shut;
+    sparkle *= 1.0 - shut;
     eye *= 1.0 - shut;
     float arcY = 0.22 * p.x * p.x - 0.06;
     float along = 1.0 - smoothstep(0.38, 0.48, abs(p.x));
     eye = max(eye, (1.0 - smoothstep(0.035, 0.065, abs(p.y - arcY))) * along * shut);
     vec3 col = mix(uGlow * (1.1 + 0.3 * uBright), vec3(0.03, 0.08, 0.13), pupil);
+    col = mix(col, vec3(1.0), sparkle);
     float glow = (1.0 - smoothstep(0.9, 1.35, e)) * 0.25 * (1.0 - uHappy * 0.5) * mix(1.0, step(0.86, cut), cutOn) * (1.0 - shut * 0.8);
     float a = max(eye, glow);
     gl_FragColor = vec4(col * max(eye, glow * 1.5), a);
@@ -361,7 +355,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
     );
     m.renderOrder = 1;
     // Sit on the sphere's front, angled to its surface.
-    m.position.set(...onSurface(side * 0.34, -0.06));
+    m.position.set(...onSurface(side * 0.36, -0.1));
     m.rotation.y = side * 0.34;
     m.rotation.x = 0.05;
     head.add(m);
@@ -376,7 +370,7 @@ export function createFormRenderer(canvas, { reducedMotion = false } = {}) {
       new THREE.ShaderMaterial({ uniforms: u, vertexShader: UV_VERT, fragmentShader: BROW_FRAG, transparent: true, depthWrite: false, depthTest: false }),
     );
     m.renderOrder = 1;
-    m.position.set(...onSurface(side * 0.34, 0.27));  // up a little, clear of the bigger eyes
+    m.position.set(...onSurface(side * 0.36, 0.25));  // clear of the big eyes
     m.rotation.y = side * 0.34;
     m.rotation.x = -0.2;
     head.add(m);
