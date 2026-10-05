@@ -32,7 +32,7 @@ const BEARD = new THREE.Color('#b3c0dc');  // the stubble: a pale slate blue
 // the sphere's UV seam, and the rim glow is all normal-driven).
 const HEAD_W = 0.84;      // half-width at its widest
 const LOWER = 1.16;       // the lower half runs longer than the upper
-const CHIN = 0.06;        // how far the very bottom is drawn down into a soft point
+const CHIN = 0;           // 0 = a round chin (Brian, 2026-10-05: "round the chin more"); 0.06 drew it to a soft point
 const LIFT_Y = (LOWER + CHIN - 1) / 2;   // shift up so the head is centred on its own height
 const HEAD_HALF_H = (1 + LOWER + CHIN) / 2;
 const EYE_SIZE = 0.54;    // each eye's square; the shape inside is drawn by EYE_FRAG
@@ -125,7 +125,13 @@ const BODY_FRAG = /* glsl */ `
     // again across the chin underneath (a straight V left the chin bare).
     float top = -0.2 - 0.5 * exp(-pow(ax / 0.3, 2.0));
     float depth = smoothstep(top + 0.1, top - 0.24, vPos.y);       // 0 at the edge, 1 well inside
-    float beard = smoothstep(0.25, 0.75, depth + (n - 0.5) * 0.55) * smoothstep(-0.45, -0.05, vPos.z);
+    // The moustache: a band above the mouth, thickest in the middle, drooping
+    // a little toward its ends, where it runs into the beard on the cheeks.
+    float lipY = -0.43 - 0.5 * ax * ax;
+    float thick = 0.075 - 0.07 * ax;
+    float mous = (1.0 - smoothstep(thick * 0.5, thick, abs(vPos.y - lipY))) * (1.0 - smoothstep(0.34, 0.44, ax));
+    float beard = max(smoothstep(0.25, 0.75, depth + (n - 0.5) * 0.55), smoothstep(0.3, 0.7, mous + (n - 0.5) * 0.5))
+      * smoothstep(-0.45, -0.05, vPos.z);
     vec3 hair = uBeard * (0.78 + 0.34 * n) * (0.72 + 0.28 * facing);
     c = mix(c, hair, beard * 0.9);
     // Grumpy: the rim warms toward a soft ember. A tint, not a red alarm.
