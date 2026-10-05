@@ -8,9 +8,9 @@
 - **An abstract RabinAI presence, not a human face** (§3a). No uncanny valley
   to fall into, and it belongs to the brand instead of imitating a person.
 - **Lives in rabinforest**, as a new route alongside `LookAtIt.js`.
-- **Cute, not human (2026-10-05).** The head is a soft, round egg in the site's
-  navy, from Brian's own mock-up, with a faint airbrushed beard shade on the
-  jaw. The face is big eyes with large pupils and a sparkle, simple brows and
+- **Cute, not human (2026-10-05).** The head is a plain ball in the site's
+  navy (it went egg, rounder, then ball, and the ball is what Brian liked),
+  with a faint airbrushed beard shade on its lower third. The face is big eyes with large pupils and a sparkle, simple brows and
   a mouth that rests in a gentle smile. NOTHING realistic goes on it. The same
   day a moustache, cheekbones, cheek lines and a nose were added to "make it
   look more human" and Brian's verdict was "ugly and creepy": real anatomy on
