@@ -171,6 +171,31 @@ function sayable(sentence, question, wasTyped) {
   return `I heard, “${heard}”. I don't know that one. Try asking it another way?`;
 }
 
+/**
+ * Is what the microphone heard just its OWN voice coming back? The ears are
+ * paused while it speaks, but that is not airtight: speakers carry on for a
+ * moment after the last clip ends, a Bluetooth speaker lags, and some
+ * browsers keep recognising for a beat after abort(). Brian saw it answer
+ * itself (2026-10-06). So, for a while after it has spoken, anything heard
+ * that is mostly made of the words it just said is treated as an echo and
+ * dropped. A real question in that window survives, because a person's
+ * words are not the avatar's words.
+ */
+const ECHO_WINDOW_MS = 6_000;      // the echo comes right after it stops; a follow-up usually takes longer
+// Only words that carry meaning count, or "tell me about the Heroku move"
+// matched an answer about Heroku on "about", "the" and "move".
+const STOP = new Set(['that', 'this', 'with', 'from', 'what', 'when', 'where', 'which', 'about', 'tell', 'does', 'have', 'been',
+  'they', 'them', 'there', 'their', 'than', 'then', 'into', 'your', 'will', 'just', 'like', 'also', 'more', 'some', 'such',
+  'very', 'were', 'make', 'made', 'much', 'many', 'most', 'over', 'part', 'well', 'work', 'year', 'years', 'know', 'think']);
+const wordsOf = (t) => String(t ?? '').toLowerCase().replace(/[^a-z0-9' ]+/g, ' ').split(/\s+/).filter((w) => w.length > 3 && !STOP.has(w));
+function isEcho(heard, lastSaid, now) {
+  if (!lastSaid || now > lastSaid.until) return false;
+  const h = wordsOf(heard);
+  if (h.length < 3) return false;
+  const matched = h.filter((w) => lastSaid.words.has(w)).length;
+  return matched >= 3 && matched / h.length >= 0.6;
+}
+
 /** A link card's label: what a visitor would call the place, not the raw URL. */
 function linkLabel(url) {
   try {
@@ -360,6 +385,7 @@ export default function RabinAIFace() {
   const conversationIdRef = useRef(null);
   const [support] = useState(browserSupport);
   const memoryRef = useRef({ turns: [], at: 0 });      // [{ q, a }], and when the last one ended
+  const lastSaidRef = useRef(null);                    // { words: Set, until }: what it just said, to ignore its own echo
   const hushRef = useRef(0);                           // bumped by sleep() and stop: cuts an answer short
   const sleptRef = useRef(0);                          // bumped by sleep() only: that answer is not remembered
   const abortRef = useRef(null);                       // the question in flight, so stop can cancel it
@@ -534,6 +560,8 @@ export default function RabinAIFace() {
           // Put back the names recognition can't spell ("Raven AI" -> RabinAI)
           // before they are shown, parsed or sent.
           const text = fixHeard(heard);
+          // Its own voice, or words while it is busy answering: not for it.
+          if (busyRef.current || isEcho(text, lastSaidRef.current, performance.now())) return;
           activityAtRef.current = performance.now();
           const { act, question } = parse(text);
           // One move per phrase: interim results repeat, and "nod" must not
@@ -834,8 +862,10 @@ export default function RabinAIFace() {
     if (sleptGen === sleptRef.current) links.forEach((url) => dispatch(addLink({ url, text: url })));
     thinkingRef.current = false;
     setAnswering('');
-    // A beat before listening again, so the tail of its own voice isn't heard.
-    setTimeout(() => { closeLine(audioRef.current); audioSessionType('auto'); earsRef.current?.resume(); busyRef.current = false; }, 400);
+    // Remember what it said, so hearing it back is ignored (isEcho), and a
+    // longer beat before listening again, so the tail of its voice isn't heard.
+    if (said.length) lastSaidRef.current = { words: new Set(wordsOf(said.join(' '))), until: performance.now() + ECHO_WINDOW_MS };
+    setTimeout(() => { closeLine(audioRef.current); audioSessionType('auto'); earsRef.current?.resume(); busyRef.current = false; }, 700);
   }
 
   // Dev only: window.__face.ask('why is the sky blue') runs the whole answer

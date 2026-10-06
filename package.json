@@ -1,6 +1,6 @@
 {
   "name": "rabinforest",
-  "version": "0.4.199",
+  "version": "0.4.200",
   "private": true,
   "dependencies": {
     "@mediapipe/tasks-vision": "^1.0.1",
