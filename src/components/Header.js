@@ -83,8 +83,8 @@ const Header = () => {
             Avatar
             {/* Decoration only: a screen reader hears "Avatar, new". Take the
                 tag off once the page is no longer news. */}
-            <span className="nav-new" aria-hidden="true">New!</span>
-            <span className="sr-only">, new</span>
+            {/* <span className="nav-new" aria-hidden="true">New!</span>
+            <span className="sr-only">, new</span> */}
           </NavLink>
           {FEATURES.rabinaiImagery && (
             <NavLink to={PLAYGROUND_RABINAI_IMAGERY} className={navClass}>
