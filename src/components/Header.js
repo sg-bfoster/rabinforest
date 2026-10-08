@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { FEATURES } from '../config/features';
 import {
-  PLAYGROUND_CHAT_BOTS,
+  // PLAYGROUND_CHAT_BOTS, // the link is commented out below
   PLAYGROUND_FACT_CHECK,
   PLAYGROUND_RABINAI_IMAGERY,
   PLAYGROUND_RABINAI_FACE,
@@ -91,9 +91,13 @@ const Header = () => {
               RabinAI Images
             </NavLink>
           )}
-          <NavLink to={PLAYGROUND_CHAT_BOTS} className={navClass}>
+          {/* Chat Bots is off the nav, not off the site (Brian, 2026-10-08:
+              "not a strong page but I don't want to delete it"). The route,
+              the page and its sitemap entry all still work at
+              /playground/ai-chat-bots; put the link back by uncommenting. */}
+          {/* <NavLink to={PLAYGROUND_CHAT_BOTS} className={navClass}>
             Chat Bots
-          </NavLink>
+          </NavLink> */}
           <NavLink to={PLAYGROUND_FACT_CHECK} className={navClass}>
             Fact Check
           </NavLink>
