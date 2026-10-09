@@ -39,7 +39,7 @@ const BOTS = [
 // the only option that always works.
 const LOCAL_MODELS = {
     auto: { label: "Whatever's loaded" },
-    qwen: { label: 'Qwen3 30B' },
+    qwen: { label: 'Qwen3.6 35B' },
     'gpt-oss': { label: 'GPT-OSS 20B' },
 };
 
