@@ -432,8 +432,10 @@ const Home = () => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 // The server rejects anything longer, so trim here rather than
-                // trading a spoken answer for a 400.
-                body: JSON.stringify({ prompt: key }),
+                // trading a spoken answer for a 400. The persona is the face's
+                // voice (bfoster-services VOICE_PERSONAS): one voice for the
+                // site, not a narrator and a character.
+                body: JSON.stringify({ prompt: key, persona: 'assistant' }),
             });
             if (!res.ok) throw new Error(`read aloud failed: ${res.status}`);
             // Recorded on EVERY synthesis, warm or click, so the warm path
