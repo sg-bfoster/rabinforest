@@ -1235,6 +1235,14 @@
   margin-bottom: var(--space-1);
 }
 .admin-log-id { font-family: monospace; font-size: 10px; }
+.admin-log-badge {
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.admin-log-badge--owner { opacity: 0.55; font-style: italic; }
 .admin-log-preview { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
 .admin-log-count { font-size: 12px; color: var(--muted-2); }
 

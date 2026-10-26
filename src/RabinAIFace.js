@@ -6,7 +6,7 @@ import { detectSitesInText } from './utils/siteDetector';
 import { createBehaviour } from './face/behaviour';
 import { parse, fixHeard } from './face/commands';
 import { earsMode, earsSupported } from './face/ears';
-import API_BASE_URL from './config/api';
+import API_BASE_URL, { visitorMeta } from './config/api';
 
 // RabinAI Face, phase 1 — a glowing form that keeps eye contact and reacts to
 // your expressions. Silent: it never speaks in this phase, and it never will
@@ -676,7 +676,7 @@ export default function RabinAIFace() {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: abortRef.current.signal,
       // seeing: is the camera running right now? Only picks which honest line
       // answers "can you see me" (it sees expressions, in this browser only).
-      body: JSON.stringify({ prompt: question.slice(0, 200), history, conversationId: conversationIdRef.current, spoken: true, stream: true, seeing: !!trackerRef.current }),
+      body: JSON.stringify({ prompt: question.slice(0, 200), history, conversationId: conversationIdRef.current, spoken: true, stream: true, seeing: !!trackerRef.current, ...visitorMeta() }),
     });
     if (!r.headers.get('content-type')?.includes('text/event-stream')) {
       const data = await r.json().catch(() => null);

@@ -5,6 +5,7 @@ import { openModal } from './features/modalSlice';
 import { useDispatch } from 'react-redux';
 import { addLink } from './features/assistantSlice';
 import { API_ENDPOINTS } from './config/api';
+import { visitorMeta } from './config/api';
 import { FEATURES } from './config/features';
 import { detectSitesInText, screenshotModalFor } from './utils/siteDetector';
 import { LinkedText } from './utils/linkedText';
@@ -148,7 +149,7 @@ const Home = () => {
         const res = await fetch(API_ENDPOINTS.GEMINI_ASSISTANT, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt, history: apiHistory, conversationId, stream: true }),
+            body: JSON.stringify({ prompt, history: apiHistory, conversationId, stream: true, ...visitorMeta() }),
         });
         if (!res.ok) throw new Error(`Assistant request failed (${res.status})`);
 

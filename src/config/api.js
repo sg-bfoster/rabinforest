@@ -85,4 +85,27 @@ export const getAdminHeaders = () => {
   return key ? { 'X-Admin-Key': key } : {};
 };
 
+/**
+ * "Is this real traffic or just me?" — a browser that has logged into /admin marks
+ * itself as the owner (localStorage, survives sessions) and every question it asks
+ * carries `owner: true`, so the admin log can grey out Brian's own testing. Spoofable
+ * by design: it only affects the admin view, never what the assistant says.
+ */
+export const OWNER_FLAG_STORAGE = 'rf-owner';
+
+export const markOwnerBrowser = () => {
+  try { localStorage.setItem(OWNER_FLAG_STORAGE, '1'); } catch { /* private mode */ }
+};
+
+export const isOwnerBrowser = () => {
+  try { return localStorage.getItem(OWNER_FLAG_STORAGE) === '1'; } catch { return false; }
+};
+
+/** Fields the assistant endpoints log alongside a question: owner flag + browser time zone. */
+export const visitorMeta = () => {
+  let tz = '';
+  try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch { /* old browsers */ }
+  return { owner: isOwnerBrowser(), tz };
+};
+
 export default API_BASE_URL;

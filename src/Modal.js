@@ -72,6 +72,17 @@ const ConversationLogContent = ({ payload, onClose, dispatch }) => {
                             <p className="modal-log-meta">
                                 <strong>Messages:</strong> {messages.length}
                             </p>
+                            <p className="modal-log-meta">
+                                <strong>Visitor:</strong>{' '}
+                                {payload.owner
+                                    ? 'you (this browser has logged into admin)'
+                                    : [
+                                        payload.geo && [payload.geo.city, payload.geo.region, payload.geo.country].filter(Boolean).join(', '),
+                                        payload.geo?.isp,
+                                        payload.ip,
+                                        payload.tz,
+                                    ].filter(Boolean).join(' · ') || 'not recorded (before visitor tracking)'}
+                            </p>
                             {(payload.conversationId || payload.id) && (
                                 <p className="modal-log-meta modal-log-id">
                                     <strong>Conversation ID:</strong> {payload.conversationId || payload.id}
