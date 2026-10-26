@@ -151,6 +151,14 @@ const Home = () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ prompt, history: apiHistory, conversationId, stream: true, ...visitorMeta() }),
         });
+        // 429 = the per-IP ceiling; the body is a normal answer shape with a polite
+        // line, so it renders as a reply instead of the generic failure.
+        if (res.status === 429) {
+            const data = await res.json().catch(() => ({}));
+            let text = 'Give me a minute and ask again.';
+            try { text = JSON.parse(data.response).text || text; } catch { /* keep default */ }
+            return { text, links: [], engine: 'limit', model: null };
+        }
         if (!res.ok) throw new Error(`Assistant request failed (${res.status})`);
 
         if (!res.headers.get('content-type')?.includes('text/event-stream')) {
