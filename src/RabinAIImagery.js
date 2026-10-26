@@ -261,6 +261,12 @@ const RabinAIImagery = () => {
           try { d = JSON.parse(line.slice(6)); } catch { continue; }
           if (event === 'step') {
             pushFrame(`[${((d.ms || 0) / 1000).toFixed(1).padStart(5)}s] ${d.label}`);
+          } else if (event === 'prompt') {
+            // What the box is actually drawing. The server rewrites the typed
+            // prompt for SDXL (explicit counts, concrete phrases); when it
+            // did, say so up front, in the console and under the result.
+            if (d.rewritten) pushFrame(`[  0.0s] rendered as: ${d.rendered}`);
+            setMeta((m) => ({ ...m, prompt: d.rendered, typed: d.typed, rewritten: !!d.rewritten }));
           } else if (event === 'preview') {
             // One frame per denoise step, already downscaled server-side. Only
             // the newest is kept — this is a progress view, not a filmstrip.
@@ -270,7 +276,7 @@ const RabinAIImagery = () => {
           } else if (event === 'done') {
             setImage(d.image);
             setPreview(null); // the finished image supersedes the last preview
-            setMeta({ ms: d.ms, seed: d.seed });
+            setMeta((m) => ({ ...m, ms: d.ms, seed: d.seed, prompt: d.prompt, typed: d.typed, rewritten: !!(d.prompt && d.typed && d.prompt !== d.typed) }));
             setLookToken(d.lookToken || null);
             setPhase('done');
             // Bring the finished image into view once React has painted it.
@@ -412,6 +418,12 @@ const RabinAIImagery = () => {
           <figcaption>
             {(meta.ms / 1000).toFixed(1)}s on the box · seed {meta.seed} — this
             page won't remember it. It has been added to your links.
+            {meta.rewritten && meta.prompt && (
+              <>
+                <br />
+                <span className="imagery-rendered-as">Rendered as: “{meta.prompt}”</span>
+              </>
+            )}
           </figcaption>
         </figure>
       )}
