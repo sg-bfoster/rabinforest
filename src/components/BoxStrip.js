@@ -7,13 +7,17 @@ import { API_ENDPOINTS } from '../config/api';
  *
  * Always present, because "which model is answering" is the most interesting
  * fact this site has and it used to be invisible until you asked. During a
- * swap it narrates the phase and counts it up — a swap is ~110s end to end
- * (unload, ~12s load, ~85s prime), and a minute of silence reads as broken.
+ * swap it narrates the phase and counts it up — unload, ~12s load, then a
+ * prime the server times per model — and a minute of silence reads as broken.
  *
  * Console styling on purpose: it is machine output, and the imagery page has
  * already proved that showing the machine working is more compelling than
  * hiding it.
  */
+// How far past the typical a prime may run before the strip calls it long.
+// Prefill shares one iGPU with imagery, so a 1.5x prime is ordinary.
+const OVERDUE_FACTOR = 1.5;
+
 const shortModel = (id) => (id ? String(id).split('/').pop() : null);
 
 const PHASE_LABEL = {
@@ -37,11 +41,17 @@ function line(status, elapsed) {
     };
   }
   if (status.engine === 'warming') {
-    const typical = Math.round((status.warmingTypicalMs ?? 85_000) / 1000);
-    const over = elapsed != null && elapsed > typical;
+    // The server reports an HONEST typical: the median of recent measured
+    // primes for this model (bfoster-services prime-timing.js). The margin
+    // lives here, so a prime only reads as running long well past typical.
+    // No fallback number: the old `?? 85_000` was a gpt-oss figure from
+    // 2026-09-10 and it outlived every model it described.
+    const typical = status.warmingTypicalMs ? Math.round(status.warmingTypicalMs / 1000) : null;
+    const over = elapsed != null && typical != null && elapsed > typical * OVERDUE_FACTOR;
+    const progress = elapsed != null ? `  ${elapsed}s${typical != null ? ` / ~${typical}s` : ''}` : '';
     return {
       tone: 'busy',
-      text: `priming knowledge base${elapsed != null ? `  ${elapsed}s / ~${typical}s` : ''}` +
+      text: `priming knowledge base${progress}` +
         (over ? '  · running long, a render may be sharing the GPU' : '  · answers routed to Gemini'),
     };
   }
