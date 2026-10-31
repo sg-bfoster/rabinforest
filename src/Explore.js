@@ -18,7 +18,7 @@ const GROUPS = [
     id: 'safeguard',
     title: 'Safe-Guard brand platforms',
     blurb:
-      'The fourteen automotive protection sites he owns the frontend for. REV is the live example; the rest are brand skins of the same platform.',
+      'The fifteen automotive protection sites he owns the frontend for. REV is the live example; the rest are brand skins of the same platform.',
     compact: true,
     keys: [
       'rev',
@@ -30,6 +30,7 @@ const GROUPS = [
       'oneprotect',
       'mini',
       'bmw',
+      'bmw_motorrad',
       'extraprotection',
       'porsche',
       'lfs',

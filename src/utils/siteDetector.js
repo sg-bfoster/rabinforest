@@ -182,6 +182,19 @@ const SITE_CONFIG = {
       /https?:\/\/.*mybmwprotection\.com/gi,
     ],
   },
+  bmw_motorrad: {
+    key: 'bmw_motorrad',
+    displayName: 'BMW Motorrad Protection',
+    screenshotPath: '/screenshots/bmw-motorrad-screenshot.png',
+    url: 'https://www.mybmwmotorradprotection.com/vehicle-service-contract',
+    patterns: [
+      /bmw\s*motorrad/gi,
+      /motorrad\s*protection/gi,
+      /mybmwmotorradprotection\.com/gi,
+      /www\.mybmwmotorradprotection\.com/gi,
+      /https?:\/\/.*mybmwmotorradprotection\.com/gi,
+    ],
+  },
   extraprotection: {
     key: 'extraprotection',
     displayName: 'Extra Protection',
@@ -200,7 +213,7 @@ const SITE_CONFIG = {
     screenshotPath: '/screenshots/rev-screenshot.png',
     url: 'https://www.revprotectionplans.com',
     summary:
-      'Consumer vehicle-protection platform Brian owns the frontend for at Safe-Guard — the live example of the fourteen automotive brand sites across the US and Canada.',
+      'Consumer vehicle-protection platform Brian owns the frontend for at Safe-Guard — the live example of the fifteen automotive brand sites across the US and Canada.',
     patterns: [
       /rev\s*protection\s*plans/gi,
       /revprotectionplans\.com/gi,
@@ -211,7 +224,9 @@ const SITE_CONFIG = {
       // "REV", so those mentions have to resolve here too.
       /\bsafe[\s-]*guard\b/gi,
       /\bfourteen\s+automotive\s+brands\b/gi,
+      /\bfifteen\s+automotive\s+brands\b/gi,
       /\b14\s+automotive\s+brands\b/gi,
+      /\b15\s+automotive\s+brands\b/gi,
       /vehicle\s+protection\s+platforms?/gi,
       /vehicle\s+service\s+contracts?/gi,
       /odometer\s+verif/gi,
