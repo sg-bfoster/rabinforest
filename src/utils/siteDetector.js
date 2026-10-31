@@ -446,10 +446,14 @@ const SITE_CONFIG = {
       '/screenshots/askgwinnett2.png',
     ],
     summary:
-      'Plain-language answers about Gwinnett County, GA: property taxes, schools, parks, traffic, voting, and BOC & school board meetings — free, in English, Spanish, Korean, and Vietnamese, and every answer links its source.',
+      'Plain-language answers about Gwinnett County, GA: property taxes, schools, parks, traffic, voting, and BOC & school board meetings — free, in English, Spanish, Korean, and Vietnamese, and every answer links its source. Also on the App Store as an iPhone app, built from the same Angular code with Capacitor.',
     screenshotPath: '/screenshots/askgwinnett1.png',
     url: 'https://www.askgwinnett.com',
     docs: [
+      {
+        label: 'iPhone app (App Store)',
+        url: 'https://apps.apple.com/us/app/askgwinnett/id6824590924',
+      },
       {
         label: 'Architecture (overview)',
         url: `${API_BASE_URL}/docs/AskGWINnett-Architecture-non-technical.pdf`,
