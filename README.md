@@ -90,7 +90,7 @@ The application features a responsive design with a forest-themed UI, slide-out 
 
 - `npm run start-dev`: Starts the development server with hot reloading (port 3000)
 - `npm run build`: Builds the app for production
-- `npm start`: Serves the production build using `serve`
+- `npm start`: Serves the production build using `vite preview`
 - `npm test`: Runs the test suite
 - `npm run eject`: Ejects from Create React App (one-way operation)
 
