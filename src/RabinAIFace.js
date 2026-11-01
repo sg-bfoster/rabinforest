@@ -203,6 +203,7 @@ function linkLabel(url) {
     const host = u.hostname.replace(/^www\./, '');
     if (host === 'rabinforest.com' && u.pathname.startsWith('/contact')) return 'Contact Brian';
     if (/\/resume\b/.test(u.pathname)) return "Brian's résumé";
+    if (host === 'apps.apple.com') return 'App Store';
     const path = u.pathname.replace(/\/$/, '');
     return path ? `${host}${path}` : host;
   } catch { return url; }
