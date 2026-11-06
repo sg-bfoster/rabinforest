@@ -966,7 +966,7 @@ const Home = () => {
                 <section className="app-band" aria-labelledby="app-band-title">
                     <h2 id="app-band-title">On the App Store</h2>
                     <p className="app-band-lede">
-                        Two of his own apps, live for iPhone and iPad. Designed, built and taken through Apple review by Brian alone.
+                        Two of his own projects, also available as free apps for iPhone and iPad.
                     </p>
                     <div className="app-band-grid">
                         {APP_STORE_APPS.map((app) => (
