@@ -441,17 +441,23 @@ const SITE_CONFIG = {
     key: 'askgwinnett',
     displayName: 'AskGwinnett',
     category: 'portfolio',
+    // Lead with the App Store captures (phone/iPad screens composed onto a
+    // landscape canvas so the 16:10 thumb and the gallery keep their shape),
+    // then the web captures: it is a website too.
     screenshotPaths: [
+      '/screenshots/askgwinnett-ios1.jpg',
+      '/screenshots/askgwinnett-ios3.jpg',
+      '/screenshots/askgwinnett-ios2.jpg',
       '/screenshots/askgwinnett1.png',
       '/screenshots/askgwinnett2.png',
     ],
     summary:
       'Plain-language answers about Gwinnett County, GA, every one linked to its source: property taxes, schools, parks, voting, Board of Commissioners minutes, the council records of eleven cities, county boards and committees, and a map of license plate reader cameras — free, in English, Spanish, Korean, and Vietnamese. Ask by voice, hear answers read aloud, and get meeting-day and new-minutes notifications in the iPhone and iPad app, built from the same Angular code with Capacitor.',
-    screenshotPath: '/screenshots/askgwinnett1.png',
+    screenshotPath: '/screenshots/askgwinnett-ios1.jpg',
     url: 'https://www.askgwinnett.com',
     docs: [
       {
-        label: 'iPhone app (App Store)',
+        label: 'iPhone and iPad app (App Store)',
         url: 'https://apps.apple.com/us/app/askgwinnett/id6824590924',
       },
       {
@@ -486,6 +492,10 @@ const SITE_CONFIG = {
     displayName: 'Lost Corridors',
     category: 'portfolio',
     screenshotPaths: [
+      '/screenshots/lost-corridors-ios-03-exit.jpg',
+      '/screenshots/lost-corridors-ios-02-play.jpg',
+      '/screenshots/lost-corridors-ios-04-map.jpg',
+      '/screenshots/lost-corridors-ios-05-escaped.jpg',
       '/screenshots/lost-corridors3.png',
       '/screenshots/lost-corridors2.png',
       '/screenshots/lost-corridors5.png',
@@ -493,10 +503,17 @@ const SITE_CONFIG = {
       '/screenshots/lost-corridors7.png',
       '/screenshots/lost-corridors1.png',
     ],
+    // Describes what is LIVE on the App Store (1.0), not what is in review.
     summary:
-      "Lost Corridors is inspired by the Backrooms, the internet myth of endless liminal spaces you stumble into when you clip out of reality. Explore fluorescent-lit carpet halls, crawl tubes, ramps, and multi-level passages rendered in WebGL with real physics. The world grows through procedural template growth — a server-side engine stitches hand-built structures onto the map's frontier, so there is always somewhere you haven't been. AI's role was offline: authoring and gating level content before it shipped. Controls are in the nav bar, and your last position is saved between reloads.",
-    screenshotPath: '/screenshots/lost-corridors3.png',
+      "A first-person escape game inspired by the Backrooms, the internet myth of endless liminal spaces you stumble into when you clip out of reality. Every run is a fresh maze of fluorescent-lit carpet halls, crawl tubes, ramps and flooded pools, rendered in WebGL with real physics. Find the door outlined in blue tape before the Bacteria finds you. On the web the open world also grows without end: a server-side engine stitches hand-built structures onto the map's frontier. AI's role was offline, authoring and gating level content before it shipped. On iPhone and iPad it plays offline with touch controls; free, no ads, no accounts.",
+    screenshotPath: '/screenshots/lost-corridors-ios-03-exit.jpg',
     url: 'https://www.lostcorridors.com',
+    docs: [
+      {
+        label: 'iPhone and iPad app (App Store)',
+        url: 'https://apps.apple.com/us/app/lost-corridors/id6828006802',
+      },
+    ],
     patterns: [
       /lostcorridors\.com/gi,
       /www\.lostcorridors\.com/gi,

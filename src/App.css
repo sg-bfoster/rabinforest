@@ -780,6 +780,58 @@
 }
 .chat-input-row .input { flex: 1; min-width: 0; }
 
+/* "On the App Store": two tiles, AskGWINnett wider (3fr vs 2fr). */
+.app-band { margin: 0 auto 64px; }
+.app-band h2 {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--muted-2);
+}
+.app-band-lede { margin: 10px 0 0; font-size: 15.5px; line-height: 1.62; color: var(--muted); max-width: 60ch; }
+.app-band-grid {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 24px;
+  margin-top: 24px;
+  align-items: start;
+}
+.app-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+}
+.app-tile-head { display: flex; align-items: center; gap: 14px; }
+.app-tile-icon { flex: none; width: 56px; height: 56px; border-radius: 13px; border: 1px solid var(--hairline); }
+.app-tile-name { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.015em; color: var(--ink); }
+.app-tile-meta { margin-top: 2px; font-size: 13px; color: var(--muted-2); }
+.app-tile-text { margin: 0; font-size: 15px; line-height: 1.6; color: var(--muted); }
+.app-tile-shot {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid var(--hairline);
+  background: var(--field);
+}
+.app-tile-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
+.app-tile-badge { display: inline-flex; line-height: 0; border-radius: 8px; }
+.app-tile-badge img { height: 40px; width: auto; }
+.app-tile-badge:focus-visible, .app-tile-site:focus-visible { outline: 2px solid var(--cool); outline-offset: 3px; }
+.app-tile-site { font-size: 15px; font-weight: 500; color: var(--cool); text-decoration: none; }
+.app-tile-site:hover { color: var(--action); }
+@media (max-width: 760px) {
+  .app-band-grid { grid-template-columns: 1fr; }
+}
+
 .trust-band { margin: 0 auto; max-width: 1000px; }
 .page-body--assistant .trust-band { max-width: none; }
 .trust-band h2 {

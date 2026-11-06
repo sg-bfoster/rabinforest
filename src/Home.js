@@ -26,6 +26,34 @@ import { SpeakerIcon, StopIcon } from './components/SpeakerIcons';
 //
 // 'Where is he based?' was removed: the hero sub-line already says Metro
 // Atlanta, so it spent a slot re-answering something on screen.
+// The "On the App Store" band. Copy describes what is LIVE in the store, not
+// what is in review. Screenshots are the plain (uncaptioned) store captures.
+const APP_STORE_APPS = [
+    {
+        name: 'AskGWINnett',
+        lead: true,
+        meta: 'Civic answers · since Oct 31, 2026',
+        text: 'Plain-language answers about Gwinnett County, each linked to its source. Ask by voice, hear answers read aloud, and get meeting-day notifications. The askgwinnett.com Angular app, made native with Capacitor.',
+        icon: '/apps/askgwinnett-icon.png',
+        shot: '/screenshots/askgwinnett-ios1.jpg',
+        shotAlt: 'AskGWINnett on iPhone: the home screen, an answer about a Board of Commissioners vote, and an answer with its sources',
+        store: 'https://apps.apple.com/us/app/askgwinnett/id6824590924',
+        site: 'https://www.askgwinnett.com',
+        siteLabel: 'askgwinnett.com',
+    },
+    {
+        name: 'Lost Corridors',
+        meta: 'Escape game · since Nov 5, 2026',
+        text: 'A Backrooms escape game in real-time WebGL with physics. Find the taped exit in a fresh maze before the Bacteria finds you. Plays offline.',
+        icon: '/apps/lost-corridors-icon.png',
+        shot: '/screenshots/lost-corridors-ios-03-exit.jpg',
+        shotAlt: 'Lost Corridors on iPhone: a door outlined in blue tape on a yellow wall, with the camcorder timer and mini-map',
+        store: 'https://apps.apple.com/us/app/lost-corridors/id6828006802',
+        site: 'https://www.lostcorridors.com',
+        siteLabel: 'lostcorridors.com',
+    },
+];
+
 const QUESTION_POOL = [
     // the strong material
     'Give me an example of something he owned end to end',
@@ -36,6 +64,7 @@ const QUESTION_POOL = [
     // projects
     'What has Brian built recently?',
     'Tell me about AskGWINnett',
+    'What apps has Brian shipped to the App Store?',
     "What's stilltrue?",
     'Tell me about Callmata',
     "What's RabinAI?",
@@ -928,6 +957,40 @@ const Home = () => {
                 </div>
             </Hero>
             <ScreenBody width="assistant">
+                {/* Two shipped App Store apps, AskGWINnett first and wider: it is
+                    the work a hiring reader should see first; the game proves
+                    range without competing with it (APP_STORE_APPS_PLAN, option 3).
+                    The badge is Apple's artwork, unmodified, as their marketing
+                    guidelines require. No ratings: both apps are days old. */}
+                <section className="app-band" aria-labelledby="app-band-title">
+                    <h2 id="app-band-title">On the App Store</h2>
+                    <p className="app-band-lede">
+                        Two of his own apps, live for iPhone and iPad. Designed, built and taken through Apple review by Brian alone.
+                    </p>
+                    <div className="app-band-grid">
+                        {APP_STORE_APPS.map((app) => (
+                            <article key={app.name} className={`app-tile${app.lead ? ' app-tile--lead' : ''}`}>
+                                <div className="app-tile-head">
+                                    <img className="app-tile-icon" src={app.icon} alt="" width="56" height="56" />
+                                    <div>
+                                        <h3 className="app-tile-name">{app.name}</h3>
+                                        <div className="app-tile-meta">{app.meta}</div>
+                                    </div>
+                                </div>
+                                <p className="app-tile-text">{app.text}</p>
+                                <img className="app-tile-shot" src={app.shot} alt={app.shotAlt} loading="lazy" />
+                                <div className="app-tile-actions">
+                                    <a href={app.store} target="_blank" rel="noopener noreferrer" className="app-tile-badge">
+                                        <img src="/apps/app-store-badge.svg" alt={`Download ${app.name} on the App Store`} width="120" height="40" />
+                                    </a>
+                                    <a href={app.site} target="_blank" rel="noopener noreferrer" className="app-tile-site">
+                                        {app.siteLabel} <span aria-hidden="true">↗</span>
+                                    </a>
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+                </section>
                 <section className="trust-band">
                     <h2>How this is built</h2>
                     <div className="trust-band-grid">
