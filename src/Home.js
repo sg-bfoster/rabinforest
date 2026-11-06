@@ -46,7 +46,8 @@ const APP_STORE_APPS = [
         meta: 'Escape game · since Nov 5, 2026',
         text: 'A Backrooms escape game in real-time WebGL with physics. Find the taped exit in a fresh maze before the Bacteria finds you. Plays offline.',
         icon: '/apps/lost-corridors-icon.png',
-        shot: '/screenshots/lost-corridors-ios-03-exit.jpg',
+        // Same 2400×1500 light canvas as AskGWINnett's, so the tiles match.
+        shot: '/screenshots/lost-corridors-ios-tile.jpg',
         shotAlt: 'Lost Corridors on iPhone: a door outlined in blue tape on a yellow wall, with the camcorder timer and mini-map',
         store: 'https://apps.apple.com/us/app/lost-corridors/id6828006802',
         site: 'https://www.lostcorridors.com',
@@ -957,9 +958,9 @@ const Home = () => {
                 </div>
             </Hero>
             <ScreenBody width="assistant">
-                {/* Two shipped App Store apps, AskGWINnett first and wider: it is
-                    the work a hiring reader should see first; the game proves
-                    range without competing with it (APP_STORE_APPS_PLAN, option 3).
+                {/* Two shipped App Store apps in equal tiles (Brian, 2026-11-06),
+                    AskGWINnett first: it is the work a hiring reader should see
+                    first; the game shows range.
                     The badge is Apple's artwork, unmodified, as their marketing
                     guidelines require. No ratings: both apps are days old. */}
                 <section className="app-band" aria-labelledby="app-band-title">
