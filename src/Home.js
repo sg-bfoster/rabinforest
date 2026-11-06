@@ -66,6 +66,8 @@ const QUESTION_POOL = [
     'What has Brian built recently?',
     'Tell me about AskGWINnett',
     'What apps has Brian shipped to the App Store?',
+    'How did he turn AskGWINnett into an iPhone app?',
+    'Can I play Lost Corridors on my iPhone?',
     "What's stilltrue?",
     'Tell me about Callmata',
     "What's RabinAI?",
