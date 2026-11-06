@@ -767,6 +767,11 @@
   gap: 6px 12px;
   font-size: 13px;
 }
+/* margin-top:auto pins the badge (and the links under it) to the card bottom. */
+.links-card-store { align-self: flex-start; margin-top: auto; padding-top: 12px; line-height: 0; border-radius: 8px; }
+.links-card-store + .links-card-meta { margin-top: 0; }
+.links-card-store img { height: 40px; width: auto; }
+.links-card-store:focus-visible { outline: 2px solid var(--cool); outline-offset: 3px; }
 .links-card-meta a { color: var(--cool); }
 .links-card-meta a:hover { color: var(--action); }
 .links-card-nolink { color: var(--muted-2); }

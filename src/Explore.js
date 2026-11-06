@@ -82,7 +82,12 @@ const linkLabel = (url) => {
 const LinkCard = ({ site, compact }) => {
   const dispatch = useDispatch();
   const hasThumb = Boolean(site.screenshotPath);
-  const docs = Array.isArray(site.docs) ? site.docs.filter((d) => d?.url) : [];
+  const allDocs = Array.isArray(site.docs) ? site.docs.filter((d) => d?.url) : [];
+  // App Store listings render as Apple's badge (unmodified artwork, per their
+  // marketing guidelines), not as one more text link in the row.
+  const isAppStore = (d) => /^https:\/\/apps\.apple\.com\//.test(d.url);
+  const storeDocs = allDocs.filter(isAppStore);
+  const docs = allDocs.filter((d) => !isAppStore(d));
 
   const openGallery = () => dispatch(openModal(screenshotModalFor(site)));
 
@@ -106,6 +111,11 @@ const LinkCard = ({ site, compact }) => {
         {!compact && site.summary ? (
           <p className="links-card-summary">{site.summary}</p>
         ) : null}
+        {storeDocs.map((doc) => (
+          <a key={doc.url} className="links-card-store" href={doc.url} target="_blank" rel="noopener noreferrer">
+            <img src="/apps/app-store-badge.svg" alt={`${site.displayName}: ${doc.label || 'App Store'}`} width="120" height="40" />
+          </a>
+        ))}
         <div className="links-card-meta">
           {site.url ? (
             <a href={site.url} target="_blank" rel="noopener noreferrer">
