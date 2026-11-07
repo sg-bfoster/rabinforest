@@ -440,7 +440,14 @@
   display: grid;
   gap: 14px;
   justify-items: start;
+  /* A grid track sizes to its widest unbreakable content, so one long URL in
+     an answer widened the whole column past the phone screen and clipped
+     every line. minmax(0, 1fr) caps the track at the container width. */
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
 }
+.msg-text { overflow-wrap: anywhere; min-width: 0; max-width: 100%; }
+.msg-text a { overflow-wrap: anywhere; word-break: break-word; }
 .ask-card-thread .msg-assistant {
   max-width: 100%;
   width: 100%;
@@ -450,7 +457,7 @@
      the container, so widening the panel to 900px would have pushed lines to
      ~95 characters — past the 60-75 that stays comfortable to read. The panel
      grew; the line length deliberately did not. */
-  max-width: 68ch;
+  max-width: min(68ch, 100%);
   font-size: 17px;
   line-height: 1.68;
   color: var(--ink-2);
