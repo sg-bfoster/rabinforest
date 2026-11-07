@@ -1,6 +1,6 @@
 import axios from 'axios';
 import React, { useState, useEffect, useRef } from 'react';
-import { scrollToPageTopThen } from './utils/scroll';
+import { scrollBelowChrome, scrollToPageTopThen } from './utils/scroll';
 import { openModal } from './features/modalSlice';
 import { useDispatch } from 'react-redux';
 import { addLink } from './features/assistantSlice';
@@ -730,6 +730,28 @@ const Home = () => {
         return () => window.removeEventListener('scroll', onScroll);
     }, []);
 
+    // Deep links like rabinforest.com/#apps (the Lost Corridors author link).
+    // The page renders client-side and App resets scroll on every route, so
+    // the browser's own hash jump never lands; scroll once after paint and
+    // again on load, when images above have settled. Declared before the
+    // conversation pin below so a saved chat doesn't drag the page back down.
+    useEffect(() => {
+        const id = decodeURIComponent(window.location.hash.slice(1));
+        if (!id) return;
+        const go = () => {
+            const el = document.getElementById(id);
+            if (el) scrollBelowChrome(el, { behavior: 'auto' });
+        };
+        if (!document.getElementById(id)) return;
+        stickToBottom.current = false;
+        const raf = requestAnimationFrame(go);
+        if (document.readyState !== 'complete') window.addEventListener('load', go, { once: true });
+        return () => {
+            cancelAnimationFrame(raf);
+            window.removeEventListener('load', go);
+        };
+    }, []);
+
     useEffect(() => {
         // Pin the composer (bottom of the card) in view. Scrolling a sentinel
         // in the thread used to land mid-card and hide the input under the fold.
@@ -965,7 +987,7 @@ const Home = () => {
                     first; the game shows range.
                     The badge is Apple's artwork, unmodified, as their marketing
                     guidelines require. No ratings: both apps are days old. */}
-                <section className="app-band" aria-labelledby="app-band-title">
+                <section id="apps" className="app-band" aria-labelledby="app-band-title">
                     <h2 id="app-band-title">On the App Store</h2>
                     <p className="app-band-lede">
                         Two of his own projects, also available as free apps for iPhone and iPad.
