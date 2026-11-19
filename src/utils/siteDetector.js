@@ -522,6 +522,37 @@ const SITE_CONFIG = {
       /\blostcorridors\b/gi,
     ],
   },
+  buzz_buzz_football: {
+    key: 'buzz_buzz_football',
+    displayName: 'Buzz Buzz Football',
+    category: 'portfolio',
+    // App Store phone screens first (three to a landscape canvas, like
+    // AskGWINnett's), then the website and the game in a desktop browser.
+    screenshotPaths: [
+      '/screenshots/buzz-buzz-football-ios1.jpg',
+      '/screenshots/buzz-buzz-football-ios2.jpg',
+      '/screenshots/buzz-buzz-football2.jpg',
+      '/screenshots/buzz-buzz-football3.jpg',
+      '/screenshots/buzz-buzz-football1.jpg',
+    ],
+    // Describes what is LIVE on the App Store (1.0), not what is planned.
+    summary:
+      "The vibrating tabletop football board of the 1970s, as a physics simulation. You pick a formation and a play, switch the board on, and every figure buzzes off the way it was aimed: nobody steers. A full game against a Rookie or a Pro opponent, with four quarters, halftime, sudden-death overtime, running plays, a passing game, kickoffs, punts, field goals and extra points. Free in the browser and as an iPhone and iPad app; no ads, no accounts, plays offline. Brian designed and built all of it: TypeScript, Three.js, his own deterministic physics, Vite, and Capacitor for the App Store build.",
+    screenshotPath: '/screenshots/buzz-buzz-football-ios1.jpg',
+    url: 'https://www.buzzbuzzfootball.com',
+    docs: [
+      {
+        label: 'iPhone and iPad app (App Store)',
+        url: 'https://apps.apple.com/us/app/buzz-buzz-football/id6836442726',
+      },
+    ],
+    patterns: [
+      /buzzbuzzfootball\.com/gi,
+      /www\.buzzbuzzfootball\.com/gi,
+      /https?:\/\/.*buzzbuzzfootball\.com/gi,
+      /\bbuzz\s*buzz\s*football\b/gi,
+    ],
+  },
   stilltrue: {
     key: 'stilltrue',
     displayName: 'stilltrue',

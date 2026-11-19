@@ -48,6 +48,7 @@ const GROUPS = [
       'stilltrue',
       'callmata',
       'lost_corridors',
+      'buzz_buzz_football',
       'tellspinners',
       'experimental_cheese',
       'rabinai',

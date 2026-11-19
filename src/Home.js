@@ -53,6 +53,18 @@ const APP_STORE_APPS = [
         site: 'https://www.lostcorridors.com',
         siteLabel: 'lostcorridors.com',
     },
+    {
+        name: 'Buzz Buzz Football',
+        meta: 'Tabletop football · since Nov 19, 2026',
+        text: 'The vibrating tabletop football board of the 1970s, as a physics simulation. Pick a formation and a play, switch the board on, and the figures decide the rest. A full game against a Rookie or a Pro. Plays offline.',
+        icon: '/apps/buzz-buzz-football-icon.png',
+        // Three phone screens on the same 2400×1500 light canvas as the others.
+        shot: '/screenshots/buzz-buzz-football-ios1.jpg',
+        shotAlt: 'Buzz Buzz Football on iPhone: the figures lined up with a play chosen, the board running, and a 43-yard field goal try',
+        store: 'https://apps.apple.com/us/app/buzz-buzz-football/id6836442726',
+        site: 'https://www.buzzbuzzfootball.com',
+        siteLabel: 'buzzbuzzfootball.com',
+    },
 ];
 
 const QUESTION_POOL = [
@@ -72,6 +84,7 @@ const QUESTION_POOL = [
     'Tell me about Callmata',
     "What's RabinAI?",
     'Tell me about Lost Corridors',
+    "What's Buzz Buzz Football?",
     "What's Tellspinners?",
     // skills and hiring
     "What's his frontend stack?",
@@ -982,15 +995,16 @@ const Home = () => {
                 </div>
             </Hero>
             <ScreenBody width="assistant">
-                {/* Two shipped App Store apps in equal tiles (Brian, 2026-11-06),
-                    AskGWINnett first: it is the work a hiring reader should see
-                    first; the game shows range.
+                {/* The shipped App Store apps in equal tiles (Brian, 2026-11-06;
+                    Buzz Buzz Football added 2026-11-19), AskGWINnett first: it
+                    is the work a hiring reader should see first; the games
+                    show range.
                     The badge is Apple's artwork, unmodified, as their marketing
-                    guidelines require. No ratings: both apps are days old. */}
+                    guidelines require. No ratings: the apps are weeks old. */}
                 <section id="apps" className="app-band" aria-labelledby="app-band-title">
                     <h2 id="app-band-title">On the App Store</h2>
                     <p className="app-band-lede">
-                        Two of his own projects, also available as free apps for iPhone and iPad.
+                        Three of his own projects, also available as free apps for iPhone and iPad.
                     </p>
                     <div className="app-band-grid">
                         {APP_STORE_APPS.map((app) => (

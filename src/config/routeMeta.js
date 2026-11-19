@@ -139,7 +139,7 @@ const PAGES = {
   '/explore': {
     title: 'Explore | Rabin Forest',
     description:
-      "Every live site, screenshot, and document Brian Foster's assistant can point at — AskGWINnett, stilltrue, Callmata, Lost Corridors, and the Safe-Guard brand platforms.",
+      "Every live site, screenshot, and document Brian Foster's assistant can point at — AskGWINnett, stilltrue, Callmata, Lost Corridors, Buzz Buzz Football, and the Safe-Guard brand platforms.",
     canonical: `${SITE}/explore`,
     schema: page(
       'CollectionPage',
