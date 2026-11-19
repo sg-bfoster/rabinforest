@@ -822,7 +822,8 @@
   border-radius: 14px;
   box-shadow: var(--shadow-sm);
 }
-.app-tile-head { display: flex; align-items: center; gap: 14px; }
+/* Top-aligned: a name that wraps to two lines must not push its icon down. */
+.app-tile-head { display: flex; align-items: flex-start; gap: 14px; }
 .app-tile-icon { flex: none; width: 56px; height: 56px; border-radius: 13px; border: 1px solid var(--hairline); }
 .app-tile-name { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.015em; color: var(--ink); }
 .app-tile-meta { margin-top: 2px; font-size: 13px; color: var(--muted-2); }
