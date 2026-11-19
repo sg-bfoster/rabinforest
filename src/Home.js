@@ -85,6 +85,7 @@ const QUESTION_POOL = [
     "What's RabinAI?",
     'Tell me about Lost Corridors',
     "What's Buzz Buzz Football?",
+    'Is Buzz Buzz Football on the App Store?',
     "What's Tellspinners?",
     // skills and hiring
     "What's his frontend stack?",
