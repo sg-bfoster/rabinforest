@@ -30,6 +30,8 @@ import { SpeakerIcon, StopIcon } from './components/SpeakerIcons';
 // what is in review. Screenshots are the plain (uncaptioned) store captures.
 const APP_STORE_APPS = [
     {
+        // The tile's anchor: rabinforest.com/#askgwinnett lands on it.
+        id: 'askgwinnett',
         name: 'AskGWINnett',
         lead: true,
         meta: 'Civic answers · since Oct 31, 2026',
@@ -42,6 +44,8 @@ const APP_STORE_APPS = [
         siteLabel: 'askgwinnett.com',
     },
     {
+        // The tile's anchor: rabinforest.com/#lost-corridors lands on it.
+        id: 'lost-corridors',
         name: 'Lost Corridors',
         meta: 'Escape game · since Nov 5, 2026',
         text: 'A Backrooms escape game in real-time WebGL with physics. Find the taped exit in a fresh maze before the Bacteria finds you. Plays offline.',
@@ -54,6 +58,8 @@ const APP_STORE_APPS = [
         siteLabel: 'lostcorridors.com',
     },
     {
+        // The tile's anchor: rabinforest.com/#buzz-buzz-football lands on it.
+        id: 'buzz-buzz-football',
         name: 'Buzz Buzz Football',
         meta: 'Tabletop football · since Nov 19, 2026',
         text: 'The vibrating tabletop football board of the 1970s, as a physics simulation. Pick a formation and a play, switch the board on, and the figures decide the rest. A full game against a Rookie or a Pro. Plays offline.',
@@ -1009,7 +1015,7 @@ const Home = () => {
                     </p>
                     <div className="app-band-grid">
                         {APP_STORE_APPS.map((app) => (
-                            <article key={app.name} className={`app-tile${app.lead ? ' app-tile--lead' : ''}`}>
+                            <article key={app.name} id={app.id} className={`app-tile${app.lead ? ' app-tile--lead' : ''}`}>
                                 <div className="app-tile-head">
                                     <img className="app-tile-icon" src={app.icon} alt="" width="56" height="56" />
                                     <div>
